@@ -1,0 +1,229 @@
+@host = http://localhost:5000/api
+
+### ============================================================
+### 1. 계정 생성
+### ============================================================
+POST {{host}}/CreateAccount
+Content-Type: application/json
+
+{
+  "ID": "test01",
+  "PW": "***REMOVED***"
+}
+
+### ============================================================
+### 2. 로그인
+### ============================================================
+POST {{host}}/Login
+Content-Type: application/json
+
+{
+  "ID": "test01",
+  "PW": "***REMOVED***"
+}
+
+### ============================================================
+### 3. 유저 정보 조회
+### ============================================================
+POST {{host}}/UserInfo
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{}
+
+### ============================================================
+### 4. 재화 조회
+### ============================================================
+POST {{host}}/Currency
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{}
+
+### ============================================================
+### 5. 가챠
+### ============================================================
+POST {{host}}/Gacha
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{
+  "PoolName": "normal"
+}
+
+### ============================================================
+### 6. 인벤토리 조회
+### ============================================================
+POST {{host}}/Inventory
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{}
+
+### ============================================================
+### 7. 인벤토리 강화
+### ============================================================
+POST {{host}}/InventoryEnhance
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{
+  "EquipUid": 1
+}
+
+### ============================================================
+### 8. 캐릭터 조회
+### ============================================================
+POST {{host}}/Character
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{}
+
+### ============================================================
+### 9. 캐릭터 레벨업
+### ============================================================
+POST {{host}}/CharacterLevelUp
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{
+  "CharacterId": 1
+}
+
+### ============================================================
+### 10. 캐릭터 활성화
+### ============================================================
+POST {{host}}/CharacterSetActive
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{
+  "CharacterId": 1
+}
+
+### ============================================================
+### 11. 캐릭터 장비 장착
+### ============================================================
+POST {{host}}/CharacterEquip
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{
+  "CharacterId": 1,
+  "SlotIndex": 0,
+  "EquipUid": 1
+}
+
+### ============================================================
+### 12. 스테이지 시작
+### ============================================================
+POST {{host}}/StageStart
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{
+  "StageId": 1
+}
+
+### ============================================================
+### 13. 스테이지 완료
+### ============================================================
+POST {{host}}/StageComplete
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{
+  "StageId": 1,
+  "ClearTime": 45.5
+}
+
+### ============================================================
+### 14. 출석 정보 조회
+### ============================================================
+POST {{host}}/AttendanceInfo
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{}
+
+### ============================================================
+### 15. 출석 체크
+### ============================================================
+POST {{host}}/AttendanceCheck
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{}
+
+### ============================================================
+### 16. 패스 정보 조회
+### ============================================================
+POST {{host}}/PassInfo
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{}
+
+### ============================================================
+### 17. 패스 보상 수령
+### ============================================================
+POST {{host}}/PassClaimReward
+Content-Type: application/json
+userid: test01
+authtoken: PASTE_AUTH_TOKEN_HERE
+
+{
+  "PassLevel": 1,
+  "IsPremium": false
+}
+
+### ============================================================
+### Admin: 게임 데이터 업로드
+### ============================================================
+POST {{host}}/Admin/UploadGameData
+Content-Type: application/json
+
+{
+  "Items": [
+    { "id": 1, "tag": "item_sword_01", "name": "기본 검", "grade": 1, "stat_type": "attack", "stat_value": 10.0 },
+    { "id": 2, "tag": "item_shield_01", "name": "기본 방패", "grade": 1, "stat_type": "defense", "stat_value": 5.0 }
+  ],
+  "Characters": [
+    { "id": 1, "tag": "char_warrior", "name": "전사", "base_health": 200, "base_attack": 15, "equip_slot_count": 3 }
+  ],
+  "Stages": [
+    { "id": 1, "tag": "stage_01", "stage_name": "시작의 숲", "required_level": 1, "gold_reward": 100, "pass_exp_reward": 10 },
+    { "id": 2, "tag": "stage_02", "stage_name": "어둠의 동굴", "required_level": 5, "gold_reward": 250, "pass_exp_reward": 25 }
+  ],
+  "GachaPools": [
+    { "pool_name": "normal", "item_id": 1, "weight": 70 },
+    { "pool_name": "normal", "item_id": 2, "weight": 30 }
+  ],
+  "LevelCosts": [
+    { "level": 2, "gold_cost": 100 },
+    { "level": 3, "gold_cost": 250 },
+    { "level": 4, "gold_cost": 500 },
+    { "level": 5, "gold_cost": 1000 }
+  ],
+  "PassRewards": [
+    { "pass_level": 1, "is_premium": false, "reward_type": "gold", "reward_amount": 500 },
+    { "pass_level": 1, "is_premium": true, "reward_type": "diamond", "reward_amount": 100 }
+  ]
+}
+
+###

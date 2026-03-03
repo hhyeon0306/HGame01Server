@@ -1,0 +1,51 @@
+## .NET / C#
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+[Bb]in/
+[Oo]bj/
+
+## User-specific files
+*.rsuser
+*.DotSettings.user
+
+## IDE - Visual Studio
+.vs/
+*.csproj.user
+
+## IDE - JetBrains Rider
+.idea/
+
+## IDE - VSCode
+.vscode/
+
+## OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+## Secrets / Config (필요시 주석 해제)
+# appsettings.Development.json
+# appsettings.Production.json
+
+## oh-my-claudecode
+.omc/
+
+## 런타임 생성 파일
+log/
+game_data/
