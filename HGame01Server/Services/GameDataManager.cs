@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using HGame01Server.Models.GameData;
 using ZLogger;
 
 namespace HGame01Server.Services;
@@ -172,6 +173,28 @@ public class GameDataManager
     {
         var list = GetList<T>();
         return list?.FirstOrDefault(predicate);
+    }
+
+    // ============================================================
+    // 상수 조회 (GdbConstantData 전용)
+    // ============================================================
+
+    public int GetConstInt(string category, string key, int defaultValue = 0)
+    {
+        var data = Get<GdbConstantData>(c => c.category == category && c.key == key);
+        return data != null && int.TryParse(data.value, out var v) ? v : defaultValue;
+    }
+
+    public float GetConstFloat(string category, string key, float defaultValue = 0f)
+    {
+        var data = Get<GdbConstantData>(c => c.category == category && c.key == key);
+        return data != null && float.TryParse(data.value, out var v) ? v : defaultValue;
+    }
+
+    public string GetConstString(string category, string key, string defaultValue = "")
+    {
+        var data = Get<GdbConstantData>(c => c.category == category && c.key == key);
+        return data?.value ?? defaultValue;
     }
 
     // ============================================================
