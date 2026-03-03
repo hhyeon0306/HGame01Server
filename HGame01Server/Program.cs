@@ -119,9 +119,15 @@ void SettingLogger()
         options.RollingSizeKB = 1024;
     });
 
-    // 콘솔 로그: JSON 형식으로 터미널에 출력
+    // 콘솔 로그: 사람이 읽기 쉬운 플레인 텍스트 형식
+    // 예: "05:41:54 [INF] [GameDataManager] 타입 로드: GdbCharacterData (2건)"
     logging.AddZLoggerConsole(options =>
     {
-        options.UseJsonFormatter();
+        options.UsePlainTextFormatter(formatter =>
+        {
+            formatter.SetPrefixFormatter($"{0:local-longdate} [{1:short}] ",
+                (in MessageTemplate template, in LogInfo info) =>
+                    template.Format(info.Timestamp, info.LogLevel));
+        });
     });
 }
