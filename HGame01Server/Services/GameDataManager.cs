@@ -216,6 +216,12 @@ public class GameDataManager
             return;
         }
 
+        // Constants 테이블이면 키 상수 클래스도 생성
+        if (key == "Constants")
+        {
+            GenerateConstClass(jsonArray);
+        }
+
         // 클래스명 생성: "Characters" → "GdbCharacterData", "Stages" → "GdbStageData"
         string className = $"Gdb{ToSingular(key)}Data";
         string filePath = Path.Combine(_modelDir, $"{className}.cs");
@@ -241,6 +247,102 @@ public class GameDataManager
         File.WriteAllText(filePath, sb.ToString());
 
         _logger.ZLogInformation($"[GameDataManager] 클래스 생성: {filePath}");
+    }
+
+    // ============================================================
+    // Constants JSON → GdbConst.cs 키 상수 클래스 자동 생성
+    // category별로 내부 클래스 생성, key를 PascalCase const로 변환
+    // ============================================================
+
+    private void GenerateConstClass(JsonElement jsonArray)
+    {
+        // category별로 그룹핑
+        var groups = new Dictionary<string, List<string>>();
+
+        foreach (var element in jsonArray.EnumerateArray())
+        {
+            if (element.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            string category = element.TryGetProperty("category", out var cat) ? cat.GetString() ?? "" : "";
+            string key = element.TryGetProperty("key", out var k) ? k.GetString() ?? "" : "";
+
+            if (string.IsNullOrEmpty(category) || string.IsNullOrEmpty(key))
+            {
+                continue;
+            }
+
+            if (!groups.ContainsKey(category))
+            {
+                groups[category] = new List<string>();
+            }
+
+            groups[category].Add(key);
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine("namespace HGame01Server.Models.GameData;");
+        sb.AppendLine();
+        sb.AppendLine("// 이 파일은 Admin/UploadGameData API에 의해 자동 생성되었습니다.");
+        sb.AppendLine("// 직접 수정하지 마세요. Unity에서 데이터를 다시 업로드하면 덮어씌워집니다.");
+        sb.AppendLine();
+        sb.AppendLine("public static class GdbConst");
+        sb.AppendLine("{");
+
+        foreach (var (category, keys) in groups)
+        {
+            string className = ToPascalCase(category);
+            sb.AppendLine($"    public static class {className}");
+            sb.AppendLine("    {");
+            sb.AppendLine($"        public const string Category = \"{category}\";");
+
+            foreach (var key in keys)
+            {
+                string constName = ToPascalCase(key);
+                sb.AppendLine($"        public const string {constName} = \"{key}\";");
+            }
+
+            sb.AppendLine("    }");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("}");
+
+        string filePath = Path.Combine(_modelDir, "GdbConst.cs");
+        File.WriteAllText(filePath, sb.ToString());
+
+        _logger.ZLogInformation($"[GameDataManager] 상수 클래스 생성: {filePath}");
+    }
+
+    // camelCase/snake_case → PascalCase 변환
+    // "refreshTime" → "RefreshTime", "max_level" → "MaxLevel"
+    private static string ToPascalCase(string input)
+    {
+        var sb = new StringBuilder();
+        bool capitalizeNext = true;
+
+        foreach (char c in input)
+        {
+            if (c == '_')
+            {
+                capitalizeNext = true;
+                continue;
+            }
+
+            if (capitalizeNext)
+            {
+                sb.Append(char.ToUpper(c));
+                capitalizeNext = false;
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+
+        return sb.ToString();
     }
 
     // JSON 값 → C# 타입 추론
