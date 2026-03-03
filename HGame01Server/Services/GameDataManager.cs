@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using ZLogger;
@@ -7,7 +8,7 @@ namespace HGame01Server.Services;
 /// <summary>
 /// 게임 데이터(정적 데이터) 관리
 /// - Admin API로 JSON 수신 → 파일 저장 + 메모리 적재 + C# 클래스 자동 생성
-/// - 서버 시작 시 JSON 파일 → 메모리 자동 로드
+/// - 서버 시작 시 JSON 파일 → C# 타입으로 역직렬화하여 메모리 적재
 /// </summary>
 public class GameDataManager
 {
@@ -20,8 +21,11 @@ public class GameDataManager
         WriteIndented = true
     };
 
-    // 메모리 저장소: key = 데이터 타입명, value = JSON 데이터
-    private Dictionary<string, JsonElement> _gameData = new();
+    // 메모리 저장소: key = C# 타입, value = List<T> (object로 보관)
+    private Dictionary<Type, object> _typedData = new();
+
+    // 타입을 찾을 수 없는 경우 fallback: key = 파일명, value = raw JSON
+    private Dictionary<string, JsonElement> _rawData = new();
 
     public GameDataManager(IConfiguration configuration, ILogger<GameDataManager> logger)
     {
@@ -53,26 +57,49 @@ public class GameDataManager
 
     public void LoadAll()
     {
-        var newData = new Dictionary<string, JsonElement>();
+        var newTypedData = new Dictionary<Type, object>();
+        var newRawData = new Dictionary<string, JsonElement>();
 
         foreach (var filePath in Directory.GetFiles(_dataDir, "*.json"))
         {
             string key = Path.GetFileNameWithoutExtension(filePath);
             string json = File.ReadAllText(filePath);
 
-            var doc = JsonDocument.Parse(json);
-            newData[key] = doc.RootElement.Clone();
+            // 리플렉션으로 C# 타입 찾기: "Characters" → GdbCharacterData
+            string className = $"Gdb{ToSingular(key)}Data";
+            Type? type = Assembly.GetExecutingAssembly()
+                .GetType($"HGame01Server.Models.GameData.{className}");
 
-            _logger.ZLogInformation($"[GameDataManager] 로드: {key} ({doc.RootElement.GetArrayLength()}건)");
+            if (type != null)
+            {
+                // List<GdbCharacterData> 등으로 역직렬화
+                var listType = typeof(List<>).MakeGenericType(type);
+                var list = JsonSerializer.Deserialize(json, listType, _jsonOptions);
+
+                if (list != null)
+                {
+                    newTypedData[type] = list;
+                    var count = ((System.Collections.IList)list).Count;
+                    _logger.ZLogInformation($"[GameDataManager] 타입 로드: {className} ({count}건)");
+                }
+            }
+            else
+            {
+                // 타입 없으면 raw JSON으로 보관
+                var doc = JsonDocument.Parse(json);
+                newRawData[key] = doc.RootElement.Clone();
+                _logger.ZLogInformation($"[GameDataManager] Raw 로드: {key} (타입 미발견)");
+            }
         }
 
-        _gameData = newData;
+        _typedData = newTypedData;
+        _rawData = newRawData;
 
-        _logger.ZLogInformation($"[GameDataManager] 로드 완료 — 총 {_gameData.Count}종");
+        _logger.ZLogInformation($"[GameDataManager] 로드 완료 — 타입: {_typedData.Count}종, Raw: {_rawData.Count}종");
     }
 
     // ============================================================
-    // Admin API → JSON 저장 + 메모리 갱신 + C# 클래스 자동 생성
+    // Admin API → JSON 저장 + C# 클래스 생성 + 메모리 갱신
     // ============================================================
 
     public ErrorCode Upload(Dictionary<string, JsonElement> gameData)
@@ -87,11 +114,30 @@ public class GameDataManager
                 string json = JsonSerializer.Serialize(value, _jsonOptions);
                 File.WriteAllText(path, json);
 
-                // 메모리 갱신
-                _gameData[key] = value.Clone();
-
                 // C# 클래스 파일 자동 생성
                 GenerateModelClass(key, value);
+
+                // 타입 기반 메모리 갱신
+                string className = $"Gdb{ToSingular(key)}Data";
+                Type? type = Assembly.GetExecutingAssembly()
+                    .GetType($"HGame01Server.Models.GameData.{className}");
+
+                if (type != null)
+                {
+                    var listType = typeof(List<>).MakeGenericType(type);
+                    var list = JsonSerializer.Deserialize(json, listType, _jsonOptions);
+
+                    if (list != null)
+                    {
+                        _typedData[type] = list;
+                    }
+                }
+                else
+                {
+                    // 새로 생성된 클래스는 재컴파일 전까지 타입을 찾을 수 없음 → raw 보관
+                    var doc = JsonDocument.Parse(json);
+                    _rawData[key] = doc.RootElement.Clone();
+                }
 
                 _logger.ZLogInformation($"[GameDataManager] 저장: {key} ({value.GetArrayLength()}건)");
             }
@@ -106,12 +152,26 @@ public class GameDataManager
     }
 
     // ============================================================
-    // 조회 — 키로 JSON 데이터 반환
+    // 타입 기반 조회
     // ============================================================
 
-    public JsonElement? GetData(string key)
+    /// <summary>
+    /// 전체 리스트 조회. 예: GetList&lt;GdbCharacterData&gt;()
+    /// </summary>
+    public List<T>? GetList<T>() where T : class
     {
-        return _gameData.TryGetValue(key, out var data) ? data : null;
+        return _typedData.TryGetValue(typeof(T), out var data)
+            ? data as List<T>
+            : null;
+    }
+
+    /// <summary>
+    /// 단건 조회. 예: Get&lt;GdbCharacterData&gt;(c =&gt; c.id == 1)
+    /// </summary>
+    public T? Get<T>(Func<T, bool> predicate) where T : class
+    {
+        var list = GetList<T>();
+        return list?.FirstOrDefault(predicate);
     }
 
     // ============================================================
