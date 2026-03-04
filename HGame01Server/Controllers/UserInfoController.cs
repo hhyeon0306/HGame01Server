@@ -1,5 +1,7 @@
 using HGame01Server.Repository;
 using HGame01Server.Models;
+using HGame01Server.Models.GameData;
+using HGame01Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;
 
@@ -10,10 +12,12 @@ namespace HGame01Server.Controllers;
 public class UserInfoController : ControllerBase
 {
     private readonly ILogger<UserInfoController> _logger;
+    private readonly GameDataManager _gameDataManager;
 
-    public UserInfoController(ILogger<UserInfoController> logger)
+    public UserInfoController(ILogger<UserInfoController> logger, GameDataManager gameDataManager)
     {
         _logger = logger;
+        _gameDataManager = gameDataManager;
     }
 
     /// <summary>
@@ -28,6 +32,8 @@ public class UserInfoController : ControllerBase
         long uid = userInfo.UId;
 
         _logger.ZLogInformation($"[UserInfo] Uid:{uid}");
+        
+        response.Result = ErrorCode.None;
         return response;
     }
 }
