@@ -11,13 +11,12 @@ public enum ErrorCode : UInt16
     InValidRequestHttpBody = 1003,
     AuthTokenFailWrongAuthToken = 1006,
     TokenDoesNotExist = 1007,
-    UserIDDoesNotExist = 1008,
+    ProfileIdDoesNotExist = 1008,
     AuthTokenKeyNotFound = 1009,
 
     // 로그인 에러 (2001~2010)
     LoginFailException = 2002,
     LoginFailUserNotExist = 2003,
-    LoginFailPwNotMatch = 2004,
     LoginFailSetAuthToken = 2005,
     LoginFailAddRedis = 2006,
 

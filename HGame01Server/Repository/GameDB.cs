@@ -12,21 +12,16 @@ public class GameDB : IGameDB
         _context = context;
     }
 
-    public async Task<Tuple<ErrorCode, long>> AuthCheck(string userID, string pw)
+    public async Task<Tuple<ErrorCode, long>> AuthCheck(string profileId)
     {
         try
         {
             var userInfo = await _context.Users
-                .FirstOrDefaultAsync(u => u.id == userID);
+                .FirstOrDefaultAsync(u => u.profileId == profileId);
 
             if (userInfo == null || userInfo.uid == 0)
             {
                 return new Tuple<ErrorCode, long>(ErrorCode.LoginFailUserNotExist, 0);
-            }
-
-            if (userInfo.pw != pw)
-            {
-                return new Tuple<ErrorCode, long>(ErrorCode.LoginFailPwNotMatch, 0);
             }
 
             return new Tuple<ErrorCode, long>(ErrorCode.None, userInfo.uid);
@@ -37,13 +32,13 @@ public class GameDB : IGameDB
         }
     }
 
-    public async Task<ErrorCode> CreateAccount(string id, string pw)
+    public async Task<ErrorCode> CreateAccount(string profileId, string name, string createdAt)
     {
         try
         {
             // 중복 체크
             var existing = await _context.Users
-                .FirstOrDefaultAsync(u => u.id == id);
+                .FirstOrDefaultAsync(u => u.profileId == profileId);
 
             if (existing != null && existing.uid != 0)
             {
@@ -51,7 +46,7 @@ public class GameDB : IGameDB
             }
 
             // 유저 생성
-            var user = new GameUser { id = id, pw = pw };
+            var user = new GameUser { profileId = profileId, name = name, createdAt = createdAt };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 

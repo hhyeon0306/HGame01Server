@@ -24,12 +24,12 @@ public class LoginController : ControllerBase
     [HttpPost]
     public async Task<PkLoginResponse> Post(PkLoginRequest request)
     {
-        _logger.ZLogInformation($"[Request Login] ID:{request.ID}, PW:{request.PW}");
+        _logger.ZLogInformation($"[Request Login] ProfileId:{request.ProfileId}");
 
         var response = new PkLoginResponse();
 
-        // ID, PW 검증
-        (ErrorCode errorCode, long uid) = await _gameDB.AuthCheck(request.ID, request.PW);
+        // profileId로 유저 조회
+        (ErrorCode errorCode, long uid) = await _gameDB.AuthCheck(request.ProfileId);
         if (errorCode != ErrorCode.None)
         {
             response.Result = errorCode;
@@ -37,7 +37,7 @@ public class LoginController : ControllerBase
         }
 
         string authToken = CreateAuthToken();
-        errorCode = await _memoryDB.RegistUserAsync(request.ID, authToken, uid);
+        errorCode = await _memoryDB.RegistUserAsync(request.ProfileId, authToken, uid);
         if (errorCode != ErrorCode.None)
         {
             response.Result = errorCode;

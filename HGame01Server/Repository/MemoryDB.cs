@@ -23,9 +23,9 @@ public class MemoryDB : IMemoryDB
     {
     }
 
-    public async Task<ErrorCode> RegistUserAsync(string id, string authToken, long uid)
+    public async Task<ErrorCode> RegistUserAsync(string profileId, string authToken, long uid)
     {
-        string key = MemoryDbKeyMaker.MakeUserDataKey(id);
+        string key = MemoryDbKeyMaker.MakeUserDataKey(profileId);
         ErrorCode result = ErrorCode.None;
 
         MdbUserData user = new()
@@ -53,18 +53,18 @@ public class MemoryDB : IMemoryDB
         return result;
     }
 
-    public async Task<(bool, MdbUserData)> GetUserAsync(string userID)
+    public async Task<(bool, MdbUserData)> GetUserAsync(string profileId)
     {
-        var userIDKey = MemoryDbKeyMaker.MakeUserDataKey(userID);
+        var key = MemoryDbKeyMaker.MakeUserDataKey(profileId);
 
         try
         {
-            RedisString<MdbUserData> redis = new(_redisConn, userIDKey, null);
+            RedisString<MdbUserData> redis = new(_redisConn, key, null);
             RedisResult<MdbUserData> user = await redis.GetAsync();
             if (!user.HasValue)
             {
                 _logger.ZLogError(
-                    $"[GetUserAsync] UID = {userIDKey}, ErrorMessage = Not Assigned User, RedisString get Error");
+                    $"[GetUserAsync] ProfileId = {profileId}, ErrorMessage = Not Assigned User, RedisString get Error");
                 return (false, null);
             }
 
@@ -72,7 +72,7 @@ public class MemoryDB : IMemoryDB
         }
         catch
         {
-            _logger.ZLogError($"[GetUserAsync] UID:{userIDKey},ErrorMessage:ID does Not Exist");
+            _logger.ZLogError($"[GetUserAsync] ProfileId:{profileId}, ErrorMessage:ID does Not Exist");
             return (false, null);
         }
     }
@@ -88,8 +88,8 @@ public class MdbUserData
 
 public class MemoryDbKeyMaker
 {
-    public static string MakeUserDataKey(string userID)
+    public static string MakeUserDataKey(string profileId)
     {
-        return "HGame01_USERID_" + userID;
+        return "HGame01_PROFILEID_" + profileId;
     }
 }

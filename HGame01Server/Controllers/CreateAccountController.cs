@@ -21,18 +21,22 @@ public class CreateAccountController : ControllerBase
     [HttpPost]
     public async Task<PkCreateAccountResponse> Post(PkCreateAccountRequest request)
     {
-        _logger.ZLogInformation($"[CreateAccount] ID:{request.ID}");
+        _logger.ZLogInformation($"[CreateAccount] ProfileId:{request.ProfileId}");
 
         var response = new PkCreateAccountResponse();
 
-        ErrorCode errorCode = await _gameDB.CreateAccount(request.ID, request.PW);
+        // 서버에서 계정 생성 시각 생성
+        string createdAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+        ErrorCode errorCode = await _gameDB.CreateAccount(request.ProfileId, request.Name, createdAt);
         if (errorCode != ErrorCode.None)
         {
             response.Result = errorCode;
             return response;
         }
 
-        _logger.ZLogInformation($"[CreateAccount] Success ID:{request.ID}");
+        response.CreatedAt = createdAt;
+        _logger.ZLogInformation($"[CreateAccount] Success ProfileId:{request.ProfileId}");
         return response;
     }
 }

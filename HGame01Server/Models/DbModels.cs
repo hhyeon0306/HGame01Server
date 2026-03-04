@@ -23,6 +23,7 @@ public class GameUser
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long uid { get; set; }
-    public string id { get; set; } = "";
-    public string pw { get; set; } = "";
+    public string profileId { get; set; } = "";
+    public string name { get; set; } = "";
+    public string createdAt { get; set; } = "";
 }

@@ -33,15 +33,15 @@ public class CheckUserAuthAndLoadUserData
             return;
         }
 
-        // user_id가 있는지 검사하고 있다면 저장
-        var (isUserIDNotExist, user_id) = await IsUserIDNotExistOrReturnUserID(context);
-        if (isUserIDNotExist)
+        // profileId가 있는지 검사하고 있다면 저장
+        var (isProfileIdNotExist, profileId) = await IsProfileIdNotExistOrReturnProfileId(context);
+        if (isProfileIdNotExist)
         {
             return;
         }
 
-        // uid를 키로 하는 데이터 없을 때
-        (bool isOk, MdbUserData userInfo) = await _memoryDB.GetUserAsync(user_id);
+        // profileId를 키로 하는 데이터 없을 때
+        (bool isOk, MdbUserData userInfo) = await _memoryDB.GetUserAsync(profileId);
         if (isOk == false)
         {
             await ResponseInvalidUserAuthToken(context);
@@ -77,18 +77,18 @@ public class CheckUserAuthAndLoadUserData
         return (true, "");
     }
 
-    async Task<(bool, string)> IsUserIDNotExistOrReturnUserID(HttpContext context)
+    async Task<(bool, string)> IsProfileIdNotExistOrReturnProfileId(HttpContext context)
     {
         // 대문자를 사용해서 보내어도 소문자로 인코딩 되므로 소문자로 검색한다
-        if (context.Request.Headers.TryGetValue("userid", out var uid))
+        if (context.Request.Headers.TryGetValue("profileid", out var profileId))
         {
-            return (false, uid);
+            return (false, profileId);
         }
 
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
         var errorJsonResponse = JsonSerializer.Serialize(new MiddlewareResponse
         {
-            result = ErrorCode.UserIDDoesNotExist
+            result = ErrorCode.ProfileIdDoesNotExist
         });
         await context.Response.WriteAsync(errorJsonResponse);
 

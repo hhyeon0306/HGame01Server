@@ -2,6 +2,6 @@ namespace HGame01Server.Repository;
 
 public interface IGameDB
 {
-    public Task<Tuple<ErrorCode, long>> AuthCheck(string email, string pw);
-    public Task<ErrorCode> CreateAccount(string id, string pw);
+    public Task<Tuple<ErrorCode, long>> AuthCheck(string profileId);
+    public Task<ErrorCode> CreateAccount(string profileId, string name, string createdAt);
 }

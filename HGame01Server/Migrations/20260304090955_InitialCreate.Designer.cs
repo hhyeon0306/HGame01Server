@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20260303195001_InitialCreate")]
+    [Migration("20260304090955_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -32,10 +32,15 @@ namespace HGame01Server.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("uid"));
 
-                    b.Property<string>("id")
+                    b.Property<string>("createdAt")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("pw")
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("profileId")
                         .IsRequired()
                         .HasColumnType("longtext");
 

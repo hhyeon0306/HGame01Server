@@ -10,7 +10,7 @@ namespace HGame01Server.Models;
 public class HeaderDTO
 {
     [FromHeader]
-    public string UserID { get; set; } = "";
+    public string ProfileId { get; set; } = "";
     [FromHeader]
     public string AuthToken { get; set; } = "";
 }
@@ -22,8 +22,7 @@ public class HeaderDTO
 // POST api/Login
 public class PkLoginRequest
 {
-    public string ID { get; set; } = "";
-    public string PW { get; set; } = "";
+    public string ProfileId { get; set; } = "";
 }
 
 public class PkLoginResponse
@@ -35,13 +34,14 @@ public class PkLoginResponse
 // POST api/CreateAccount
 public class PkCreateAccountRequest
 {
-    public string ID { get; set; } = "";
-    public string PW { get; set; } = "";
+    public string ProfileId { get; set; } = "";
+    public string Name { get; set; } = "";
 }
 
 public class PkCreateAccountResponse
 {
     public ErrorCode Result { get; set; }
+    public string CreatedAt { get; set; } = "";
 }
 
 // POST api/UserInfo
