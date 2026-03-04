@@ -47,7 +47,12 @@ builder.Services.AddScoped<IGameDB, GameDB>();
 builder.Services.AddSingleton<IMemoryDB, MemoryDB>();
 builder.Services.AddSingleton<GameDataManager>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy =
+            System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // 로거 설정 (아래 함수 참고)
 SettingLogger();
