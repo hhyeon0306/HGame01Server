@@ -1,0 +1,22 @@
+[
+  {
+    "key": "refreshTime",
+    "value": "3600",
+    "category": "shop"
+  },
+  {
+    "key": "freeRefreshCount",
+    "value": "1",
+    "category": "shop"
+  },
+  {
+    "key": "maxDisplayItems",
+    "value": "6",
+    "category": "shop"
+  },
+  {
+    "key": "maxDiscountRate",
+    "value": "0.3",
+    "category": "shop"
+  }
+]
