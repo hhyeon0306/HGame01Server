@@ -126,8 +126,7 @@ void SettingLogger()
         options.UsePlainTextFormatter(formatter =>
         {
             formatter.SetPrefixFormatter($"{0:local-longdate} [{1:short}] ",
-                (in MessageTemplate template, in LogInfo info) =>
-                    template.Format(info.Timestamp, info.LogLevel));
+                (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp, info.LogLevel));
         });
     });
 }
