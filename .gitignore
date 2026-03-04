@@ -43,6 +43,10 @@ Desktop.ini
 # appsettings.Development.json
 # appsettings.Production.json
 
+## Claude Code
+.claude/
+CLAUDE.md
+
 ## oh-my-claudecode
 .omc/
 
