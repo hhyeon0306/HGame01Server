@@ -1,5 +1,55 @@
 [
   {
+    "key": "defaultCharacterId",
+    "value": "101",
+    "category": "character"
+  },
+  {
+    "key": "criticalMultiplier",
+    "value": "1.5",
+    "category": "combat"
+  },
+  {
+    "key": "maxComboCount",
+    "value": "3",
+    "category": "combat"
+  },
+  {
+    "key": "comboResetTime",
+    "value": "2",
+    "category": "combat"
+  },
+  {
+    "key": "guardDamageReduction",
+    "value": "0.5",
+    "category": "combat"
+  },
+  {
+    "key": "parryWindowDuration",
+    "value": "0.2",
+    "category": "combat"
+  },
+  {
+    "key": "maxPassLevel",
+    "value": "30",
+    "category": "pass"
+  },
+  {
+    "key": "expPerLevel",
+    "value": "1000",
+    "category": "pass"
+  },
+  {
+    "key": "premiumPassPrice",
+    "value": "9900",
+    "category": "pass"
+  },
+  {
+    "key": "seasonDurationDays",
+    "value": "30",
+    "category": "pass"
+  },
+  {
     "key": "refreshTime",
     "value": "3600",
     "category": "shop"

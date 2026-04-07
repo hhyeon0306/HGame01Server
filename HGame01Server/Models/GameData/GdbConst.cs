@@ -5,6 +5,31 @@ namespace HGame01Server.Models.GameData;
 
 public static class GdbConst
 {
+    public static class Character
+    {
+        public const string Category = "character";
+        public const string DefaultCharacterId = "defaultCharacterId";
+    }
+
+    public static class Combat
+    {
+        public const string Category = "combat";
+        public const string CriticalMultiplier = "criticalMultiplier";
+        public const string MaxComboCount = "maxComboCount";
+        public const string ComboResetTime = "comboResetTime";
+        public const string GuardDamageReduction = "guardDamageReduction";
+        public const string ParryWindowDuration = "parryWindowDuration";
+    }
+
+    public static class Pass
+    {
+        public const string Category = "pass";
+        public const string MaxPassLevel = "maxPassLevel";
+        public const string ExpPerLevel = "expPerLevel";
+        public const string PremiumPassPrice = "premiumPassPrice";
+        public const string SeasonDurationDays = "seasonDurationDays";
+    }
+
     public static class Shop
     {
         public const string Category = "shop";
@@ -12,6 +37,23 @@ public static class GdbConst
         public const string FreeRefreshCount = "freeRefreshCount";
         public const string MaxDisplayItems = "maxDisplayItems";
         public const string MaxDiscountRate = "maxDiscountRate";
+    }
+
+    public static class Gacha
+    {
+        public const string Category = "gacha";
+        public const string SingleCostDiamond = "singleCostDiamond";
+        public const string WeightGrade1 = "weightGrade1";
+        public const string WeightGrade2 = "weightGrade2";
+        public const string WeightGrade3 = "weightGrade3";
+        public const string WeightGrade4 = "weightGrade4";
+    }
+
+    // ===== 재화 타입 =====
+    public static class CurrencyType
+    {
+        public const int Diamond = 0;
+        public const int GachaTicket = 1;
     }
 
 }

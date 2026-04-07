@@ -1,6 +1,5 @@
-using HGame01Server.Repository;
 using HGame01Server.Models;
-using HGame01Server.Models.GameData;
+using HGame01Server.Repository;
 using HGame01Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;
@@ -12,19 +11,21 @@ namespace HGame01Server.Controllers;
 public class UserInfoController : ControllerBase
 {
     private readonly ILogger<UserInfoController> _logger;
-    private readonly GameDataManager _gameDataManager;
+    private readonly CharacterService _characterService;
+    private readonly CurrencyService _currencyService;
+    private readonly EquipmentService _equipmentService;
 
-    public UserInfoController(ILogger<UserInfoController> logger, GameDataManager gameDataManager)
+    public UserInfoController(ILogger<UserInfoController> logger, CharacterService characterService, CurrencyService currencyService, EquipmentService equipmentService)
     {
         _logger = logger;
-        _gameDataManager = gameDataManager;
+        _characterService = characterService;
+        _currencyService = currencyService;
+        _equipmentService = equipmentService;
     }
 
-    /// <summary>
-    /// 로그인 후 유저 전체 상태 반환
-    /// </summary>
+    /// 로그인 후 유저 전체 상태 반환.
     [HttpPost]
-    public PkUserInfoResponse Post([FromHeader] HeaderDTO header)
+    public async Task<PkUserInfoResponse> Post([FromHeader] HeaderDTO header)
     {
         var response = new PkUserInfoResponse();
 
@@ -32,7 +33,22 @@ public class UserInfoController : ControllerBase
         long uid = userInfo.UId;
 
         _logger.ZLogInformation($"[UserInfo] Uid:{uid}");
-        
+
+        // 캐릭터 목록 조회
+        var characters = await _characterService.GetByUidAsync(uid);
+        response.Characters = characters.Select(c => new PkUserCharacter
+        {
+            CharacterId = c.characterId,
+            IsActive = c.isActive,
+            AcquiredAt = c.acquiredAt
+        }).ToList();
+
+        // 재화 목록 조회
+        response.Currencies = await _currencyService.GetAllAsync(uid);
+
+        // 장비 목록 조회 — EquipmentService의 매핑 재사용
+        response.Equipments = await _equipmentService.GetEquipmentListAsync(uid);
+
         response.Result = ErrorCode.None;
         return response;
     }

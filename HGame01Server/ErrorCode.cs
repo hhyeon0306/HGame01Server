@@ -27,4 +27,28 @@ public enum ErrorCode : UInt16
     // Admin 에러 (2121~2140)
     AdminFailException = 2121,
     AdminUploadFail = 2122,
+
+    // 상점 에러 (3001~3020)
+    ShopItemNotFound = 3001,
+    ShopItemAlreadyPurchased = 3002,
+    ShopInsufficientCurrency = 3003,
+    ShopBuyFailed = 3004,
+    ShopInvalidAmount = 3005,
+
+    // 뽑기 에러 (3021~3040)
+    GachaInsufficientCurrency = 3021,
+    GachaInvalidPullCount = 3022,
+    GachaPullFailed = 3023,
+
+    // 재화 에러 (3041~3060)
+    CurrencyInsufficientAmount = 3041,
+    CurrencyUpdateFailed = 3042,
+
+    // 장비 에러 (3061~3080)
+    EquipmentNotFound = 3061,
+    EquipmentNotOwned = 3062,
+    EquipmentSlotMismatch = 3063,
+    EquipmentAlreadyEquipped = 3064,
+    EquipmentEquipFailed = 3065,
+    CharacterNotOwned = 3066,
 }

@@ -1,5 +1,5 @@
-using HGame01Server.Repository;
 using HGame01Server.Models;
+using HGame01Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;
 
@@ -9,12 +9,12 @@ namespace HGame01Server.Controllers;
 [ApiController]
 public class CreateAccountController : ControllerBase
 {
-    private readonly IGameDB _gameDB;
+    private readonly AccountService _accountService;
     private readonly ILogger<CreateAccountController> _logger;
 
-    public CreateAccountController(ILogger<CreateAccountController> logger, IGameDB gameDB)
+    public CreateAccountController(ILogger<CreateAccountController> logger, AccountService accountService)
     {
-        _gameDB = gameDB;
+        _accountService = accountService;
         _logger = logger;
     }
 
@@ -23,20 +23,15 @@ public class CreateAccountController : ControllerBase
     {
         _logger.ZLogInformation($"[CreateAccount] ProfileId:{request.ProfileId}");
 
-        var response = new PkCreateAccountResponse();
+        var (errorCode, createdAt) = await _accountService.CreateAccountAsync(request.ProfileId, request.Name);
 
-        // 서버에서 계정 생성 시각 생성
-        string createdAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+        var response = new PkCreateAccountResponse { Result = errorCode, CreatedAt = createdAt };
 
-        ErrorCode errorCode = await _gameDB.CreateAccount(request.ProfileId, request.Name, createdAt);
-        if (errorCode != ErrorCode.None)
+        if (errorCode == ErrorCode.None)
         {
-            response.Result = errorCode;
-            return response;
+            _logger.ZLogInformation($"[CreateAccount] Success ProfileId:{request.ProfileId}");
         }
 
-        response.CreatedAt = createdAt;
-        _logger.ZLogInformation($"[CreateAccount] Success ProfileId:{request.ProfileId}");
         return response;
     }
 }

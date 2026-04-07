@@ -44,6 +44,12 @@ builder.Services.AddDbContext<GameDbContext>(options =>
 //    Singleton: 앱 전체에서 딱 하나 (Redis 연결은 공유해도 안전하고, 매번 새로 연결하면 비용이 큼)
 // ============================================================
 builder.Services.AddScoped<IGameDB, GameDB>();
+builder.Services.AddScoped<CharacterService>();
+builder.Services.AddScoped<CurrencyService>();
+builder.Services.AddScoped<ShopService>();
+builder.Services.AddScoped<GachaService>();
+builder.Services.AddScoped<EquipmentService>();
+builder.Services.AddScoped<AccountService>();
 builder.Services.AddSingleton<IMemoryDB, MemoryDB>();
 builder.Services.AddSingleton<GameDataManager>();
 
