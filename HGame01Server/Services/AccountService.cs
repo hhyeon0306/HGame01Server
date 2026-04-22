@@ -36,9 +36,10 @@ public class AccountService
             // 초기 데이터 지급
             await _characterService.GrantDefaultAsync(uid, createdAt);
 
-            // 초기 재화 지급 (다이아 1000, 뽑기 티켓 10)
-            await _currencyService.AddAsync(uid, GdbConst.CurrencyType.Diamond, 1000);
-            await _currencyService.AddAsync(uid, GdbConst.CurrencyType.GachaTicket, 10);
+            // 초기 재화 지급 (골드/다이아 구분 확인용 숫자 — Gold 5000 / Diamond 300 / Ticket 10)
+            await _currencyService.AddAsync(uid, CurrencyType.Diamond, 300);
+            await _currencyService.AddAsync(uid, CurrencyType.GachaTicket, 10);
+            await _currencyService.AddAsync(uid, CurrencyType.Gold, 5000);
 
             await transaction.CommitAsync();
             return (ErrorCode.None, createdAt);

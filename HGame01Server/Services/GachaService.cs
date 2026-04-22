@@ -34,7 +34,7 @@ public class GachaService
             // 1. 재화 검증 및 차감
             if (useTicket)
             {
-                var ticketError = await _currencyService.DeductAsync(uid, GdbConst.CurrencyType.GachaTicket, pullCount);
+                var ticketError = await _currencyService.DeductAsync(uid, CurrencyType.GachaTicket, pullCount);
                 if (ticketError != ErrorCode.None)
                 {
                     return (ErrorCode.GachaInsufficientCurrency, new());
@@ -45,7 +45,7 @@ public class GachaService
                 int singleCost = _gameDataManager.GetConstInt(GdbConst.Gacha.Category, GdbConst.Gacha.SingleCostDiamond, 300);
                 long totalCost = (long)singleCost * pullCount;
 
-                var diamondError = await _currencyService.DeductAsync(uid, GdbConst.CurrencyType.Diamond, totalCost);
+                var diamondError = await _currencyService.DeductAsync(uid, CurrencyType.Diamond, totalCost);
                 if (diamondError != ErrorCode.None)
                 {
                     return (ErrorCode.GachaInsufficientCurrency, new());

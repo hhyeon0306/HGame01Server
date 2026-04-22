@@ -154,13 +154,13 @@ public class ShopService
         }
 
         // TODO: 실제 영수증 검증 로직 추가 필요
-        var addError = await _currencyService.AddAsync(uid, GdbConst.CurrencyType.Diamond, amount);
+        var addError = await _currencyService.AddAsync(uid, CurrencyType.Diamond, amount);
         if (addError != ErrorCode.None)
         {
             return (addError, 0);
         }
 
-        long currentAmount = await _currencyService.GetAmountAsync(uid, GdbConst.CurrencyType.Diamond);
+        long currentAmount = await _currencyService.GetAmountAsync(uid, CurrencyType.Diamond);
         return (ErrorCode.None, currentAmount);
     }
 

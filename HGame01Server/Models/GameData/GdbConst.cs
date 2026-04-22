@@ -49,11 +49,4 @@ public static class GdbConst
         public const string WeightGrade4 = "weightGrade4";
     }
 
-    // ===== 재화 타입 =====
-    public static class CurrencyType
-    {
-        public const int Diamond = 0;
-        public const int GachaTicket = 1;
-    }
-
 }
