@@ -86,9 +86,9 @@ public class ShopController : ControllerBase
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
 
-        _logger.ZLogInformation($"[Shop/BuyDiamond] Uid:{uid}, ProductId:{request.ProductId}, Amount:{request.Amount}");
+        _logger.ZLogInformation($"[Shop/BuyDiamond] Uid:{uid}, ProductId:{request.ProductId}");
 
-        var (error, diamondAmount) = await _shopService.BuyDiamondAsync(uid, request.ProductId, request.Amount);
+        var (error, diamondAmount) = await _shopService.BuyDiamondAsync(uid, request.ProductId);
         response.Result = error;
         response.DiamondAmount = diamondAmount;
         return response;

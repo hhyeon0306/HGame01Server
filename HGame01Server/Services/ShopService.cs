@@ -5,14 +5,13 @@ using HGame01Server.Repository;
 namespace HGame01Server.Services;
 
 /// 상점 비즈니스 로직.
+/// 클라 ShopData(GameplayTag 기반) ↔ 서버 GdbShopData(Admin/UploadGameData 자동 export). shopItemId는 GameplayTag string.
 public class ShopService
 {
     private readonly GameDbContext _context;
     private readonly IGameDB _gameDB;
     private readonly CurrencyService _currencyService;
     private readonly GameDataManager _gameDataManager;
-
-    private const int MAX_DIAMOND_PURCHASE = 100000;
 
     public ShopService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager)
     {
@@ -25,110 +24,87 @@ public class ShopService
     /// 일일 상점 아이템 목록 + 구매 여부 조회.
     public async Task<List<PkShopItemState>> GetDailyItemsAsync(long uid)
     {
-        var shopItems = _gameDataManager.GetList<GdbShopItemData>();
+        return await GetItemsByTabAsync(uid, "Daily", GetDailyResetTime());
+    }
+
+    /// 주간 상점 — Weekly 탭은 폐기됐지만 endpoint 호환을 위해 빈 리스트 반환.
+    public Task<List<PkShopItemState>> GetWeeklyItemsAsync(long uid)
+    {
+        _ = uid;
+        return Task.FromResult(new List<PkShopItemState>());
+    }
+
+    private async Task<List<PkShopItemState>> GetItemsByTabAsync(long uid, string tabType, DateTime resetTime)
+    {
+        var shopItems = _gameDataManager.GetList<GdbShopData>();
         if (shopItems == null)
         {
             return new();
         }
 
-        var dailyItems = shopItems.Where(s => s.shopType == "daily").ToList();
-        var resetStr = FormatResetTime(GetDailyResetTime());
+        var tabItems = shopItems.Where(s => s.tab_type == tabType).ToList();
+        var resetStr = FormatResetTime(resetTime);
         var purchases = await _gameDB.GetPurchasesSinceAsync(uid, resetStr);
-        var purchasedIds = purchases.Select(p => p.shopItemId).ToHashSet();
+        var purchasedTags = purchases.Select(p => p.shopItemId).ToHashSet();
 
-        return dailyItems.Select(item => new PkShopItemState
+        return tabItems.Select(item => new PkShopItemState
         {
-            ShopItemId = item.id,
-            Purchased = purchasedIds.Contains(item.id)
+            ShopItemId = item.tag,
+            Purchased = purchasedTags.Contains(item.tag)
         }).ToList();
     }
 
-    /// 주간 상점 아이템 목록 + 구매 여부 조회.
-    public async Task<List<PkShopItemState>> GetWeeklyItemsAsync(long uid)
+    /// 상점 아이템 구매 처리. Currency 결제만 — Cash 결제는 BuyDiamondAsync 사용.
+    public async Task<(ErrorCode error, PkRewardResult reward)> BuyItemAsync(long uid, string shopItemTag)
     {
-        var shopItems = _gameDataManager.GetList<GdbShopItemData>();
-        if (shopItems == null)
+        if (string.IsNullOrEmpty(shopItemTag))
         {
-            return new();
+            return (ErrorCode.ShopItemNotFound, new());
         }
 
-        var weeklyItems = shopItems.Where(s => s.shopType == "weekly").ToList();
-        var resetStr = FormatResetTime(GetWeeklyResetTime());
-        var purchases = await _gameDB.GetPurchasesSinceAsync(uid, resetStr);
-        var purchasedIds = purchases.Select(p => p.shopItemId).ToHashSet();
-
-        return weeklyItems.Select(item => new PkShopItemState
-        {
-            ShopItemId = item.id,
-            Purchased = purchasedIds.Contains(item.id)
-        }).ToList();
-    }
-
-    /// 상점 아이템 구매 처리.
-    public async Task<(ErrorCode error, PkRewardResult reward)> BuyItemAsync(long uid, int shopItemId)
-    {
-        // 1. 상품 존재 확인
-        var shopItems = _gameDataManager.GetList<GdbShopItemData>();
-        var shopItem = shopItems?.FirstOrDefault(s => s.id == shopItemId);
+        var shopItems = _gameDataManager.GetList<GdbShopData>();
+        var shopItem = shopItems?.FirstOrDefault(s => s.tag == shopItemTag);
         if (shopItem == null)
         {
             return (ErrorCode.ShopItemNotFound, new());
         }
 
+        if (shopItem.payment_method != "Currency")
+        {
+            // Cash 결제는 별도 엔드포인트
+            return (ErrorCode.ShopInvalidAmount, new());
+        }
+
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 2. 초기화 시점 이후 이미 구매했는지 확인 (트랜잭션 내부에서 TOCTOU 방지)
-            var resetTime = shopItem.shopType == "daily" ? GetDailyResetTime() : GetWeeklyResetTime();
-            var resetStr = FormatResetTime(resetTime);
-            var purchases = await _gameDB.GetPurchasesSinceAsync(uid, resetStr);
-            if (purchases.Any(p => p.shopItemId == shopItemId))
+            // 일일 구매 횟수 검증 (Daily만; CashShop/Gacha는 무제한)
+            if (shopItem.tab_type == "Daily")
             {
-                return (ErrorCode.ShopItemAlreadyPurchased, new());
+                var resetStr = FormatResetTime(GetDailyResetTime());
+                var purchases = await _gameDB.GetPurchasesSinceAsync(uid, resetStr);
+                if (purchases.Any(p => p.shopItemId == shopItemTag))
+                {
+                    return (ErrorCode.ShopItemAlreadyPurchased, new());
+                }
             }
 
-            // 3. 재화 차감
-            var deductError = await _currencyService.DeductAsync(uid, shopItem.costCurrencyType, shopItem.costAmount);
+            // 재화 차감
+            var costType = ParseCurrencyType(shopItem.price_currency);
+            var deductError = await _currencyService.DeductAsync(uid, costType, shopItem.price_amount);
             if (deductError != ErrorCode.None)
             {
                 return (ErrorCode.ShopInsufficientCurrency, new());
             }
 
-            // 4. 보상 지급
-            var reward = new PkRewardResult
-            {
-                RewardType = shopItem.rewardType,
-                Amount = shopItem.rewardAmount,
-                EquipmentId = shopItem.rewardEquipmentId
-            };
+            // 보상 지급
+            var reward = await GrantRewardAsync(uid, shopItem);
 
-            if (shopItem.rewardType == 0)
-            {
-                // 재화 보상
-                await _currencyService.AddAsync(uid, shopItem.rewardCurrencyType, shopItem.rewardAmount);
-            }
-            else if (shopItem.rewardType == 1)
-            {
-                // 장비 보상 — GdbEquipmentData에서 slot 조회
-                int slot = GetEquipmentSlot(shopItem.rewardEquipmentId);
-                string now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                var equipment = new GameUserEquipment
-                {
-                    uid = uid,
-                    equipmentId = shopItem.rewardEquipmentId,
-                    slot = slot,
-                    isEquipped = false,
-                    equippedCharacterId = 0,
-                    acquiredAt = now
-                };
-                await _gameDB.AddEquipmentAsync(equipment);
-            }
-
-            // 5. 구매 기록 저장
+            // 구매 기록
             var purchase = new GameUserShopPurchase
             {
                 uid = uid,
-                shopItemId = shopItemId,
+                shopItemId = shopItemTag,
                 purchasedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
             };
             await _gameDB.AddPurchaseAsync(purchase);
@@ -138,23 +114,34 @@ public class ShopService
         }
         catch (Exception ex)
         {
-            // TODO: ILogger 주입 후 로깅 추가
             _ = ex;
             await transaction.RollbackAsync();
             return (ErrorCode.ShopBuyFailed, new());
         }
     }
 
-    /// 다이아몬드 구매 (인앱 결제 후 서버 검증 대역).
-    public async Task<(ErrorCode error, long diamondAmount)> BuyDiamondAsync(long uid, string productId, int amount)
+    /// 다이아몬드 구매 (Cash 결제). productId만 받고 다이아 양은 GdbShopData.reward_count로 결정 — 클라 가격 변조 방지.
+    public async Task<(ErrorCode error, long diamondAmount)> BuyDiamondAsync(long uid, string productId)
     {
-        if (amount <= 0 || amount > MAX_DIAMOND_PURCHASE)
+        if (string.IsNullOrEmpty(productId))
         {
             return (ErrorCode.ShopInvalidAmount, 0);
         }
 
-        // TODO: 실제 영수증 검증 로직 추가 필요
-        var addError = await _currencyService.AddAsync(uid, CurrencyType.Diamond, amount);
+        var shopItems = _gameDataManager.GetList<GdbShopData>();
+        var shopItem = shopItems?.FirstOrDefault(s => s.product_id == productId);
+        if (shopItem == null)
+        {
+            return (ErrorCode.ShopItemNotFound, 0);
+        }
+
+        if (shopItem.payment_method != "Cash")
+        {
+            return (ErrorCode.ShopInvalidAmount, 0);
+        }
+
+        // TODO: 실제 영수증 검증 (포폴 단계 X)
+        var addError = await _currencyService.AddAsync(uid, CurrencyType.Diamond, shopItem.reward_count);
         if (addError != ErrorCode.None)
         {
             return (addError, 0);
@@ -164,26 +151,63 @@ public class ShopService
         return (ErrorCode.None, currentAmount);
     }
 
-    /// GdbEquipmentData에서 장비 slot 값 조회. 데이터 없으면 0 반환.
-    private int GetEquipmentSlot(int equipmentId)
+    /// 보상 지급 — GdbItemData.kind에 따라 분기. 이번 prototype은 Currency만 실제 지급, Equipment/BattleItem은 응답에 정보만 담음.
+    private async Task<PkRewardResult> GrantRewardAsync(long uid, GdbShopData shopItem)
     {
-        var equipments = _gameDataManager.GetList<GdbEquipmentData>();
-        var data = equipments?.FirstOrDefault(e => e.id == equipmentId);
-        return data?.slot ?? 0;
+        var reward = new PkRewardResult
+        {
+            ItemTag = shopItem.reward_item,
+            Count = shopItem.reward_count,
+        };
+
+        if (string.IsNullOrEmpty(shopItem.reward_item))
+        {
+            return reward;
+        }
+
+        var items = _gameDataManager.GetList<GdbItemData>();
+        var item = items?.FirstOrDefault(i => i.tag == shopItem.reward_item);
+        if (item == null)
+        {
+            return reward;
+        }
+
+        reward.ItemKind = item.kind;
+
+        if (item.kind == "Currency")
+        {
+            reward.CurrencyType = item.currency_type;
+            var currencyType = ParseCurrencyType(item.currency_type);
+            await _currencyService.AddAsync(uid, currencyType, shopItem.reward_count);
+        }
+        else if (item.kind == "Equipment")
+        {
+            reward.EquipmentRef = item.equipment_ref;
+            // Equipment 지급은 별건 (이번 prototype 미지원)
+        }
+        else if (item.kind == "BattleItem")
+        {
+            reward.BattleItemRef = item.battle_item_ref;
+            // BattleItem 지급은 별건 (이번 prototype 미지원)
+        }
+
+        return reward;
+    }
+
+    /// "Diamond" / "Gold" → CurrencyType 상수 값.
+    private static int ParseCurrencyType(string s)
+    {
+        return s?.ToLowerInvariant() switch
+        {
+            "gold" => CurrencyType.Gold,
+            _ => CurrencyType.Diamond,
+        };
     }
 
     /// 일일 초기화 시점: 오늘 자정 (UTC).
     private static DateTime GetDailyResetTime()
     {
         return DateTime.UtcNow.Date;
-    }
-
-    /// 주간 초기화 시점: 이번 주 월요일 자정 (UTC).
-    private static DateTime GetWeeklyResetTime()
-    {
-        var now = DateTime.UtcNow;
-        int diff = ((int)now.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
-        return now.Date.AddDays(-diff);
     }
 
     private static string FormatResetTime(DateTime resetTime)

@@ -88,6 +88,6 @@ public class GameUserShopPurchase
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long id { get; set; }
     public long uid { get; set; }
-    public int shopItemId { get; set; }
+    public string shopItemId { get; set; } = "";
     public string purchasedAt { get; set; } = "";
 }

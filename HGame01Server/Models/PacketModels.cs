@@ -79,14 +79,14 @@ public class PkShopListResponse
 
 public class PkShopItemState
 {
-    public int ShopItemId { get; set; }
+    public string ShopItemId { get; set; } = "";
     public bool Purchased { get; set; }
 }
 
 // POST api/Shop/Buy
 public class PkShopBuyRequest
 {
-    public int ShopItemId { get; set; }
+    public string ShopItemId { get; set; } = "";
 }
 
 public class PkShopBuyResponse
@@ -96,11 +96,10 @@ public class PkShopBuyResponse
     public PkRewardResult Reward { get; set; } = new();
 }
 
-// POST api/Shop/BuyDiamond
+// POST api/Shop/BuyDiamond — productId만 송신, 다이아 양은 서버가 GdbShopData lookup으로 결정 (가격 변조 방지)
 public class PkBuyDiamondRequest
 {
     public string ProductId { get; set; } = "";
-    public int Amount { get; set; }
 }
 
 public class PkBuyDiamondResponse
@@ -155,9 +154,12 @@ public class PkUserEquipment
 
 public class PkRewardResult
 {
-    public int RewardType { get; set; }
-    public int Amount { get; set; }
-    public int EquipmentId { get; set; }
+    public string ItemKind { get; set; } = "";       // "Currency" / "Equipment" / "BattleItem"
+    public string ItemTag { get; set; } = "";        // 보상 ItemData tag
+    public string CurrencyType { get; set; } = "";   // ItemKind=Currency 일 때 ("Diamond" / "Gold")
+    public string EquipmentRef { get; set; } = "";   // ItemKind=Equipment 일 때 tag
+    public string BattleItemRef { get; set; } = "";  // ItemKind=BattleItem 일 때 tag
+    public int Count { get; set; }
 }
 
 // ============================================================
