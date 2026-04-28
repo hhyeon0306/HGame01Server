@@ -12,13 +12,15 @@ public class ShopService
     private readonly IGameDB _gameDB;
     private readonly CurrencyService _currencyService;
     private readonly GameDataManager _gameDataManager;
+    private readonly MailService _mailService;
 
-    public ShopService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager)
+    public ShopService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager, MailService mailService)
     {
         _context = context;
         _gameDB = gameDB;
         _currencyService = currencyService;
         _gameDataManager = gameDataManager;
+        _mailService = mailService;
     }
 
     /// 일일 상점 아이템 목록 + 구매 여부 조회.
@@ -122,7 +124,8 @@ public class ShopService
         }
     }
 
-    /// 다이아몬드 구매 (Cash 결제). shopItemTag(예: "Tag.Shop.Product.Diamond_6")로 식별, 다이아 양은 GdbShopData.reward_count로 결정 — 클라 가격 변조 방지.
+    /// Cash 결제. 즉시 지급 X — 우편함으로 발송. 클라는 "메일 도착" 흐름으로 처리.
+    /// shopItemTag (예: "Tag.Shop.Product.Diamond_6") 식별. 보상 종류/수량은 서버 측 GdbShopData / GdbItemData 조회로 결정 (가격 변조 방지).
     public async Task<(ErrorCode error, long diamondAmount)> BuyDiamondAsync(long uid, string shopItemTag)
     {
         if (string.IsNullOrEmpty(shopItemTag))
@@ -143,14 +146,30 @@ public class ShopService
         }
 
         // TODO: 실제 영수증 검증 (포폴 단계 X)
-        var addError = await _currencyService.AddAsync(uid, CurrencyType.Diamond, shopItem.reward_count);
-        if (addError != ErrorCode.None)
-        {
-            return (addError, 0);
-        }
 
-        long currentAmount = await _currencyService.GetAmountAsync(uid, CurrencyType.Diamond);
-        return (ErrorCode.None, currentAmount);
+        // 우편함 발송 — Cash 패키지 1건당 1보상 가정 (현재 GdbShopData 스키마)
+        var rewards = new List<MailRewardEntry>
+        {
+            new()
+            {
+                itemTag = shopItem.reward_item,
+                count = shopItem.reward_count,
+            },
+        };
+
+        // iconKey 는 GdbShopData.icon_name (예: "Shop_Product_Icon_Diamond_6") — ShopProductAtlas sprite 명명 규약.
+        await _mailService.SendAsync(
+            uid: uid,
+            titleKey: shopItem.name_key ?? "",
+            bodyKey: "Inbox.Body.CashPurchase",
+            rewards: rewards,
+            iconAtlas: "ShopProductAtlas",
+            iconKey: shopItem.icon_name ?? "",
+            expireMinutes: 60 * 24 * 30,
+            senderType: "Compensation");
+
+        // 즉시 지급분 0 (메일 수령 후 가산). 클라 BuyDiamondResponse.diamondAmount 는 미사용 — 우편함 도착이 진짜 신호.
+        return (ErrorCode.None, 0);
     }
 
     /// 보상 지급 — GdbItemData.kind에 따라 분기. 이번 prototype은 Currency만 실제 지급, Equipment/BattleItem은 응답에 정보만 담음.
