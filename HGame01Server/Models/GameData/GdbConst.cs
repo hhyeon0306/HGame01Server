@@ -41,11 +41,7 @@ public static class GdbConst
     public static class Shop
     {
         public const string Category = "shop";
-        public const string DailyResetHour = "dailyResetHour";
-        public const string WeeklyResetDay = "weeklyResetDay";
-        public const string FreeRefreshCount = "freeRefreshCount";
-        public const string MaxDisplayItems = "maxDisplayItems";
-        public const string MaxDiscountRate = "maxDiscountRate";
+        public const string DailyResetHourUtc = "dailyResetHourUtc";
     }
 
 }

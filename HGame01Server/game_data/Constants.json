@@ -65,28 +65,8 @@
     "category": "pass"
   },
   {
-    "key": "dailyResetHour",
-    "value": "0",
-    "category": "shop"
-  },
-  {
-    "key": "weeklyResetDay",
-    "value": "Monday",
-    "category": "shop"
-  },
-  {
-    "key": "freeRefreshCount",
-    "value": "1",
-    "category": "shop"
-  },
-  {
-    "key": "maxDisplayItems",
-    "value": "6",
-    "category": "shop"
-  },
-  {
-    "key": "maxDiscountRate",
-    "value": "0.3",
+    "key": "dailyResetHourUtc",
+    "value": "20",
     "category": "shop"
   }
 ]

@@ -77,6 +77,25 @@ public class ShopController : ControllerBase
         return response;
     }
 
+#if DEBUG
+    /// 치트 전용. 오늘 자 일일 구매 기록 삭제 — DEBUG 빌드에서만 노출.
+    [HttpPost("CheatResetDaily")]
+    public async Task<PkCheatResetDailyResponse> CheatResetDaily([FromHeader] HeaderDTO header, [FromBody] PkCheatResetDailyRequest request)
+    {
+        var response = new PkCheatResetDailyResponse();
+
+        MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
+        long uid = userInfo.UId;
+
+        _logger.ZLogInformation($"[Shop/CheatResetDaily] Uid:{uid}");
+
+        int deleted = await _shopService.CheatResetDailyAsync(uid);
+        response.Result = ErrorCode.None;
+        response.DeletedCount = deleted;
+        return response;
+    }
+#endif
+
     /// 다이아몬드 구매 (인앱 결제).
     [HttpPost("BuyDiamond")]
     public async Task<PkBuyDiamondResponse> BuyDiamond([FromHeader] HeaderDTO header, [FromBody] PkBuyDiamondRequest request)
@@ -86,9 +105,9 @@ public class ShopController : ControllerBase
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
 
-        _logger.ZLogInformation($"[Shop/BuyDiamond] Uid:{uid}, ProductId:{request.ProductId}");
+        _logger.ZLogInformation($"[Shop/BuyDiamond] Uid:{uid}, ShopItemTag:{request.ShopItemTag}");
 
-        var (error, diamondAmount) = await _shopService.BuyDiamondAsync(uid, request.ProductId);
+        var (error, diamondAmount) = await _shopService.BuyDiamondAsync(uid, request.ShopItemTag);
         response.Result = error;
         response.DiamondAmount = diamondAmount;
         return response;

@@ -45,12 +45,12 @@ public class ShopService
         var tabItems = shopItems.Where(s => s.tab_type == tabType).ToList();
         var resetStr = FormatResetTime(resetTime);
         var purchases = await _gameDB.GetPurchasesSinceAsync(uid, resetStr);
-        var purchasedTags = purchases.Select(p => p.shopItemId).ToHashSet();
+        var countByTag = purchases.GroupBy(p => p.shopItemId).ToDictionary(g => g.Key, g => g.Count());
 
         return tabItems.Select(item => new PkShopItemState
         {
             ShopItemId = item.tag,
-            Purchased = purchasedTags.Contains(item.tag)
+            PurchasedCount = countByTag.TryGetValue(item.tag, out var c) ? c : 0
         }).ToList();
     }
 
@@ -83,7 +83,9 @@ public class ShopService
             {
                 var resetStr = FormatResetTime(GetDailyResetTime());
                 var purchases = await _gameDB.GetPurchasesSinceAsync(uid, resetStr);
-                if (purchases.Any(p => p.shopItemId == shopItemTag))
+                int todayCount = purchases.Count(p => p.shopItemId == shopItemTag);
+                int limit = shopItem.daily_limit > 0 ? shopItem.daily_limit : 1;
+                if (todayCount >= limit)
                 {
                     return (ErrorCode.ShopItemAlreadyPurchased, new());
                 }
@@ -120,16 +122,16 @@ public class ShopService
         }
     }
 
-    /// 다이아몬드 구매 (Cash 결제). productId만 받고 다이아 양은 GdbShopData.reward_count로 결정 — 클라 가격 변조 방지.
-    public async Task<(ErrorCode error, long diamondAmount)> BuyDiamondAsync(long uid, string productId)
+    /// 다이아몬드 구매 (Cash 결제). shopItemTag(예: "Tag.Shop.Product.Diamond_6")로 식별, 다이아 양은 GdbShopData.reward_count로 결정 — 클라 가격 변조 방지.
+    public async Task<(ErrorCode error, long diamondAmount)> BuyDiamondAsync(long uid, string shopItemTag)
     {
-        if (string.IsNullOrEmpty(productId))
+        if (string.IsNullOrEmpty(shopItemTag))
         {
-            return (ErrorCode.ShopInvalidAmount, 0);
+            return (ErrorCode.ShopItemNotFound, 0);
         }
 
         var shopItems = _gameDataManager.GetList<GdbShopData>();
-        var shopItem = shopItems?.FirstOrDefault(s => s.product_id == productId);
+        var shopItem = shopItems?.FirstOrDefault(s => s.tag == shopItemTag);
         if (shopItem == null)
         {
             return (ErrorCode.ShopItemNotFound, 0);
@@ -204,10 +206,21 @@ public class ShopService
         };
     }
 
-    /// 일일 초기화 시점: 오늘 자정 (UTC).
-    private static DateTime GetDailyResetTime()
+    /// 치트 전용. 오늘 자 사용자 구매 기록을 모두 삭제 → 일일 카운터 0 복구.
+    public async Task<int> CheatResetDailyAsync(long uid)
     {
-        return DateTime.UtcNow.Date;
+        var resetStr = FormatResetTime(GetDailyResetTime());
+        return await _gameDB.DeletePurchasesSinceAsync(uid, resetStr);
+    }
+
+    /// 일일 초기화 시점: ShopConstants.dailyResetHourUtc 기준 가장 최근 리셋 시각.
+    /// 예: dailyResetHourUtc=20일 때 현재 UTC 22시면 오늘 20시가 리셋, 현재 UTC 18시면 어제 20시가 리셋.
+    private DateTime GetDailyResetTime()
+    {
+        int resetHour = _gameDataManager.GetConstInt(GdbConst.Shop.Category, GdbConst.Shop.DailyResetHourUtc, 20);
+        var now = DateTime.UtcNow;
+        var resetToday = now.Date.AddHours(resetHour);
+        return now >= resetToday ? resetToday : resetToday.AddDays(-1);
     }
 
     private static string FormatResetTime(DateTime resetTime)

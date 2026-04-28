@@ -17,6 +17,8 @@ public class GdbShopData
     public int display_price_k_r_w { get; set; }
     public string reward_item { get; set; } = "";
     public int reward_count { get; set; }
+    public int daily_limit { get; set; }
+    public object post_purchase { get; set; }
     public object popularity_label_icon { get; set; }
     public object popularity_icon { get; set; }
 }

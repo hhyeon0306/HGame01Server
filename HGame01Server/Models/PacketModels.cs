@@ -80,7 +80,9 @@ public class PkShopListResponse
 public class PkShopItemState
 {
     public string ShopItemId { get; set; } = "";
-    public bool Purchased { get; set; }
+
+    /// 오늘 누적 구매 횟수. dailyLimit 비교는 클라가 ShopData.dailyLimit과 매칭.
+    public int PurchasedCount { get; set; }
 }
 
 // POST api/Shop/Buy
@@ -96,16 +98,27 @@ public class PkShopBuyResponse
     public PkRewardResult Reward { get; set; } = new();
 }
 
-// POST api/Shop/BuyDiamond — productId만 송신, 다이아 양은 서버가 GdbShopData lookup으로 결정 (가격 변조 방지)
+// POST api/Shop/BuyDiamond — shopItemTag로 식별, 다이아 양은 서버가 GdbShopData lookup으로 결정 (가격 변조 방지)
 public class PkBuyDiamondRequest
 {
-    public string ProductId { get; set; } = "";
+    public string ShopItemTag { get; set; } = "";
 }
 
 public class PkBuyDiamondResponse
 {
     public ErrorCode Result { get; set; }
     public long DiamondAmount { get; set; }
+}
+
+// POST api/Shop/CheatResetDaily — 치트 전용. 오늘 자 일일 구매 기록 삭제 → 셀 잔여 횟수 복구.
+public class PkCheatResetDailyRequest
+{
+}
+
+public class PkCheatResetDailyResponse
+{
+    public ErrorCode Result { get; set; }
+    public int DeletedCount { get; set; }
 }
 
 // ============================================================

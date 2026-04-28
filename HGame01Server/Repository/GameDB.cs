@@ -185,4 +185,20 @@ public class GameDB : IGameDB
         _context.UserShopPurchases.Add(purchase);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<int> DeletePurchasesSinceAsync(long uid, string sinceStr)
+    {
+        var rows = await _context.UserShopPurchases
+            .Where(p => p.uid == uid && string.Compare(p.purchasedAt, sinceStr) >= 0)
+            .ToListAsync();
+
+        if (rows.Count == 0)
+        {
+            return 0;
+        }
+
+        _context.UserShopPurchases.RemoveRange(rows);
+        await _context.SaveChangesAsync();
+        return rows.Count;
+    }
 }

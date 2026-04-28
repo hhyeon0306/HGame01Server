@@ -31,4 +31,7 @@ public interface IGameDB
     // ===== 상점 구매 =====
     public Task<List<GameUserShopPurchase>> GetPurchasesSinceAsync(long uid, string sinceStr);
     public Task AddPurchaseAsync(GameUserShopPurchase purchase);
+
+    /// 치트 전용. 지정 사용자의 sinceStr 이후 구매 기록 모두 삭제 → 일일 카운터 초기화 효과.
+    public Task<int> DeletePurchasesSinceAsync(long uid, string sinceStr);
 }
