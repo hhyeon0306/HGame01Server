@@ -21,8 +21,12 @@ public class GachaService
     }
 
     /// 뽑기 실행. pullCount만큼 장비를 뽑아서 반환.
+    /// useTicket 파라미터는 클라이언트 ServerAPI 시그니처 호환을 위해 남기되, 가챠 다이아 결제 단일화로 분기는 제거됐다 — 항상 Diamond 차감.
+    /// 다음 정리 시점에 클라/서버 동시 시그니처에서 useTicket 제거 예정.
     public async Task<(ErrorCode error, List<PkGachaResultItem> items)> PullAsync(long uid, int pullCount, bool useTicket)
     {
+        _ = useTicket;
+
         if (pullCount <= 0 || (pullCount != 1 && pullCount != 10))
         {
             return (ErrorCode.GachaInvalidPullCount, new());
@@ -31,25 +35,14 @@ public class GachaService
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1. 재화 검증 및 차감
-            if (useTicket)
-            {
-                var ticketError = await _currencyService.DeductAsync(uid, CurrencyType.GachaTicket, pullCount);
-                if (ticketError != ErrorCode.None)
-                {
-                    return (ErrorCode.GachaInsufficientCurrency, new());
-                }
-            }
-            else
-            {
-                int singleCost = _gameDataManager.GetConstInt(GdbConst.Gacha.Category, GdbConst.Gacha.SingleCostDiamond, 300);
-                long totalCost = (long)singleCost * pullCount;
+            // 1. 재화 검증 및 차감 (다이아 단일 결제)
+            int singleCost = _gameDataManager.GetConstInt(GdbConst.Gacha.Category, GdbConst.Gacha.SingleCostDiamond, 300);
+            long totalCost = (long)singleCost * pullCount;
 
-                var diamondError = await _currencyService.DeductAsync(uid, CurrencyType.Diamond, totalCost);
-                if (diamondError != ErrorCode.None)
-                {
-                    return (ErrorCode.GachaInsufficientCurrency, new());
-                }
+            var diamondError = await _currencyService.DeductAsync(uid, CurrencyType.Diamond, totalCost);
+            if (diamondError != ErrorCode.None)
+            {
+                return (ErrorCode.GachaInsufficientCurrency, new());
             }
 
             // 2. 등급별 가중치 로드
