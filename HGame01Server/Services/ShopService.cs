@@ -126,23 +126,23 @@ public class ShopService
 
     /// Cash 결제. 즉시 지급 X — 우편함으로 발송. 클라는 "메일 도착" 흐름으로 처리.
     /// shopItemTag (예: "Tag.Shop.Product.Diamond_6") 식별. 보상 종류/수량은 서버 측 GdbShopData / GdbItemData 조회로 결정 (가격 변조 방지).
-    public async Task<(ErrorCode error, long diamondAmount)> BuyDiamondAsync(long uid, string shopItemTag)
+    public async Task<ErrorCode> BuyDiamondAsync(long uid, string shopItemTag)
     {
         if (string.IsNullOrEmpty(shopItemTag))
         {
-            return (ErrorCode.ShopItemNotFound, 0);
+            return ErrorCode.ShopItemNotFound;
         }
 
         var shopItems = _gameDataManager.GetList<GdbShopData>();
         var shopItem = shopItems?.FirstOrDefault(s => s.tag == shopItemTag);
         if (shopItem == null)
         {
-            return (ErrorCode.ShopItemNotFound, 0);
+            return ErrorCode.ShopItemNotFound;
         }
 
         if (shopItem.payment_method != "Cash")
         {
-            return (ErrorCode.ShopInvalidAmount, 0);
+            return ErrorCode.ShopInvalidAmount;
         }
 
         // TODO: 실제 영수증 검증 (포폴 단계 X)
@@ -161,15 +161,13 @@ public class ShopService
         await _mailService.SendAsync(
             uid: uid,
             titleKey: shopItem.name_key ?? "",
-            bodyKey: "Inbox.Body.CashPurchase",
             rewards: rewards,
             iconAtlas: "ShopProductAtlas",
             iconKey: shopItem.icon_name ?? "",
             expireMinutes: 60 * 24 * 30,
             senderType: "Compensation");
 
-        // 즉시 지급분 0 (메일 수령 후 가산). 클라 BuyDiamondResponse.diamondAmount 는 미사용 — 우편함 도착이 진짜 신호.
-        return (ErrorCode.None, 0);
+        return ErrorCode.None;
     }
 
     /// 보상 지급 — GdbItemData.kind에 따라 분기. 이번 prototype은 Currency만 실제 지급, Equipment/BattleItem은 응답에 정보만 담음.

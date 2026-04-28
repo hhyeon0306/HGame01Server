@@ -110,7 +110,7 @@ public class MailService
     }
 
     /// 외부 (ShopService 등) 가 호출하는 메일 발송 진입점. expireAt 자동 계산.
-    public async Task<string> SendAsync(long uid, string titleKey, string bodyKey,
+    public async Task<string> SendAsync(long uid, string titleKey,
                                         List<MailRewardEntry> rewards,
                                         string iconAtlas, string iconKey,
                                         int expireMinutes,
@@ -121,7 +121,6 @@ public class MailService
             mailId = Guid.NewGuid().ToString("N"),
             uid = uid,
             titleKey = titleKey ?? "",
-            bodyKey = bodyKey ?? "",
             rewardsJson = JsonSerializer.Serialize(rewards ?? new()),
             iconAtlas = iconAtlas ?? "",
             iconKey = iconKey ?? "",
@@ -216,7 +215,6 @@ public class MailService
         {
             MailId = m.mailId,
             TitleKey = m.titleKey,
-            BodyKey = m.bodyKey,
             Rewards = rewards,
             IconAtlas = m.iconAtlas,
             IconKey = m.iconKey,

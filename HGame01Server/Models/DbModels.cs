@@ -105,7 +105,6 @@ public class GameUserMail
 
     public long uid { get; set; }
     public string titleKey { get; set; } = "";
-    public string bodyKey { get; set; } = "";
 
     /// JSON 직렬화된 List<MailRewardEntry>. MailService 가 양방향 변환 담당.
     public string rewardsJson { get; set; } = "[]";

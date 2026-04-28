@@ -107,9 +107,7 @@ public class ShopController : ControllerBase
 
         _logger.ZLogInformation($"[Shop/BuyDiamond] Uid:{uid}, ShopItemTag:{request.ShopItemTag}");
 
-        var (error, diamondAmount) = await _shopService.BuyDiamondAsync(uid, request.ShopItemTag);
-        response.Result = error;
-        response.DiamondAmount = diamondAmount;
+        response.Result = await _shopService.BuyDiamondAsync(uid, request.ShopItemTag);
         return response;
     }
 }

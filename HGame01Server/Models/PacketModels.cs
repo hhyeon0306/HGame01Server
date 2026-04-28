@@ -107,7 +107,6 @@ public class PkBuyDiamondRequest
 public class PkBuyDiamondResponse
 {
     public ErrorCode Result { get; set; }
-    public long DiamondAmount { get; set; }
 }
 
 // POST api/Shop/CheatResetDaily — 치트 전용. 오늘 자 일일 구매 기록 삭제 → 셀 잔여 횟수 복구.
@@ -221,7 +220,6 @@ public class PkMailEntry
 {
     public string MailId { get; set; } = "";
     public string TitleKey { get; set; } = "";
-    public string BodyKey { get; set; } = "";
     public List<PkMailReward> Rewards { get; set; } = new();
     public string IconAtlas { get; set; } = "";
     public string IconKey { get; set; } = "";
@@ -266,7 +264,6 @@ public class PkMailClaimAllResponse
 public class PkMailCheatSendRequest
 {
     public string TitleKey { get; set; } = "";
-    public string BodyKey { get; set; } = "";
     public List<PkMailReward> Rewards { get; set; } = new();
     public int ExpireMinutes { get; set; }    // 0 또는 음수면 기본값 (7일)
     public string IconAtlas { get; set; } = "";

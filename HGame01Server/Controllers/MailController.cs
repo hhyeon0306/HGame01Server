@@ -105,7 +105,6 @@ public class MailController : ControllerBase
         var mailId = await _mailService.SendAsync(
             uid: uid,
             titleKey: request.TitleKey,
-            bodyKey: request.BodyKey,
             rewards: rewards,
             iconAtlas: request.IconAtlas,
             iconKey: request.IconKey,
