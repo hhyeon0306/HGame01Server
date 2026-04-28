@@ -36,7 +36,7 @@ public class GachaService
         try
         {
             // 1. 재화 검증 및 차감 (다이아 단일 결제)
-            int singleCost = _gameDataManager.GetConstInt(GdbConst.Gacha.Category, GdbConst.Gacha.SingleCostDiamond, 300);
+            int singleCost = _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.SingleCostDiamond, 300);
             long totalCost = (long)singleCost * pullCount;
 
             var diamondError = await _currencyService.DeductAsync(uid, CurrencyType.Diamond, totalCost);
@@ -113,10 +113,10 @@ public class GachaService
     {
         var weights = new Dictionary<int, int>
         {
-            { 1, _gameDataManager.GetConstInt(GdbConst.Gacha.Category, GdbConst.Gacha.WeightGrade1, 5) },
-            { 2, _gameDataManager.GetConstInt(GdbConst.Gacha.Category, GdbConst.Gacha.WeightGrade2, 15) },
-            { 3, _gameDataManager.GetConstInt(GdbConst.Gacha.Category, GdbConst.Gacha.WeightGrade3, 40) },
-            { 4, _gameDataManager.GetConstInt(GdbConst.Gacha.Category, GdbConst.Gacha.WeightGrade4, 40) },
+            { 1, _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.WeightGrade1, 5) },
+            { 2, _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.WeightGrade2, 15) },
+            { 3, _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.WeightGrade3, 40) },
+            { 4, _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.WeightGrade4, 40) },
         };
         return weights;
     }
