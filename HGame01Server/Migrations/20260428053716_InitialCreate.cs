@@ -75,7 +75,8 @@ namespace HGame01Server.Migrations
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     uid = table.Column<long>(type: "bigint", nullable: false),
-                    shopItemId = table.Column<int>(type: "int", nullable: false),
+                    shopItemId = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     purchasedAt = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },

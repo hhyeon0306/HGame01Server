@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20260407012109_InitialCreate")]
+    [Migration("20260428053716_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -148,8 +148,9 @@ namespace HGame01Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("shopItemId")
-                        .HasColumnType("int");
+                    b.Property<string>("shopItemId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<long>("uid")
                         .HasColumnType("bigint");

@@ -145,8 +145,9 @@ namespace HGame01Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("shopItemId")
-                        .HasColumnType("int");
+                    b.Property<string>("shopItemId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<long>("uid")
                         .HasColumnType("bigint");
