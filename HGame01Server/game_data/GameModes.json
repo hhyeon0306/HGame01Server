@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "tag": "Tag.GameMode.Dev"
+  },
+  {
+    "id": 1001,
+    "tag": "Tag.GameMode.Dungeon",
+    "mode_config": null
+  },
+  {
+    "id": 101,
+    "tag": "Tag.GameMode.Stage"
+  }
+]

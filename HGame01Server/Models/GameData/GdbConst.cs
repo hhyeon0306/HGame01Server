@@ -19,6 +19,14 @@ public static class GdbConst
         public const string ComboResetTime = "comboResetTime";
         public const string GuardDamageReduction = "guardDamageReduction";
         public const string ParryWindowDuration = "parryWindowDuration";
+        public const string MaxBattleItemPerType = "maxBattleItemPerType";
+    }
+
+    public static class Gamemode
+    {
+        public const string Category = "gamemode";
+        public const string StageManagerAddress = "stageManagerAddress";
+        public const string DevManagerAddress = "devManagerAddress";
     }
 
     public static class Pass
@@ -33,20 +41,11 @@ public static class GdbConst
     public static class Shop
     {
         public const string Category = "shop";
-        public const string RefreshTime = "refreshTime";
+        public const string DailyResetHour = "dailyResetHour";
+        public const string WeeklyResetDay = "weeklyResetDay";
         public const string FreeRefreshCount = "freeRefreshCount";
         public const string MaxDisplayItems = "maxDisplayItems";
         public const string MaxDiscountRate = "maxDiscountRate";
-    }
-
-    public static class Gacha
-    {
-        public const string Category = "gacha";
-        public const string SingleCostDiamond = "singleCostDiamond";
-        public const string WeightGrade1 = "weightGrade1";
-        public const string WeightGrade2 = "weightGrade2";
-        public const string WeightGrade3 = "weightGrade3";
-        public const string WeightGrade4 = "weightGrade4";
     }
 
 }

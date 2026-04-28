@@ -1,0 +1,11 @@
+[
+  {
+    "id": 101,
+    "tag": "Tag.Chapter.Chapter1",
+    "game_mode_tag": "Tag.GameMode.Stage",
+    "field_tag": "Tag.GameField.Prototype",
+    "chapter_index": 1,
+    "stage_count": 30,
+    "drop_chance": 0.692
+  }
+]

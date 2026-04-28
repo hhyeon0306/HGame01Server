@@ -1,0 +1,47 @@
+[
+  {
+    "id": 3,
+    "tag": "Tag.Ability.AtkSpeedUp",
+    "name_key": "Ability.Name.AtkSpeedUp",
+    "description_key": "Ability.Desc.AtkSpeedUp",
+    "icon_sprite": "AbilityIcon_AtkSpeedUp",
+    "grade": "Rare",
+    "max_pick_count": -1
+  },
+  {
+    "id": 1,
+    "tag": "Tag.Ability.AtkUp",
+    "name_key": "Ability.Name.AtkUp",
+    "description_key": "Ability.Desc.AtkUp",
+    "icon_sprite": "AbilityIcon_AtkUp",
+    "grade": "Common",
+    "max_pick_count": -1
+  },
+  {
+    "id": 5,
+    "tag": "Tag.Ability.BlackHole",
+    "name_key": "Ability.Name.BlackHole",
+    "description_key": "Ability.Desc.BlackHole",
+    "icon_sprite": "AbilityIcon_BlackHole",
+    "grade": "Legendary",
+    "max_pick_count": 1
+  },
+  {
+    "id": 4,
+    "tag": "Tag.Ability.RadialFireBall",
+    "name_key": "Ability.Name.RadialFireBall",
+    "description_key": "Ability.Desc.RadialFireBall",
+    "icon_sprite": "AbilityIcon_RadialFireBall",
+    "grade": "Epic",
+    "max_pick_count": 1
+  },
+  {
+    "id": 2,
+    "tag": "Tag.Ability.SpeedUp",
+    "name_key": "Ability.Name.SpeedUp",
+    "description_key": "Ability.Desc.SpeedUp",
+    "icon_sprite": "AbilityIcon_SpeedUp",
+    "grade": "Common",
+    "max_pick_count": -1
+  }
+]

@@ -90,13 +90,21 @@ void SettingLogger()
         options.RollingSizeKB = 1024;
     });
 
-    // 콘솔 로그: 플레인 텍스트 형식
+    // 콘솔 로그: 플레인 텍스트 형식 (시간 [레벨] 카테고리: 메시지)
     logging.AddZLoggerConsole(options =>
     {
         options.UsePlainTextFormatter(formatter =>
         {
-            formatter.SetPrefixFormatter($"{0:local-longdate} [{1:short}] ",
-                (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp, info.LogLevel));
+            formatter.SetPrefixFormatter($"{0:HH:mm:ss.fff} [{1:short}] {2}: ",
+                (in MessageTemplate template, in LogInfo info) =>
+                    template.Format(info.Timestamp.Local, info.LogLevel, ShortenCategory(info.Category.Name)));
         });
     });
+}
+
+// 카테고리(네임스페이스 포함 클래스 풀네임)에서 마지막 클래스명만 추출
+static string ShortenCategory(string category)
+{
+    int lastDot = category.LastIndexOf('.');
+    return lastDot >= 0 ? category[(lastDot + 1)..] : category;
 }

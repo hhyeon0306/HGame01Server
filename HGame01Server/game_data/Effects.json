@@ -1,0 +1,58 @@
+[
+  {
+    "id": 7,
+    "tag": "Tag.Effect.AtkSpeed_Multiply_Infinite",
+    "category": "Buff",
+    "icon_name": "",
+    "duration_policy": "Infinite"
+  },
+  {
+    "id": 6,
+    "tag": "Tag.Effect.Barrier_Timed",
+    "category": "Buff",
+    "icon_name": "",
+    "duration_policy": "Timed"
+  },
+  {
+    "id": 4,
+    "tag": "Tag.Effect.Burn_Add_Timed",
+    "category": "Debuff",
+    "icon_name": "EffectIcon_Burn",
+    "duration_policy": "Timed"
+  },
+  {
+    "id": 5,
+    "tag": "Tag.Effect.Heal_Add_Instant",
+    "category": "Buff",
+    "icon_name": "",
+    "duration_policy": "Instant"
+  },
+  {
+    "id": 1,
+    "tag": "Tag.Effect.Speed_Multiply_Infinite",
+    "category": "Buff",
+    "icon_name": "",
+    "duration_policy": "Infinite"
+  },
+  {
+    "id": 3,
+    "tag": "Tag.Effect.StatBuff_Infinite_AttackDamage",
+    "category": "Buff",
+    "icon_name": "",
+    "duration_policy": "Infinite"
+  },
+  {
+    "id": 8,
+    "tag": "Tag.Effect.Stun",
+    "category": "None",
+    "icon_name": "",
+    "duration_policy": "Timed"
+  },
+  {
+    "id": 2,
+    "tag": "Tag.Effect.TakeDamage_Add_Instant",
+    "category": "Hostile",
+    "icon_name": "",
+    "duration_policy": "Instant"
+  }
+]

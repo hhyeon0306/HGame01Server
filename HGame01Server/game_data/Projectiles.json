@@ -1,0 +1,26 @@
+[
+  {
+    "id": 2,
+    "tag": "Tag.Projectile.HomingArc",
+    "movement_type": "HomingArc",
+    "max_distance": 50.0,
+    "lifetime": 8.0,
+    "gravity": 9.81,
+    "launch_angle": 45.0,
+    "homing_turn_speed": 160.0,
+    "initial_arc_angle": 55.0,
+    "target_height_offset": 1.0
+  },
+  {
+    "id": 1,
+    "tag": "Tag.Projectile.Linear",
+    "movement_type": "Linear",
+    "max_distance": 50.0,
+    "lifetime": 5.0,
+    "gravity": 9.81,
+    "launch_angle": 30.0,
+    "homing_turn_speed": 360.0,
+    "initial_arc_angle": 45.0,
+    "target_height_offset": 1.0
+  }
+]

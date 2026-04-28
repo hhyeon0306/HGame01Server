@@ -30,6 +30,21 @@
     "category": "combat"
   },
   {
+    "key": "maxBattleItemPerType",
+    "value": "300",
+    "category": "combat"
+  },
+  {
+    "key": "stageManagerAddress",
+    "value": "StageManager",
+    "category": "gamemode"
+  },
+  {
+    "key": "devManagerAddress",
+    "value": "DevManager",
+    "category": "gamemode"
+  },
+  {
     "key": "maxPassLevel",
     "value": "30",
     "category": "pass"
@@ -50,8 +65,13 @@
     "category": "pass"
   },
   {
-    "key": "refreshTime",
-    "value": "3600",
+    "key": "dailyResetHour",
+    "value": "0",
+    "category": "shop"
+  },
+  {
+    "key": "weeklyResetDay",
+    "value": "Monday",
     "category": "shop"
   },
   {

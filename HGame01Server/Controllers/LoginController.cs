@@ -45,6 +45,9 @@ public class LoginController : ControllerBase
         }
 
         response.AuthToken = authToken;
+
+        _logger.ZLogInformation($"[Login Success] ProfileId:{request.ProfileId}, Uid:{uid}");
+
         return response;
     }
 

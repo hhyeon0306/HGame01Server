@@ -1,0 +1,38 @@
+[
+  {
+    "id": 4,
+    "tag": "Tag.Cue.Barrier",
+    "duration": 1.0,
+    "attach_to_parent": true
+  },
+  {
+    "id": 6,
+    "tag": "Tag.Cue.BlackHole",
+    "duration": 10.0,
+    "attach_to_parent": false
+  },
+  {
+    "id": 5,
+    "tag": "Tag.Cue.Heal",
+    "duration": 2.0,
+    "attach_to_parent": true
+  },
+  {
+    "id": 2,
+    "tag": "Tag.Cue.Hit.FireBall",
+    "duration": 1.0,
+    "attach_to_parent": false
+  },
+  {
+    "id": 3,
+    "tag": "Tag.Cue.Hit.Ice",
+    "duration": 2.0,
+    "attach_to_parent": false
+  },
+  {
+    "id": 1,
+    "tag": "Tag.Cue.MuzzleFlash.FireBall",
+    "duration": 1.0,
+    "attach_to_parent": false
+  }
+]

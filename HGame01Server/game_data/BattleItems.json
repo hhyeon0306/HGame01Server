@@ -1,0 +1,18 @@
+[
+  {
+    "id": 2,
+    "tag": "Tag.BattleItem.Barrier",
+    "name_key": "BattleItem.Barrier",
+    "icon_name": "BattleItemIcon_Barrier",
+    "action_ref": "Tag.Action.Barrier",
+    "drop_weight": 1
+  },
+  {
+    "id": 1,
+    "tag": "Tag.BattleItem.HealPotion",
+    "name_key": "BattleItem.HealPotion",
+    "icon_name": "BattleItemIcon_HealPotion",
+    "action_ref": "Tag.Action.InstantHeal",
+    "drop_weight": 1
+  }
+]
