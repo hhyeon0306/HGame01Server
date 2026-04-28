@@ -25,6 +25,7 @@ builder.Services.AddDbContext<GameDbContext>(options =>
 builder.Services.AddScoped<IGameDB, GameDB>();
 builder.Services.AddScoped<CharacterService>();
 builder.Services.AddScoped<CurrencyService>();
+builder.Services.AddScoped<MailService>();
 builder.Services.AddScoped<ShopService>();
 builder.Services.AddScoped<GachaService>();
 builder.Services.AddScoped<EquipmentService>();

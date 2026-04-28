@@ -201,4 +201,61 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
         return rows.Count;
     }
+
+
+    // ===== 우편함 =====
+
+    public async Task AddMailAsync(GameUserMail mail)
+    {
+        _context.UserMails.Add(mail);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<GameUserMail>> GetMailsByUidAsync(long uid)
+    {
+        return await _context.UserMails
+            .Where(m => m.uid == uid)
+            .ToListAsync();
+    }
+
+    public async Task<GameUserMail?> GetMailAsync(long uid, string mailId)
+    {
+        return await _context.UserMails
+            .FirstOrDefaultAsync(m => m.uid == uid && m.mailId == mailId);
+    }
+
+    public async Task<List<GameUserMail>> GetClaimableMailsAsync(long uid, string nowStr)
+    {
+        return await _context.UserMails
+            .Where(m => m.uid == uid && m.claimedAt == "" && string.Compare(m.expireAt, nowStr) > 0)
+            .ToListAsync();
+    }
+
+    public async Task UpdateMailClaimedAsync(GameUserMail mail)
+    {
+        _context.UserMails.Update(mail);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateMailsClaimedBatchAsync(List<GameUserMail> mails)
+    {
+        _context.UserMails.UpdateRange(mails);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<int> DeleteExpiredMailsAsync(long uid, string nowStr)
+    {
+        var expired = await _context.UserMails
+            .Where(m => m.uid == uid && string.Compare(m.expireAt, nowStr) < 0)
+            .ToListAsync();
+
+        if (expired.Count == 0)
+        {
+            return 0;
+        }
+
+        _context.UserMails.RemoveRange(expired);
+        await _context.SaveChangesAsync();
+        return expired.Count;
+    }
 }

@@ -205,6 +205,82 @@ public class PkUnequipResponse
 }
 
 // ============================================================
+// 우편함
+// ============================================================
+
+// POST api/Mail/List
+public class PkMailListRequest { }
+
+public class PkMailListResponse
+{
+    public ErrorCode Result { get; set; }
+    public List<PkMailEntry> Mails { get; set; } = new();
+}
+
+public class PkMailEntry
+{
+    public string MailId { get; set; } = "";
+    public string TitleKey { get; set; } = "";
+    public string BodyKey { get; set; } = "";
+    public List<PkMailReward> Rewards { get; set; } = new();
+    public string IconAtlas { get; set; } = "";
+    public string IconKey { get; set; } = "";
+    public string SentAt { get; set; } = "";
+    public string ExpireAt { get; set; } = "";
+    public string ClaimedAt { get; set; } = "";   // "" = 미수령
+    public string SenderType { get; set; } = "";
+}
+
+public class PkMailReward
+{
+    public string ItemTag { get; set; } = "";
+    public int Count { get; set; }
+}
+
+// POST api/Mail/Claim
+public class PkMailClaimRequest
+{
+    public string MailId { get; set; } = "";
+}
+
+public class PkMailClaimResponse
+{
+    public ErrorCode Result { get; set; }
+    public string MailId { get; set; } = "";
+    public List<PkRewardResult> Rewards { get; set; } = new();
+    public List<PkCurrency> Currencies { get; set; } = new();
+}
+
+// POST api/Mail/ClaimAll
+public class PkMailClaimAllRequest { }
+
+public class PkMailClaimAllResponse
+{
+    public ErrorCode Result { get; set; }
+    public List<string> ClaimedMailIds { get; set; } = new();
+    public List<PkRewardResult> Rewards { get; set; } = new();
+    public List<PkCurrency> Currencies { get; set; } = new();
+}
+
+// POST api/Mail/CheatSendMail — 치트 전용 (DEBUG 빌드 한정)
+public class PkMailCheatSendRequest
+{
+    public string TitleKey { get; set; } = "";
+    public string BodyKey { get; set; } = "";
+    public List<PkMailReward> Rewards { get; set; } = new();
+    public int ExpireMinutes { get; set; }    // 0 또는 음수면 기본값 (7일)
+    public string IconAtlas { get; set; } = "";
+    public string IconKey { get; set; } = "";
+}
+
+public class PkMailCheatSendResponse
+{
+    public ErrorCode Result { get; set; }
+    public string MailId { get; set; } = "";
+}
+
+
+// ============================================================
 // Admin
 // ============================================================
 

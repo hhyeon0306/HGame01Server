@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20260428053716_InitialCreate")]
+    [Migration("20260428142403_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -134,6 +134,61 @@ namespace HGame01Server.Migrations
                         .HasDatabaseName("IX_user_equipments_uid");
 
                     b.ToTable("user_equipments");
+                });
+
+            modelBuilder.Entity("HGame01Server.Models.GameUserMail", b =>
+                {
+                    b.Property<string>("mailId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("bodyKey")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("claimedAt")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("expireAt")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("iconAtlas")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("iconKey")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("rewardsJson")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("senderType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("sentAt")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("titleKey")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<long>("uid")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("mailId");
+
+                    b.HasIndex("expireAt")
+                        .HasDatabaseName("IX_user_mails_expireAt");
+
+                    b.HasIndex("uid", "claimedAt")
+                        .HasDatabaseName("IX_user_mails_uid_claimedAt");
+
+                    b.ToTable("user_mails");
                 });
 
             modelBuilder.Entity("HGame01Server.Models.GameUserShopPurchase", b =>

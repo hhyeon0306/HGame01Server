@@ -69,6 +69,38 @@ namespace HGame01Server.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "user_mails",
+                columns: table => new
+                {
+                    mailId = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    uid = table.Column<long>(type: "bigint", nullable: false),
+                    titleKey = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    bodyKey = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    rewardsJson = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    iconAtlas = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    iconKey = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    senderType = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    sentAt = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    expireAt = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    claimedAt = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_mails", x => x.mailId);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "user_shop_purchases",
                 columns: table => new
                 {
@@ -117,6 +149,16 @@ namespace HGame01Server.Migrations
                 column: "uid");
 
             migrationBuilder.CreateIndex(
+                name: "IX_user_mails_expireAt",
+                table: "user_mails",
+                column: "expireAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_mails_uid_claimedAt",
+                table: "user_mails",
+                columns: new[] { "uid", "claimedAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_user_shop_purchases_uid_shopItemId",
                 table: "user_shop_purchases",
                 columns: new[] { "uid", "shopItemId" });
@@ -133,6 +175,9 @@ namespace HGame01Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "user_equipments");
+
+            migrationBuilder.DropTable(
+                name: "user_mails");
 
             migrationBuilder.DropTable(
                 name: "user_shop_purchases");

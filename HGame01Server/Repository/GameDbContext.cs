@@ -14,6 +14,7 @@ public class GameDbContext : DbContext
     public DbSet<GameUserCurrency> UserCurrencies { get; set; }
     public DbSet<GameUserEquipment> UserEquipments { get; set; }
     public DbSet<GameUserShopPurchase> UserShopPurchases { get; set; }
+    public DbSet<GameUserMail> UserMails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,5 +35,15 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<GameUserShopPurchase>()
             .HasIndex(p => new { p.uid, p.shopItemId })
             .HasDatabaseName("IX_user_shop_purchases_uid_shopItemId");
+
+        // user_mails: (uid, claimedAt) 복합 인덱스 — 미수령 조회 + claim 빠른 검색
+        modelBuilder.Entity<GameUserMail>()
+            .HasIndex(m => new { m.uid, m.claimedAt })
+            .HasDatabaseName("IX_user_mails_uid_claimedAt");
+
+        // user_mails: expireAt 단일 인덱스 — lazy 만료 청소 쿼리용
+        modelBuilder.Entity<GameUserMail>()
+            .HasIndex(m => m.expireAt)
+            .HasDatabaseName("IX_user_mails_expireAt");
     }
 }

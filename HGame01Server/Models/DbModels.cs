@@ -91,3 +91,41 @@ public class GameUserShopPurchase
     public string shopItemId { get; set; } = "";
     public string purchasedAt { get; set; } = "";
 }
+
+// ============================================================
+// 우편함 테이블
+// ============================================================
+
+[Table("user_mails")]
+public class GameUserMail
+{
+    /// GUID 문자열 (Guid.NewGuid().ToString("N")). 외부 노출 PK.
+    [Key]
+    public string mailId { get; set; } = "";
+
+    public long uid { get; set; }
+    public string titleKey { get; set; } = "";
+    public string bodyKey { get; set; } = "";
+
+    /// JSON 직렬화된 List<MailRewardEntry>. MailService 가 양방향 변환 담당.
+    public string rewardsJson { get; set; } = "[]";
+
+    /// 셀 아이콘 atlas 이름. "ShopProductAtlas" / "ItemAtlas" / 빈문자열(보상 itemTag로 자동).
+    public string iconAtlas { get; set; } = "";
+    public string iconKey { get; set; } = "";
+
+    /// "System" / "Event" / "CS" / "Compensation"
+    public string senderType { get; set; } = "";
+
+    /// 모두 yyyy-MM-dd HH:mm:ss UTC. claimedAt 빈문자열 = 미수령. 다른 테이블과 동일 컨벤션.
+    public string sentAt { get; set; } = "";
+    public string expireAt { get; set; } = "";
+    public string claimedAt { get; set; } = "";
+}
+
+/// 메일 보상 1단위. rewardsJson 직렬화 대상.
+public class MailRewardEntry
+{
+    public string itemTag { get; set; } = "";
+    public int count { get; set; }
+}
