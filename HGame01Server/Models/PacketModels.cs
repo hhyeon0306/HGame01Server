@@ -128,7 +128,6 @@ public class PkCheatResetDailyResponse
 public class PkGachaPullRequest
 {
     public int PullCount { get; set; }
-    public bool UseTicket { get; set; }
 }
 
 public class PkGachaPullResponse
@@ -136,6 +135,9 @@ public class PkGachaPullResponse
     public ErrorCode Result { get; set; }
     public List<PkGachaResultItem> Items { get; set; } = new();
     public List<PkCurrency> Currencies { get; set; } = new();
+
+    /// 이번 뽑기로 획득한 신규 장비 인스턴스 (DB id 포함). 클라가 GetUserInfo 재호출 없이 Equipment Store를 갱신할 수 있도록 함.
+    public List<PkUserEquipment> Equipments { get; set; } = new();
 }
 
 public class PkGachaResultItem
@@ -156,7 +158,8 @@ public class PkCurrency
 
 public class PkUserEquipment
 {
-    public long Id { get; set; }
+    /// DB 고유 식별자. 장착/해제 등 인스턴스 구분에 사용. 클라이언트의 dbId 필드와 1:1 매핑.
+    public long DbId { get; set; }
     public int EquipmentId { get; set; }
     public int Slot { get; set; }
     public bool IsEquipped { get; set; }
@@ -220,6 +223,10 @@ public class PkMailEntry
 {
     public string MailId { get; set; } = "";
     public string TitleKey { get; set; } = "";
+
+    /// 메일 발송 사유. 클라 EMailKind enum 문자열 ("Generic" / "CashPurchase" 등). 빈 값은 클라가 Generic 으로 fallback.
+    public string MailKind { get; set; } = "";
+
     public List<PkMailReward> Rewards { get; set; } = new();
     public string IconAtlas { get; set; } = "";
     public string IconKey { get; set; } = "";
@@ -264,6 +271,10 @@ public class PkMailClaimAllResponse
 public class PkMailCheatSendRequest
 {
     public string TitleKey { get; set; } = "";
+
+    /// 치트 메일 발송 분류. 빈 값 = Generic. 클라 EMailKind enum 문자열.
+    public string MailKind { get; set; } = "";
+
     public List<PkMailReward> Rewards { get; set; } = new();
     public int ExpireMinutes { get; set; }    // 0 또는 음수면 기본값 (7일)
     public string IconAtlas { get; set; } = "";

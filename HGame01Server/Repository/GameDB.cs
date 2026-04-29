@@ -105,17 +105,32 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
     }
 
+    /// 조건부 원자 차감 — 단일 UPDATE 쿼리로 race condition 방지.
+    /// "amount >= cost" 조건을 SQL WHERE에 두어 동시 요청 중 하나만 성공하도록 한다.
+    /// 영향 행 수가 0이면 잔액 부족 또는 row 미존재로 간주.
     public async Task<bool> DeductCurrencyAsync(long uid, int currencyType, long amount)
     {
-        var currency = await GetCurrencyAsync(uid, currencyType);
-        if (currency == null || currency.amount < amount)
+        if (amount <= 0)
         {
             return false;
         }
 
-        currency.amount -= amount;
-        await _context.SaveChangesAsync();
-        return true;
+        int affected = await _context.UserCurrencies
+            .Where(c => c.uid == uid && c.currencyType == currencyType && c.amount >= amount)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(c => c.amount, c => c.amount - amount));
+
+        if (affected > 0)
+        {
+            // 동일 컨텍스트가 캐시한 엔티티가 있으면 stale일 수 있으므로 무효화
+            var tracked = _context.ChangeTracker.Entries<GameUserCurrency>()
+                .FirstOrDefault(e => e.Entity.uid == uid && e.Entity.currencyType == currencyType);
+            if (tracked != null)
+            {
+                await tracked.ReloadAsync();
+            }
+        }
+
+        return affected > 0;
     }
 
 

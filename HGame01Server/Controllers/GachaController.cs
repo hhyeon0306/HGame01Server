@@ -30,9 +30,9 @@ public class GachaController : ControllerBase
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
 
-        _logger.ZLogInformation($"[Gacha/Pull] Uid:{uid}, PullCount:{request.PullCount}, UseTicket:{request.UseTicket}");
+        _logger.ZLogInformation($"[Gacha/Pull] Uid:{uid}, PullCount:{request.PullCount}");
 
-        var (error, items) = await _gachaService.PullAsync(uid, request.PullCount, request.UseTicket);
+        var (error, items, equipments) = await _gachaService.PullAsync(uid, request.PullCount);
         if (error != ErrorCode.None)
         {
             response.Result = error;
@@ -40,6 +40,7 @@ public class GachaController : ControllerBase
         }
 
         response.Items = items;
+        response.Equipments = equipments;
         response.Currencies = await _currencyService.GetAllAsync(uid);
         response.Result = ErrorCode.None;
         return response;

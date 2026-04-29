@@ -11,66 +11,70 @@ public class GachaService
     private readonly IGameDB _gameDB;
     private readonly CurrencyService _currencyService;
     private readonly GameDataManager _gameDataManager;
+    private readonly ILogger<GachaService> _logger;
 
-    public GachaService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager)
+    public GachaService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager, ILogger<GachaService> logger)
     {
         _context = context;
         _gameDB = gameDB;
         _currencyService = currencyService;
         _gameDataManager = gameDataManager;
+        _logger = logger;
     }
 
     /// 뽑기 실행. pullCount만큼 장비를 뽑아서 반환.
-    /// useTicket 파라미터는 클라이언트 ServerAPI 시그니처 호환을 위해 남기되, 가챠 다이아 결제 단일화로 분기는 제거됐다 — 항상 Diamond 차감.
-    /// 다음 정리 시점에 클라/서버 동시 시그니처에서 useTicket 제거 예정.
-    public async Task<(ErrorCode error, List<PkGachaResultItem> items)> PullAsync(long uid, int pullCount, bool useTicket)
+    public async Task<(ErrorCode error, List<PkGachaResultItem> items, List<PkUserEquipment> equipments)> PullAsync(long uid, int pullCount)
     {
-        _ = useTicket;
-
-        if (pullCount <= 0 || (pullCount != 1 && pullCount != 10))
+        if (pullCount != 1 && pullCount != 10)
         {
-            return (ErrorCode.GachaInvalidPullCount, new());
+            return (ErrorCode.GachaInvalidPullCount, new(), new());
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1. 재화 검증 및 차감 (다이아 단일 결제)
-            int singleCost = _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.SingleCostDiamond, 300);
-            long totalCost = (long)singleCost * pullCount;
+            // 1. 비용 계산 — 1뽑/10뽑 각각 클라 GachaConstantsData와 동일한 키 사용
+            long totalCost = pullCount == 1
+                ? _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.SingleCostDiamond, 300)
+                : _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.MultiCostDiamond, 2700);
 
+            // 2. 재화 차감 (조건부 원자 UPDATE)
             var diamondError = await _currencyService.DeductAsync(uid, CurrencyType.Diamond, totalCost);
             if (diamondError != ErrorCode.None)
             {
-                return (ErrorCode.GachaInsufficientCurrency, new());
+                return (ErrorCode.GachaInsufficientCurrency, new(), new());
             }
 
-            // 2. 등급별 가중치 로드
+            // 3. 등급별 가중치 로드 + 합계 방어
             var gradeWeights = LoadGradeWeights();
+            int totalWeight = gradeWeights.Values.Sum();
+            if (totalWeight <= 0)
+            {
+                _logger.LogError("[GachaService] 등급 가중치 합이 0 이하입니다. GameData 업로드 상태를 확인하세요.");
+                await transaction.RollbackAsync();
+                return (ErrorCode.GachaPullFailed, new(), new());
+            }
 
-            // 3. 장비 풀 로드
+            // 4. 장비 풀 로드 — GameData 미업로드 시 더미 풀로 fallback (로컬 테스트 전용)
             var equipments = _gameDataManager.GetList<GdbEquipmentData>();
             if (equipments == null || equipments.Count == 0)
             {
-                await transaction.RollbackAsync();
-                return (ErrorCode.GachaPullFailed, new());
+                equipments = BuildDummyEquipmentPool();
+                _logger.LogWarning("[GachaService] EquipmentData가 비어 있어 더미 풀({Count}개)로 진행합니다. Admin/UploadGameData 이후 더미 fallback이 비활성화됩니다.", equipments.Count);
             }
 
-            // 4. 뽑기 실행 — 배치 삽입으로 N+1 쓰기 방지
+            // 5. 뽑기 실행 — 배치 삽입으로 N+1 쓰기 방지
             var results = new List<PkGachaResultItem>();
             var newEquipments = new List<GameUserEquipment>();
             string now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
             for (int i = 0; i < pullCount; i++)
             {
-                // 가중치 랜덤으로 등급 결정
-                int grade = RollGrade(gradeWeights);
+                int grade = RollGrade(gradeWeights, totalWeight);
 
-                // 등급별 장비 풀에서 랜덤 선택
                 var pool = equipments.Where(e => e.grade == grade).ToList();
                 if (pool.Count == 0)
                 {
-                    // 해당 등급에 장비가 없으면 전체 풀에서 선택
                     pool = equipments;
                 }
 
@@ -93,40 +97,42 @@ public class GachaService
                 });
             }
 
-            // 한 번의 SaveChanges로 배치 삽입
+            // 한 번의 SaveChanges로 배치 삽입 — EF Core가 newEquipments[i].id를 자동 채움
             await _gameDB.AddEquipmentBatchAsync(newEquipments);
 
             await transaction.CommitAsync();
-            return (ErrorCode.None, results);
+
+            _logger.LogInformation("[GachaService] Uid:{Uid} PullCount:{PullCount} Cost:{Cost} Grades:[{Grades}]",
+                uid, pullCount, totalCost, string.Join(",", results.Select(r => r.Grade)));
+
+            // 신규 장비를 클라이언트가 바로 Store에 반영할 수 있도록 패킷 매핑
+            var newEquipmentPackets = EquipmentService.MapToPacket(newEquipments);
+            return (ErrorCode.None, results, newEquipmentPackets);
         }
         catch (Exception ex)
         {
-            // TODO: ILogger 주입 후 로깅 추가
-            _ = ex;
+            _logger.LogError(ex, "[GachaService] 가챠 처리 중 예외 발생. Uid:{Uid}", uid);
             await transaction.RollbackAsync();
-            return (ErrorCode.GachaPullFailed, new());
+            return (ErrorCode.GachaPullFailed, new(), new());
         }
     }
 
     /// Constants에서 등급별 가중치 로드. 기본값: 1등급 5%, 2등급 15%, 3등급 40%, 4등급 40%
     private Dictionary<int, int> LoadGradeWeights()
     {
-        var weights = new Dictionary<int, int>
+        return new Dictionary<int, int>
         {
             { 1, _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.WeightGrade1, 5) },
             { 2, _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.WeightGrade2, 15) },
             { 3, _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.WeightGrade3, 40) },
             { 4, _gameDataManager.GetConstInt(GdbGachaConst.Category, GdbGachaConst.WeightGrade4, 40) },
         };
-        return weights;
     }
 
-    /// 가중치 기반 등급 결정.
-    private static int RollGrade(Dictionary<int, int> weights)
+    /// 가중치 기반 등급 결정. totalWeight 사전 계산값을 받아 매 호출 Sum 비용 제거.
+    private static int RollGrade(Dictionary<int, int> weights, int totalWeight)
     {
-        int totalWeight = weights.Values.Sum();
         int roll = Random.Shared.Next(totalWeight);
-
         int cumulative = 0;
         foreach (var (grade, weight) in weights)
         {
@@ -136,8 +142,28 @@ public class GachaService
                 return grade;
             }
         }
-
-        // fallback: 최저 등급
         return weights.Keys.Max();
+    }
+
+    /// EquipmentData SO가 업로드되지 않은 환경에서 가챠 흐름을 끝까지 검증할 수 있도록 제공하는 더미 풀.
+    /// 4 등급 × 2 슬롯 = 8종. 실제 데이터 업로드 후에는 호출되지 않는다.
+    private static List<GdbEquipmentData> BuildDummyEquipmentPool()
+    {
+        var pool = new List<GdbEquipmentData>();
+        int id = 90001;
+        for (int grade = 1; grade <= 4; grade++)
+        {
+            for (int slot = 0; slot < 2; slot++)
+            {
+                pool.Add(new GdbEquipmentData
+                {
+                    id = id++,
+                    name = $"Dummy_G{grade}_S{slot}",
+                    grade = grade,
+                    slot = slot,
+                });
+            }
+        }
+        return pool;
     }
 }

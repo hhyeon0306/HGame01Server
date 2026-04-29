@@ -35,6 +35,41 @@
     "category": "combat"
   },
   {
+    "key": "singleCostDiamond",
+    "value": "300",
+    "category": "gacha"
+  },
+  {
+    "key": "multiCount",
+    "value": "10",
+    "category": "gacha"
+  },
+  {
+    "key": "multiCostDiamond",
+    "value": "2700",
+    "category": "gacha"
+  },
+  {
+    "key": "weightGrade1",
+    "value": "60",
+    "category": "gacha"
+  },
+  {
+    "key": "weightGrade2",
+    "value": "25",
+    "category": "gacha"
+  },
+  {
+    "key": "weightGrade3",
+    "value": "10",
+    "category": "gacha"
+  },
+  {
+    "key": "weightGrade4",
+    "value": "5",
+    "category": "gacha"
+  },
+  {
     "key": "stageManagerAddress",
     "value": "StageManager",
     "category": "gamemode"
@@ -67,6 +102,11 @@
   {
     "key": "dailyResetHourUtc",
     "value": "20",
+    "category": "shop"
+  },
+  {
+    "key": "gachaProducts",
+    "value": "System.Collections.Generic.List\u00601[GachaProductEntry]",
     "category": "shop"
   }
 ]

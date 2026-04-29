@@ -22,6 +22,18 @@ public static class GdbConst
         public const string MaxBattleItemPerType = "maxBattleItemPerType";
     }
 
+    public static class Gacha
+    {
+        public const string Category = "gacha";
+        public const string SingleCostDiamond = "singleCostDiamond";
+        public const string MultiCount = "multiCount";
+        public const string MultiCostDiamond = "multiCostDiamond";
+        public const string WeightGrade1 = "weightGrade1";
+        public const string WeightGrade2 = "weightGrade2";
+        public const string WeightGrade3 = "weightGrade3";
+        public const string WeightGrade4 = "weightGrade4";
+    }
+
     public static class Gamemode
     {
         public const string Category = "gamemode";
@@ -42,6 +54,7 @@ public static class GdbConst
     {
         public const string Category = "shop";
         public const string DailyResetHourUtc = "dailyResetHourUtc";
+        public const string GachaProducts = "gachaProducts";
     }
 
 }
