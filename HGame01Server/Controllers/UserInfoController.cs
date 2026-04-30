@@ -38,7 +38,7 @@ public class UserInfoController : ControllerBase
         var characters = await _characterService.GetByUidAsync(uid);
         response.Characters = characters.Select(c => new PkUserCharacter
         {
-            CharacterId = c.characterId,
+            CharacterTag = c.characterTag,
             IsActive = c.isActive,
             AcquiredAt = c.acquiredAt
         }).ToList();

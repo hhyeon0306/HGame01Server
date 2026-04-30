@@ -16,15 +16,15 @@ public class CharacterService
         _gameDataManager = gameDataManager;
     }
 
-    /// 기본 캐릭터 지급. Constants에서 TID를 조회하여 지급.
+    /// 기본 캐릭터 지급. Constants에서 식별 태그를 조회하여 지급.
     public async Task GrantDefaultAsync(long uid, string createdAt)
     {
-        int defaultCharacterId = _gameDataManager.GetConstInt(GdbConst.Character.Category, GdbConst.Character.DefaultCharacterId, 101);
+        string defaultCharacterTag = _gameDataManager.GetConstString(GdbConst.Character.Category, GdbConst.Character.DefaultCharacterTag, "Tag.Character.Player");
 
         var character = new GameUserCharacter
         {
             uid = uid,
-            characterId = defaultCharacterId,
+            characterTag = defaultCharacterTag,
             isActive = true,
             acquiredAt = createdAt
         };

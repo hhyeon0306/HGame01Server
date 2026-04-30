@@ -1,7 +1,7 @@
 [
   {
-    "key": "defaultCharacterId",
-    "value": "101",
+    "key": "defaultCharacterTag",
+    "value": "Tag.Character.Player",
     "category": "character"
   },
   {

@@ -86,7 +86,7 @@ public class GachaService
                     equipmentId = selected.id,
                     slot = selected.slot,
                     isEquipped = false,
-                    equippedCharacterId = 0,
+                    equippedCharacterTag = "",
                     acquiredAt = now
                 });
 

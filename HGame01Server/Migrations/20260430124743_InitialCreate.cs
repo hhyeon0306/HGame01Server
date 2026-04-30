@@ -21,7 +21,8 @@ namespace HGame01Server.Migrations
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     uid = table.Column<long>(type: "bigint", nullable: false),
-                    characterId = table.Column<int>(type: "int", nullable: false),
+                    characterTag = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     isActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     acquiredAt = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
@@ -58,7 +59,8 @@ namespace HGame01Server.Migrations
                     equipmentId = table.Column<int>(type: "int", nullable: false),
                     slot = table.Column<int>(type: "int", nullable: false),
                     isEquipped = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    equippedCharacterId = table.Column<int>(type: "int", nullable: false),
+                    equippedCharacterTag = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     acquiredAt = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
@@ -77,7 +79,7 @@ namespace HGame01Server.Migrations
                     uid = table.Column<long>(type: "bigint", nullable: false),
                     titleKey = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    bodyKey = table.Column<string>(type: "longtext", nullable: false)
+                    mailKind = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     rewardsJson = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),

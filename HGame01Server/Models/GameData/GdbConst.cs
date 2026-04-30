@@ -8,7 +8,7 @@ public static class GdbConst
     public static class Character
     {
         public const string Category = "character";
-        public const string DefaultCharacterId = "defaultCharacterId";
+        public const string DefaultCharacterTag = "defaultCharacterTag";
     }
 
     public static class Combat

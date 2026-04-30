@@ -26,7 +26,7 @@ public interface IGameDB
     // ===== 장비 장착 =====
     public Task<GameUserEquipment?> GetEquipmentByIdAsync(long uid, long equipmentId);
     public Task UpdateEquipmentAsync(GameUserEquipment equipment);
-    public Task UnequipSlotAsync(long uid, int characterId, int slot);
+    public Task UnequipSlotAsync(long uid, string characterTag, int slot);
 
     // ===== 상점 구매 =====
     public Task<List<GameUserShopPurchase>> GetPurchasesSinceAsync(long uid, string sinceStr);

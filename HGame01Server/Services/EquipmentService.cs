@@ -16,7 +16,7 @@ public class EquipmentService
     }
 
     /// 장비 장착. 같은 슬롯의 기존 장비는 자동 해제.
-    public async Task<(ErrorCode error, List<PkUserEquipment> equipments)> EquipAsync(long uid, long equipmentDbId, int characterId)
+    public async Task<(ErrorCode error, List<PkUserEquipment> equipments)> EquipAsync(long uid, long equipmentDbId, string characterTag)
     {
         // 1. 장비 소유 확인
         var equipment = await _gameDB.GetEquipmentByIdAsync(uid, equipmentDbId);
@@ -27,7 +27,7 @@ public class EquipmentService
 
         // 2. 캐릭터 소유 확인
         var characters = await _gameDB.GetCharactersByUidAsync(uid);
-        if (!characters.Any(c => c.characterId == characterId))
+        if (!characters.Any(c => c.characterTag == characterTag))
         {
             return (ErrorCode.CharacterNotOwned, new());
         }
@@ -36,11 +36,11 @@ public class EquipmentService
         try
         {
             // 3. 해당 캐릭터의 같은 슬롯에 이미 장착된 장비 해제
-            await _gameDB.UnequipSlotAsync(uid, characterId, equipment.slot);
+            await _gameDB.UnequipSlotAsync(uid, characterTag, equipment.slot);
 
             // 4. 새 장비 장착
             equipment.isEquipped = true;
-            equipment.equippedCharacterId = characterId;
+            equipment.equippedCharacterTag = characterTag;
             await _gameDB.UpdateEquipmentAsync(equipment);
 
             await transaction.CommitAsync();
@@ -75,7 +75,7 @@ public class EquipmentService
 
         // 2. 장비 해제
         equipment.isEquipped = false;
-        equipment.equippedCharacterId = 0;
+        equipment.equippedCharacterTag = "";
         await _gameDB.UpdateEquipmentAsync(equipment);
 
         // 3. 갱신된 전체 장비 목록 반환
@@ -99,7 +99,7 @@ public class EquipmentService
             EquipmentId = e.equipmentId,
             Slot = e.slot,
             IsEquipped = e.isEquipped,
-            EquippedCharacterId = e.equippedCharacterId,
+            EquippedCharacterTag = e.equippedCharacterTag,
             AcquiredAt = e.acquiredAt
         }).ToList();
     }

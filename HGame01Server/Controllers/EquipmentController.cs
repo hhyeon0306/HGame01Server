@@ -28,9 +28,9 @@ public class EquipmentController : ControllerBase
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
 
-        _logger.ZLogInformation($"[Equipment/Equip] Uid:{uid}, EquipmentDbId:{request.EquipmentDbId}, CharacterId:{request.CharacterId}");
+        _logger.ZLogInformation($"[Equipment/Equip] Uid:{uid}, EquipmentDbId:{request.EquipmentDbId}, CharacterTag:{request.CharacterTag}");
 
-        var (error, equipments) = await _equipmentService.EquipAsync(uid, request.EquipmentDbId, request.CharacterId);
+        var (error, equipments) = await _equipmentService.EquipAsync(uid, request.EquipmentDbId, request.CharacterTag);
         response.Result = error;
         response.Equipments = equipments;
         return response;

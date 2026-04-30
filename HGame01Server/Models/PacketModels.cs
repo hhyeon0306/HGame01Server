@@ -59,7 +59,7 @@ public class PkUserInfoResponse
 
 public class PkUserCharacter
 {
-    public int CharacterId { get; set; }
+    public string CharacterTag { get; set; } = "";
     public bool IsActive { get; set; }
     public string AcquiredAt { get; set; } = "";
 }
@@ -163,7 +163,8 @@ public class PkUserEquipment
     public int EquipmentId { get; set; }
     public int Slot { get; set; }
     public bool IsEquipped { get; set; }
-    public int EquippedCharacterId { get; set; }
+    /// 장착된 캐릭터 식별 태그 — 미장착 시 빈 문자열.
+    public string EquippedCharacterTag { get; set; } = "";
     public string AcquiredAt { get; set; } = "";
 }
 
@@ -185,7 +186,7 @@ public class PkRewardResult
 public class PkEquipRequest
 {
     public long EquipmentDbId { get; set; }
-    public int CharacterId { get; set; }
+    public string CharacterTag { get; set; } = "";
 }
 
 public class PkEquipResponse

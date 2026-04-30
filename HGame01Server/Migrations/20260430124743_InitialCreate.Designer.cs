@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20260428142403_InitialCreate")]
+    [Migration("20260430124743_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -61,8 +61,9 @@ namespace HGame01Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("characterId")
-                        .HasColumnType("int");
+                    b.Property<string>("characterTag")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("isActive")
                         .HasColumnType("tinyint(1)");
@@ -116,8 +117,9 @@ namespace HGame01Server.Migrations
                     b.Property<int>("equipmentId")
                         .HasColumnType("int");
 
-                    b.Property<int>("equippedCharacterId")
-                        .HasColumnType("int");
+                    b.Property<string>("equippedCharacterTag")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("isEquipped")
                         .HasColumnType("tinyint(1)");
@@ -141,10 +143,6 @@ namespace HGame01Server.Migrations
                     b.Property<string>("mailId")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("bodyKey")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("claimedAt")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
@@ -158,6 +156,10 @@ namespace HGame01Server.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("iconKey")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("mailKind")
                         .IsRequired()
                         .HasColumnType("longtext");
 

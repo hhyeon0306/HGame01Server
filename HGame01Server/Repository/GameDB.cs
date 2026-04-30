@@ -170,16 +170,16 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
     }
 
-    public async Task UnequipSlotAsync(long uid, int characterId, int slot)
+    public async Task UnequipSlotAsync(long uid, string characterTag, int slot)
     {
         var equipped = await _context.UserEquipments
-            .Where(e => e.uid == uid && e.equippedCharacterId == characterId && e.slot == slot && e.isEquipped)
+            .Where(e => e.uid == uid && e.equippedCharacterTag == characterTag && e.slot == slot && e.isEquipped)
             .ToListAsync();
 
         foreach (var item in equipped)
         {
             item.isEquipped = false;
-            item.equippedCharacterId = 0;
+            item.equippedCharacterTag = "";
         }
 
         await _context.SaveChangesAsync();
