@@ -11,6 +11,4 @@ public class GdbItemData
     public string icon_name { get; set; } = "";
     public string kind { get; set; } = "";
     public string currency_type { get; set; } = "";
-    public string equipment_ref { get; set; } = "";
-    public string battle_item_ref { get; set; } = "";
 }

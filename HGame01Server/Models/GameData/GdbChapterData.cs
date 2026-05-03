@@ -11,5 +11,6 @@ public class GdbChapterData
     public string field_tag { get; set; } = "";
     public int chapter_index { get; set; }
     public int stage_count { get; set; }
+    public string boss_tag { get; set; } = "";
     public float drop_chance { get; set; }
 }

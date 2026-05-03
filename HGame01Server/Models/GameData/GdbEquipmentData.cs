@@ -6,7 +6,10 @@ namespace HGame01Server.Models.GameData;
 public class GdbEquipmentData
 {
     public int id { get; set; }
-    public string name { get; set; } = "";
-    public int grade { get; set; }
-    public int slot { get; set; }
+    public string tag { get; set; } = "";
+    public string name_key { get; set; } = "";
+    public string description_key { get; set; } = "";
+    public string icon_name { get; set; } = "";
+    public string grade { get; set; } = "";
+    public string slot { get; set; } = "";
 }

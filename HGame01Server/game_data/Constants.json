@@ -35,6 +35,21 @@
     "category": "combat"
   },
   {
+    "key": "expandCostDiamond",
+    "value": "100",
+    "category": "equipmentstorage"
+  },
+  {
+    "key": "expandSlotsPerPurchase",
+    "value": "5",
+    "category": "equipmentstorage"
+  },
+  {
+    "key": "maxCapacity",
+    "value": "120",
+    "category": "equipmentstorage"
+  },
+  {
     "key": "singleCostDiamond",
     "value": "300",
     "category": "gacha"

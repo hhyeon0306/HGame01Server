@@ -5,9 +5,7 @@
     "name_key": "Item.Diamond",
     "icon_name": "Currency_Diamond_Icon",
     "kind": "Currency",
-    "currency_type": "Diamond",
-    "equipment_ref": "",
-    "battle_item_ref": ""
+    "currency_type": "Diamond"
   },
   {
     "id": 2,
@@ -15,8 +13,14 @@
     "name_key": "Item.Gold",
     "icon_name": "Currency_Gold_Icon",
     "kind": "Currency",
-    "currency_type": "Gold",
-    "equipment_ref": "",
-    "battle_item_ref": ""
+    "currency_type": "Gold"
+  },
+  {
+    "id": 3,
+    "tag": "",
+    "name_key": "",
+    "icon_name": "",
+    "kind": "1",
+    "currency_type": "Diamond"
   }
 ]

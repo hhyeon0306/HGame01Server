@@ -6,6 +6,7 @@
     "field_tag": "Tag.GameField.Prototype",
     "chapter_index": 1,
     "stage_count": 30,
+    "boss_tag": "Tag.Character.Boss",
     "drop_chance": 0.692
   }
 ]

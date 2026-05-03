@@ -22,6 +22,14 @@ public static class GdbConst
         public const string MaxBattleItemPerType = "maxBattleItemPerType";
     }
 
+    public static class Equipmentstorage
+    {
+        public const string Category = "equipmentstorage";
+        public const string ExpandCostDiamond = "expandCostDiamond";
+        public const string ExpandSlotsPerPurchase = "expandSlotsPerPurchase";
+        public const string MaxCapacity = "maxCapacity";
+    }
+
     public static class Gacha
     {
         public const string Category = "gacha";
