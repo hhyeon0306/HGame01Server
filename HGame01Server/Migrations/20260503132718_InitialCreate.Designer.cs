@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20260502063139_InitialCreate")]
+    [Migration("20260503132718_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
