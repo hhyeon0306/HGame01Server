@@ -165,50 +165,23 @@ public class ShopService
             iconAtlas: "ShopProductAtlas",
             iconKey: shopItem.icon_name ?? "",
             expireMinutes: 60 * 24 * 30,
-            senderType: "Compensation");
+            senderType: "Compensation",
+            mailKind: "CashPurchase");
 
         return ErrorCode.None;
     }
 
-    /// 보상 지급 — GdbItemData.kind에 따라 분기. 이번 prototype은 Currency만 실제 지급, Equipment/BattleItem은 응답에 정보만 담음.
+    /// 보상 지급 — RewardResolver로 tag → kind 판별. 이번 prototype은 Currency만 실제 지급, Equipment/BattleItem은 응답에 정보만 담음.
     private async Task<PkRewardResult> GrantRewardAsync(long uid, GdbShopData shopItem)
     {
-        var reward = new PkRewardResult
-        {
-            ItemTag = shopItem.reward_item,
-            Count = shopItem.reward_count,
-        };
+        var reward = RewardResolver.Resolve(_gameDataManager, shopItem.reward_item, shopItem.reward_count);
 
-        if (string.IsNullOrEmpty(shopItem.reward_item))
+        if (reward.ItemKind == "Currency")
         {
-            return reward;
-        }
-
-        var items = _gameDataManager.GetList<GdbItemData>();
-        var item = items?.FirstOrDefault(i => i.tag == shopItem.reward_item);
-        if (item == null)
-        {
-            return reward;
-        }
-
-        reward.ItemKind = item.kind;
-
-        if (item.kind == "Currency")
-        {
-            reward.CurrencyType = item.currency_type;
-            var currencyType = ParseCurrencyType(item.currency_type);
+            var currencyType = ParseCurrencyType(reward.CurrencyType);
             await _currencyService.AddAsync(uid, currencyType, shopItem.reward_count);
         }
-        else if (item.kind == "Equipment")
-        {
-            reward.EquipmentRef = item.equipment_ref;
-            // Equipment 지급은 별건 (이번 prototype 미지원)
-        }
-        else if (item.kind == "BattleItem")
-        {
-            reward.BattleItemRef = item.battle_item_ref;
-            // BattleItem 지급은 별건 (이번 prototype 미지원)
-        }
+        // Equipment / BattleItem 지급은 별건 (이번 prototype 미지원)
 
         return reward;
     }

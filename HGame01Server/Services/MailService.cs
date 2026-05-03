@@ -114,13 +114,15 @@ public class MailService
                                         List<MailRewardEntry> rewards,
                                         string iconAtlas, string iconKey,
                                         int expireMinutes,
-                                        string senderType = "System")
+                                        string senderType = "System",
+                                        string mailKind = "Generic")
     {
         var mail = new GameUserMail
         {
             mailId = Guid.NewGuid().ToString("N"),
             uid = uid,
             titleKey = titleKey ?? "",
+            mailKind = string.IsNullOrEmpty(mailKind) ? "Generic" : mailKind,
             rewardsJson = JsonSerializer.Serialize(rewards ?? new()),
             iconAtlas = iconAtlas ?? "",
             iconKey = iconKey ?? "",
@@ -137,41 +139,21 @@ public class MailService
 
     // ===== 헬퍼 =====
 
-    /// 보상 N개 지급. ShopService.GrantRewardAsync 의 다중-보상 일반화 버전.
+    /// 보상 N개 지급. RewardResolver로 tag → kind 판별. Currency만 실제 지급, Equipment/BattleItem은 prototype 미지원.
     private async Task<List<PkRewardResult>> GrantRewardsAsync(long uid, List<MailRewardEntry> rewards)
     {
         var results = new List<PkRewardResult>(rewards.Count);
-        var items = _gameDataManager.GetList<GdbItemData>();
 
         foreach (var reward in rewards)
         {
-            var result = new PkRewardResult
-            {
-                ItemTag = reward.itemTag,
-                Count = reward.count,
-            };
+            var result = RewardResolver.Resolve(_gameDataManager, reward.itemTag, reward.count);
 
-            var item = items?.FirstOrDefault(i => i.tag == reward.itemTag);
-            if (item != null)
+            if (result.ItemKind == "Currency")
             {
-                result.ItemKind = item.kind;
-                if (item.kind == "Currency")
-                {
-                    result.CurrencyType = item.currency_type;
-                    var currencyType = ParseCurrencyType(item.currency_type);
-                    await _currencyService.AddAsync(uid, currencyType, reward.count);
-                }
-                else if (item.kind == "Equipment")
-                {
-                    result.EquipmentRef = item.equipment_ref;
-                    // 장비 지급은 prototype 미지원 — Phase 후속 작업
-                }
-                else if (item.kind == "BattleItem")
-                {
-                    result.BattleItemRef = item.battle_item_ref;
-                    // BattleItem 지급은 prototype 미지원
-                }
+                var currencyType = ParseCurrencyType(result.CurrencyType);
+                await _currencyService.AddAsync(uid, currencyType, reward.count);
             }
+            // Equipment / BattleItem 지급은 prototype 미지원 — Phase 후속 작업
 
             results.Add(result);
         }
@@ -215,6 +197,7 @@ public class MailService
         {
             MailId = m.mailId,
             TitleKey = m.titleKey,
+            MailKind = m.mailKind,
             Rewards = rewards,
             IconAtlas = m.iconAtlas,
             IconKey = m.iconKey,
