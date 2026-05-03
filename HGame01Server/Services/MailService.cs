@@ -141,6 +141,13 @@ public class MailService
 
     /// 보상 N개 지급. RewardResolver로 tag → RewardType/ItemKind 판별.
     /// 이번 prototype 은 Item & Currency 만 실제 지급 — Equipment/Pet 등 인스턴스형은 후속 RewardGrantService 통합에서 처리.
+    ///
+    /// ⚠ 분기 통합 검토 시점:
+    ///   - 같은 RewardType=="Item"&&ItemKind=="Currency" 시퀀스가 ShopService.GrantRewardAsync 와 중복.
+    ///   - 새 RewardType (Pet/Treasure) 또는 새 지급 트리거 (Quest/Login 보너스) 추가 시점에는
+    ///     아래 분기를 RewardGrantService.GrantAsync(uid, PkRewardResult) 로 추출해 한 곳에 모을 것.
+    ///   - Plan 영역 4 (RewardGrantService 통합) 참조. 인터페이스(PkRewardResult)는 이미 결정되어
+    ///     있으니 통합 비용은 분기 이전만큼.
     private async Task<List<PkRewardResult>> GrantRewardsAsync(long uid, List<MailRewardEntry> rewards)
     {
         var results = new List<PkRewardResult>(rewards.Count);

@@ -172,6 +172,13 @@ public class ShopService
     }
 
     /// 보상 지급 — RewardResolver로 tag → RewardType/ItemKind 판별. 이번 prototype은 Currency만 실제 지급, Equipment 는 응답에 정보만 담음.
+    ///
+    /// ⚠ 분기 통합 검토 시점:
+    ///   - 같은 RewardType=="Item"&&ItemKind=="Currency" 시퀀스가 MailService.GrantRewardsAsync 와 중복.
+    ///   - 새 RewardType (Pet/Treasure) 또는 새 지급 트리거 (Quest/Login 보너스) 추가 시점에는
+    ///     아래 분기를 RewardGrantService.GrantAsync(uid, PkRewardResult) 로 추출해 한 곳에 모을 것.
+    ///   - Plan 영역 4 (RewardGrantService 통합) 참조. 인터페이스(PkRewardResult)는 이미 결정되어
+    ///     있으니 통합 비용은 분기 이전만큼.
     private async Task<PkRewardResult> GrantRewardAsync(long uid, GdbShopData shopItem)
     {
         var reward = RewardResolver.Resolve(_gameDataManager, shopItem.reward_item, shopItem.reward_count);

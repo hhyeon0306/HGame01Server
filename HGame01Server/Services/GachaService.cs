@@ -72,7 +72,14 @@ public class GachaService
                 _logger.LogWarning("[GachaService] EquipmentData가 비어 있어 더미 풀({Count}개)로 진행합니다. Admin/UploadGameData 이후 더미 fallback이 비활성화됩니다.", equipments.Count);
             }
 
-            // 5. 뽑기 실행 — 배치 삽입으로 N+1 쓰기 방지
+            // 5. 뽑기 실행 — 배치 삽입으로 N+1 쓰기 방지.
+            //
+            // ⚠ 분기 통합 검토 시점:
+            //   - Equipment 인스턴스 발급(AddEquipmentBatchAsync) 은 Shop/Mail 의 Currency 지급과
+            //     같은 보상 도메인이지만 grant 분기가 가챠에 박혀 있다.
+            //   - 새 RewardType (Pet/Treasure) 추가나 가챠로 Equipment 외 보상이 풀리는 시점에는
+            //     아래 인스턴스 조립을 RewardGrantService.GrantAsync(uid, PkRewardResult) 로 추출.
+            //   - PkRewardResult 인터페이스는 이미 결정되어 있어 통합 비용은 분기 이전만큼.
             var results = new List<PkGachaResultItem>();
             var newEquipments = new List<GameUserEquipment>();
             string now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
