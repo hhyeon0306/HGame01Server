@@ -10,14 +10,16 @@ public class GachaService
     private readonly GameDbContext _context;
     private readonly IGameDB _gameDB;
     private readonly CurrencyService _currencyService;
+    private readonly EquipmentStorageService _storageService;
     private readonly GameDataManager _gameDataManager;
     private readonly ILogger<GachaService> _logger;
 
-    public GachaService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager, ILogger<GachaService> logger)
+    public GachaService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, EquipmentStorageService storageService, GameDataManager gameDataManager, ILogger<GachaService> logger)
     {
         _context = context;
         _gameDB = gameDB;
         _currencyService = currencyService;
+        _storageService = storageService;
         _gameDataManager = gameDataManager;
         _logger = logger;
     }
@@ -28,6 +30,13 @@ public class GachaService
         if (pullCount != 1 && pullCount != 10)
         {
             return (ErrorCode.GachaInvalidPullCount, new(), new());
+        }
+
+        // 장비 보관함 풀 상태 체크 — 트랜잭션/재화 차감 전에 차단 (확장 유도 팝업 흐름).
+        // "받을 땐 통과, 다음 시도부터 차단" 정책: 현재 count >= capacity 면 진입 거부.
+        if (await _storageService.IsFullAsync(uid))
+        {
+            return (ErrorCode.EquipmentStorageFull, new(), new());
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -71,8 +80,9 @@ public class GachaService
             for (int i = 0; i < pullCount; i++)
             {
                 int grade = RollGrade(gradeWeights, totalWeight);
+                string gradeName = ((EAbilityGrade)grade).ToString();
 
-                var pool = equipments.Where(e => e.grade == grade).ToList();
+                var pool = equipments.Where(e => e.grade == gradeName).ToList();
                 if (pool.Count == 0)
                 {
                     pool = equipments;
@@ -80,11 +90,14 @@ public class GachaService
 
                 var selected = pool[Random.Shared.Next(pool.Count)];
 
+                int selectedSlot = Enum.TryParse<EEquipmentSlot>(selected.slot, out var s) ? (int)s : 0;
+                int selectedGrade = Enum.TryParse<EAbilityGrade>(selected.grade, out var g) ? (int)g : 0;
+
                 newEquipments.Add(new GameUserEquipment
                 {
                     uid = uid,
-                    equipmentId = selected.id,
-                    slot = selected.slot,
+                    equipmentTag = selected.tag,
+                    slot = selectedSlot,
                     isEquipped = false,
                     equippedCharacterTag = "",
                     acquiredAt = now
@@ -92,8 +105,13 @@ public class GachaService
 
                 results.Add(new PkGachaResultItem
                 {
-                    EquipmentId = selected.id,
-                    Grade = selected.grade
+                    Reward = new PkRewardResult
+                    {
+                        RewardType = "Equipment",
+                        RewardTag = selected.tag,
+                        Count = 1,
+                    },
+                    Grade = selectedGrade,
                 });
             }
 
@@ -151,16 +169,17 @@ public class GachaService
     {
         var pool = new List<GdbEquipmentData>();
         int id = 90001;
-        for (int grade = 1; grade <= 4; grade++)
+        for (int gradeValue = 1; gradeValue <= 4; gradeValue++)
         {
-            for (int slot = 0; slot < 2; slot++)
+            string gradeName = ((EAbilityGrade)gradeValue).ToString();
+            foreach (EEquipmentSlot slot in Enum.GetValues<EEquipmentSlot>())
             {
                 pool.Add(new GdbEquipmentData
                 {
                     id = id++,
-                    name = $"Dummy_G{grade}_S{slot}",
-                    grade = grade,
-                    slot = slot,
+                    tag = $"Tag.Equipment.Dummy.{gradeName}.{slot}",
+                    grade = gradeName,
+                    slot = slot.ToString(),
                 });
             }
         }

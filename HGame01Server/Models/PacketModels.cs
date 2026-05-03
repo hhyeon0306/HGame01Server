@@ -140,9 +140,13 @@ public class PkGachaPullResponse
     public List<PkUserEquipment> Equipments { get; set; } = new();
 }
 
+/// 가챠 결과 1단위. Reward 는 보상 패킷(PkRewardResult)으로 통일하여 다른 보상 흐름(Shop/Mail)과 contract 공유.
+/// Grade 는 가챠 등급 부가 정보 — Reward 로 표현 불가능한 가챠 고유 메타.
 public class PkGachaResultItem
 {
-    public int EquipmentId { get; set; }
+    public PkRewardResult Reward { get; set; } = new();
+
+    /// 가챠 등급. EAbilityGrade enum 값.
     public int Grade { get; set; }
 }
 
