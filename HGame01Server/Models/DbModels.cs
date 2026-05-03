@@ -129,8 +129,11 @@ public class GameUserMail
 }
 
 /// 메일 보상 1단위. rewardsJson 직렬화 대상.
+/// rewardTag 는 어느 GameData 테이블이든 보상 SO 식별 GameplayTag 이름 (ItemData/EquipmentData/...).
+/// 주의: 기존 미수령 메일 행의 rewardsJson 컬럼은 itemTag 키로 저장되어 있어 새 키로 deserialize 시 빈 보상으로 흘러간다.
+/// prototype 단계라 수용. 필요 시 cheat reset 또는 DB 초기화로 정리.
 public class MailRewardEntry
 {
-    public string itemTag { get; set; } = "";
+    public string rewardTag { get; set; } = "";
     public int count { get; set; }
 }

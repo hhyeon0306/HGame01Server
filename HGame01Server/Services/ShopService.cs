@@ -152,7 +152,7 @@ public class ShopService
         {
             new()
             {
-                itemTag = shopItem.reward_item,
+                rewardTag = shopItem.reward_item,
                 count = shopItem.reward_count,
             },
         };
@@ -171,17 +171,18 @@ public class ShopService
         return ErrorCode.None;
     }
 
-    /// 보상 지급 — RewardResolver로 tag → kind 판별. 이번 prototype은 Currency만 실제 지급, Equipment/BattleItem은 응답에 정보만 담음.
+    /// 보상 지급 — RewardResolver로 tag → RewardType/ItemKind 판별. 이번 prototype은 Currency만 실제 지급, Equipment 는 응답에 정보만 담음.
     private async Task<PkRewardResult> GrantRewardAsync(long uid, GdbShopData shopItem)
     {
         var reward = RewardResolver.Resolve(_gameDataManager, shopItem.reward_item, shopItem.reward_count);
 
-        if (reward.ItemKind == "Currency")
+        if (reward.RewardType == "Item" && reward.ItemKind == "Currency")
         {
-            var currencyType = ParseCurrencyType(reward.CurrencyType);
+            string currencyName = RewardResolver.ResolveCurrencyType(_gameDataManager, reward.RewardTag);
+            int currencyType = ParseCurrencyType(currencyName);
             await _currencyService.AddAsync(uid, currencyType, shopItem.reward_count);
         }
-        // Equipment / BattleItem 지급은 별건 (이번 prototype 미지원)
+        // Equipment 지급은 별건 (이번 prototype 미지원 — 추후 RewardGrantService 통합)
 
         return reward;
     }

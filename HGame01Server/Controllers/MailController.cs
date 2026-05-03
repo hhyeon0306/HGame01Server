@@ -95,7 +95,7 @@ public class MailController : ControllerBase
 
         var rewards = request.Rewards.Select(r => new MailRewardEntry
         {
-            itemTag = r.ItemTag,
+            rewardTag = r.RewardTag,
             count = r.Count,
         }).ToList();
 

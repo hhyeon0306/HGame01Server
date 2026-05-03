@@ -168,13 +168,20 @@ public class PkUserEquipment
     public string AcquiredAt { get; set; } = "";
 }
 
+/// 서버 → 클라 보상 1단위. RewardType 가 상위 분류, ItemKind 는 RewardType="Item" 일 때만 채워지는 sub-kind.
+/// RewardTag 는 SO 식별자(GameplayTag string) — RewardType 에 따라 ItemData/EquipmentData/... 어느 테이블의 tag 인지 결정.
+/// Currency Gold/Diamond 식별이 필요하면 RewardTag 로 ItemData 를 lookup 해서 currency_type 필드를 본다 (tag 파싱 X).
 public class PkRewardResult
 {
-    public string ItemKind { get; set; } = "";       // "Currency" / "Equipment" / "BattleItem"
-    public string ItemTag { get; set; } = "";        // 보상 ItemData tag
-    public string CurrencyType { get; set; } = "";   // ItemKind=Currency 일 때 ("Diamond" / "Gold")
-    public string EquipmentRef { get; set; } = "";   // ItemKind=Equipment 일 때 tag
-    public string BattleItemRef { get; set; } = "";  // ItemKind=BattleItem 일 때 tag
+    /// 상위 분류. 현재 값: "Equipment" / "Item". 미래 "Pet" / "Treasure" 등 추가.
+    public string RewardType { get; set; } = "";
+
+    /// RewardType="Item" 일 때만 채워지는 sub-kind. 현재 값: "Currency". 미래 "Material"/"Ticket"/"Booster"/"Box" 등 추가.
+    public string ItemKind { get; set; } = "";
+
+    /// 보상 SO 식별 GameplayTag 이름. RewardType 별로 ItemData/EquipmentData 등 다른 테이블의 tag.
+    public string RewardTag { get; set; } = "";
+
     public int Count { get; set; }
 }
 
@@ -239,7 +246,8 @@ public class PkMailEntry
 
 public class PkMailReward
 {
-    public string ItemTag { get; set; } = "";
+    /// 보상 SO 식별 GameplayTag 이름. ItemData/EquipmentData/... 어느 테이블이든 보상 tag 단일 키로 식별.
+    public string RewardTag { get; set; } = "";
     public int Count { get; set; }
 }
 

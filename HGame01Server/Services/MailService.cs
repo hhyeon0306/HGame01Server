@@ -139,21 +139,23 @@ public class MailService
 
     // ===== 헬퍼 =====
 
-    /// 보상 N개 지급. RewardResolver로 tag → kind 판별. Currency만 실제 지급, Equipment/BattleItem은 prototype 미지원.
+    /// 보상 N개 지급. RewardResolver로 tag → RewardType/ItemKind 판별.
+    /// 이번 prototype 은 Item & Currency 만 실제 지급 — Equipment/Pet 등 인스턴스형은 후속 RewardGrantService 통합에서 처리.
     private async Task<List<PkRewardResult>> GrantRewardsAsync(long uid, List<MailRewardEntry> rewards)
     {
         var results = new List<PkRewardResult>(rewards.Count);
 
         foreach (var reward in rewards)
         {
-            var result = RewardResolver.Resolve(_gameDataManager, reward.itemTag, reward.count);
+            var result = RewardResolver.Resolve(_gameDataManager, reward.rewardTag, reward.count);
 
-            if (result.ItemKind == "Currency")
+            if (result.RewardType == "Item" && result.ItemKind == "Currency")
             {
-                var currencyType = ParseCurrencyType(result.CurrencyType);
+                string currencyName = RewardResolver.ResolveCurrencyType(_gameDataManager, result.RewardTag);
+                int currencyType = ParseCurrencyType(currencyName);
                 await _currencyService.AddAsync(uid, currencyType, reward.count);
             }
-            // Equipment / BattleItem 지급은 prototype 미지원 — Phase 후속 작업
+            // Equipment / Pet 등 인스턴스형 지급은 prototype 미지원 — 후속 RewardGrantService 통합 시 분기 추가.
 
             results.Add(result);
         }
@@ -190,7 +192,7 @@ public class MailService
     private static PkMailEntry ToPacket(GameUserMail m)
     {
         var rewards = ParseRewards(m.rewardsJson)
-            .Select(r => new PkMailReward { ItemTag = r.itemTag, Count = r.count })
+            .Select(r => new PkMailReward { RewardTag = r.rewardTag, Count = r.count })
             .ToList();
 
         return new PkMailEntry
