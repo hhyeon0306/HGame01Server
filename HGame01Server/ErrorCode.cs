@@ -58,4 +58,8 @@ public enum ErrorCode : UInt16
     MailExpired = 3083,
     MailClaimFailed = 3084,
     MailNoClaimable = 3085,
+
+    // 장비 보관함 에러 (3101~3120)
+    EquipmentStorageFull = 3101,
+    EquipmentStorageExpandFailed = 3102,
 }

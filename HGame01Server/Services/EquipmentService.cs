@@ -96,7 +96,7 @@ public class EquipmentService
         return dbEquipments.Select(e => new PkUserEquipment
         {
             DbId = e.id,
-            EquipmentId = e.equipmentId,
+            EquipmentTag = e.equipmentTag,
             Slot = e.slot,
             IsEquipped = e.isEquipped,
             EquippedCharacterTag = e.equippedCharacterTag,

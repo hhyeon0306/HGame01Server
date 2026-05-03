@@ -19,7 +19,9 @@ public class CharacterService
     /// 기본 캐릭터 지급. Constants에서 식별 태그를 조회하여 지급.
     public async Task GrantDefaultAsync(long uid, string createdAt)
     {
-        string defaultCharacterTag = _gameDataManager.GetConstString(GdbConst.Character.Category, GdbConst.Character.DefaultCharacterTag, "Tag.Character.Player");
+        // GdbConst.Character는 CharacterConstants SO 업로드 후 자동 생성되므로
+        // 부트스트랩 안전을 위해 카테고리/키를 리터럴로 둔다 (값은 SO에서 데이터 주도).
+        string defaultCharacterTag = _gameDataManager.GetConstString("character", "defaultCharacterTag", "Tag.Character.Player");
 
         var character = new GameUserCharacter
         {

@@ -105,25 +105,45 @@ public class GameDataManager
 
     public ErrorCode Upload(Dictionary<string, JsonElement> gameData)
     {
-        try
+        int schemaMismatchCount = 0;
+
+        foreach (var (key, value) in gameData)
         {
-            foreach (var (key, value) in gameData)
+            string fileName = $"{key}.json";
+            string path = Path.Combine(_dataDir, fileName);
+            string json;
+
+            // 1단계: JSON 파일 저장 (실패 시 전체 업로드 중단)
+            try
             {
-                // JSON 파일 저장
-                string fileName = $"{key}.json";
-                string path = Path.Combine(_dataDir, fileName);
-                string json = JsonSerializer.Serialize(value, _jsonOptions);
+                json = JsonSerializer.Serialize(value, _jsonOptions);
                 File.WriteAllText(path, json);
+            }
+            catch (Exception ex)
+            {
+                _logger.ZLogError($"[GameDataManager] {key} JSON 저장 실패: {ex.Message}");
+                return ErrorCode.AdminUploadFail;
+            }
 
-                // C# 클래스 파일 자동 생성
+            // 2단계: C# 클래스 파일 자동 생성 (실패 시 전체 업로드 중단)
+            try
+            {
                 GenerateModelClass(key, value);
+            }
+            catch (Exception ex)
+            {
+                _logger.ZLogError($"[GameDataManager] {key} 클래스 생성 실패: {ex.Message}");
+                return ErrorCode.AdminUploadFail;
+            }
 
-                // 타입 기반 메모리 갱신
-                string className = $"Gdb{ToSingular(key)}Data";
-                Type? type = Assembly.GetExecutingAssembly()
-                    .GetType($"HGame01Server.Models.GameData.{className}");
+            // 3단계: 메모리 갱신 (스키마 mismatch는 경고만 찍고 다음 재시작에 위임)
+            string className = $"Gdb{ToSingular(key)}Data";
+            Type? type = Assembly.GetExecutingAssembly()
+                .GetType($"HGame01Server.Models.GameData.{className}");
 
-                if (type != null)
+            if (type != null)
+            {
+                try
                 {
                     var listType = typeof(List<>).MakeGenericType(type);
                     var list = JsonSerializer.Deserialize(json, listType, _jsonOptions);
@@ -133,23 +153,30 @@ public class GameDataManager
                         _typedData[type] = list;
                     }
                 }
-                else
+                catch (JsonException ex)
                 {
-                    // 새로 생성된 클래스는 재컴파일 전까지 타입을 찾을 수 없음 → raw 보관
-                    var doc = JsonDocument.Parse(json);
-                    _rawData[key] = doc.RootElement.Clone();
+                    // 스키마가 바뀐 직후엔 디스크의 .cs는 갱신됐지만 실행 중 어셈블리는 옛 타입을 들고 있어 mismatch가 발생.
+                    // 파일/코드 생성은 이미 성공했으므로 다음 재시작에 자동 반영된다.
+                    schemaMismatchCount++;
+                    _logger.ZLogWarning($"[GameDataManager] {key} 메모리 갱신 보류 (스키마 mismatch — 서버 재시작 후 반영): {ex.Message}");
                 }
-
-                _logger.ZLogInformation($"[GameDataManager] 저장: {key} ({value.GetArrayLength()}건)");
+            }
+            else
+            {
+                // 새로 생성된 클래스는 재컴파일 전까지 타입을 찾을 수 없음 → raw 보관
+                var doc = JsonDocument.Parse(json);
+                _rawData[key] = doc.RootElement.Clone();
             }
 
-            return ErrorCode.None;
+            _logger.ZLogInformation($"[GameDataManager] 저장: {key} ({value.GetArrayLength()}건)");
         }
-        catch (Exception ex)
+
+        if (schemaMismatchCount > 0)
         {
-            _logger.ZLogError($"[GameDataManager] Upload 실패: {ex.Message}");
-            return ErrorCode.AdminUploadFail;
+            _logger.ZLogWarning($"[GameDataManager] Upload 완료 — 단, {schemaMismatchCount}개 테이블은 스키마 변경으로 메모리 반영 보류. 서버 재시작 필요.");
         }
+
+        return ErrorCode.None;
     }
 
     // ============================================================

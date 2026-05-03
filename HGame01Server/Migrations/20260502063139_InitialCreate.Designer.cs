@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20260430124743_InitialCreate")]
+    [Migration("20260502063139_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -35,6 +35,9 @@ namespace HGame01Server.Migrations
                     b.Property<string>("createdAt")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int>("equipmentStorageCapacity")
+                        .HasColumnType("int");
 
                     b.Property<string>("name")
                         .IsRequired()
@@ -114,8 +117,9 @@ namespace HGame01Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("equipmentId")
-                        .HasColumnType("int");
+                    b.Property<string>("equipmentTag")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("equippedCharacterTag")
                         .IsRequired()

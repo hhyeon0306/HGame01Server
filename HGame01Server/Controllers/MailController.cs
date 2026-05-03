@@ -109,7 +109,8 @@ public class MailController : ControllerBase
             iconAtlas: request.IconAtlas,
             iconKey: request.IconKey,
             expireMinutes: expireMinutes,
-            senderType: "System");
+            senderType: "System",
+            mailKind: request.MailKind);
 
         response.Result = ErrorCode.None;
         response.MailId = mailId;

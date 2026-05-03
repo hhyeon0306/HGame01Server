@@ -55,6 +55,26 @@ public class PkUserInfoResponse
     public List<PkUserCharacter> Characters { get; set; } = new();
     public List<PkCurrency> Currencies { get; set; } = new();
     public List<PkUserEquipment> Equipments { get; set; } = new();
+    /// 장비 보관함 최대 칸 수. 클라가 보관함 N/M 표시 + 확장 버튼에 사용.
+    public int EquipmentStorageCapacity { get; set; }
+}
+
+// ============================================================
+// 장비 보관함
+// ============================================================
+
+// POST api/EquipmentStorage/ExpandCapacity
+public class PkExpandCapacityRequest
+{
+}
+
+public class PkExpandCapacityResponse
+{
+    public ErrorCode Result { get; set; }
+    /// 확장 후 새 capacity. 실패 시 0.
+    public int NewCapacity { get; set; }
+    /// 확장 후 갱신된 재화 목록 (다이아 차감 반영).
+    public List<PkCurrency> Currencies { get; set; } = new();
 }
 
 public class PkUserCharacter
@@ -164,7 +184,8 @@ public class PkUserEquipment
 {
     /// DB 고유 식별자. 장착/해제 등 인스턴스 구분에 사용. 클라이언트의 dbId 필드와 1:1 매핑.
     public long DbId { get; set; }
-    public int EquipmentId { get; set; }
+    /// SO 식별 GameplayTag 이름. 클라 EquipmentResolver에서 EquipmentData로 매핑.
+    public string EquipmentTag { get; set; } = "";
     public int Slot { get; set; }
     public bool IsEquipped { get; set; }
     /// 장착된 캐릭터 식별 태그 — 미장착 시 빈 문자열.

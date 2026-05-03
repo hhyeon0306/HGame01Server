@@ -56,7 +56,8 @@ namespace HGame01Server.Migrations
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     uid = table.Column<long>(type: "bigint", nullable: false),
-                    equipmentId = table.Column<int>(type: "int", nullable: false),
+                    equipmentTag = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     slot = table.Column<int>(type: "int", nullable: false),
                     isEquipped = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     equippedCharacterTag = table.Column<string>(type: "longtext", nullable: false)
@@ -131,7 +132,8 @@ namespace HGame01Server.Migrations
                     name = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     createdAt = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    equipmentStorageCapacity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

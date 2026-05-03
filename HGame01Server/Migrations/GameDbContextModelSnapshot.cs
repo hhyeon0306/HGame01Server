@@ -33,6 +33,9 @@ namespace HGame01Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("equipmentStorageCapacity")
+                        .HasColumnType("int");
+
                     b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -111,8 +114,9 @@ namespace HGame01Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("equipmentId")
-                        .HasColumnType("int");
+                    b.Property<string>("equipmentTag")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("equippedCharacterTag")
                         .IsRequired()

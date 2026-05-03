@@ -29,6 +29,7 @@ builder.Services.AddScoped<MailService>();
 builder.Services.AddScoped<ShopService>();
 builder.Services.AddScoped<GachaService>();
 builder.Services.AddScoped<EquipmentService>();
+builder.Services.AddScoped<EquipmentStorageService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddSingleton<IMemoryDB, MemoryDB>();
 builder.Services.AddSingleton<GameDataManager>();

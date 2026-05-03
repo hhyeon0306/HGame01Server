@@ -26,6 +26,8 @@ public class GameUser
     public string profileId { get; set; } = "";
     public string name { get; set; } = "";
     public string createdAt { get; set; } = "";
+    /// 장비 보관함 최대 칸 수. 기본 21. 다이아 100당 +5씩 확장 가능. 장비 row 수가 이 값을 초과하면 가챠 진입 차단.
+    public int equipmentStorageCapacity { get; set; } = 21;
 }
 
 // ============================================================
@@ -71,7 +73,8 @@ public class GameUserEquipment
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long id { get; set; }
     public long uid { get; set; }
-    public int equipmentId { get; set; }
+    /// SO 식별 GameplayTag 이름. GdbEquipmentData.tag와 매칭.
+    public string equipmentTag { get; set; } = "";
     public int slot { get; set; }
     public bool isEquipped { get; set; }
     /// 장착된 캐릭터의 식별 태그 — 미장착 시 빈 문자열.
