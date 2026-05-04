@@ -1,0 +1,38 @@
+[
+  {
+    "id": 4,
+    "tag": "Tag.Attribute.AttackAnimationSpeed",
+    "name_key": "Attribute.AttackAnimationSpeed.Name",
+    "icon_name": ""
+  },
+  {
+    "id": 1,
+    "tag": "Tag.Attribute.AttackDamage",
+    "name_key": "Attribute.AttackDamage.Name",
+    "icon_name": ""
+  },
+  {
+    "id": 5,
+    "tag": "Tag.Attribute.Health",
+    "name_key": "Attribute.Health.Name",
+    "icon_name": ""
+  },
+  {
+    "id": 2,
+    "tag": "Tag.Attribute.HealthMax",
+    "name_key": "Attribute.HealthMax.Name",
+    "icon_name": ""
+  },
+  {
+    "id": 3,
+    "tag": "Tag.Attribute.MoveSpeed",
+    "name_key": "Attribute.MoveSpeed.Name",
+    "icon_name": ""
+  },
+  {
+    "id": 6,
+    "tag": "Tag.Attribute.SkillAnimationSpeed",
+    "name_key": "Attribute.SkillAnimationSpeed.Name",
+    "icon_name": ""
+  }
+]
