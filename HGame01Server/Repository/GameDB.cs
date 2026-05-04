@@ -185,6 +185,19 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
     }
 
+    public async Task<int> RemoveEquipmentsBatchAsync(long uid, List<long> equipmentIds)
+    {
+        if (equipmentIds == null || equipmentIds.Count == 0)
+        {
+            return 0;
+        }
+
+        // uid 가드를 WHERE에 포함해 타 유저 row가 섞여 들어와도 차단.
+        return await _context.UserEquipments
+            .Where(e => e.uid == uid && equipmentIds.Contains(e.id))
+            .ExecuteDeleteAsync();
+    }
+
 
     // ===== 상점 구매 =====
 

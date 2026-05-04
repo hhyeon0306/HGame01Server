@@ -28,6 +28,10 @@ public interface IGameDB
     public Task UpdateEquipmentAsync(GameUserEquipment equipment);
     public Task UnequipSlotAsync(long uid, string characterTag, int slot);
 
+    /// 다건 장비 삭제. 본 user 소유분만 안전하게 제거 (uid 가드 내재).
+    /// 반환: 실제 삭제된 row 수.
+    public Task<int> RemoveEquipmentsBatchAsync(long uid, List<long> equipmentIds);
+
     // ===== 상점 구매 =====
     public Task<List<GameUserShopPurchase>> GetPurchasesSinceAsync(long uid, string sinceStr);
     public Task AddPurchaseAsync(GameUserShopPurchase purchase);

@@ -51,6 +51,8 @@ public enum ErrorCode : UInt16
     EquipmentAlreadyEquipped = 3064,
     EquipmentEquipFailed = 3065,
     CharacterNotOwned = 3066,
+    EquipmentSellEquipped = 3067,
+    EquipmentSellFailed = 3068,
 
     // 우편함 에러 (3081~3100)
     MailNotFound = 3081,

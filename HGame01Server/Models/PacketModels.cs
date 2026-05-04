@@ -239,6 +239,45 @@ public class PkUnequipResponse
     public List<PkUserEquipment> Equipments { get; set; } = new();
 }
 
+// POST api/Equipment/Sell
+public class PkSellRequest
+{
+    /// 판매할 장비 인스턴스 dbId 목록. 다건 일괄 처리.
+    public List<long> EquipmentDbIds { get; set; } = new();
+}
+
+public class PkSellResponse
+{
+    public ErrorCode Result { get; set; }
+    /// 판매 후 갱신된 전체 장비 목록.
+    public List<PkUserEquipment> Equipments { get; set; } = new();
+    /// 판매 후 갱신된 전체 재화 목록 (골드 증가분 반영).
+    public List<PkCurrency> Currencies { get; set; } = new();
+    /// 지급된 골드 합계. 클라가 결과 메시지에 표기.
+    public long SoldGold { get; set; }
+    /// 실제 판매 처리된 개수.
+    public int SoldCount { get; set; }
+}
+
+// POST api/Equipment/EquipBatch
+// 자동 장착(다건 일괄). 슬롯 중복 거절 — 슬롯당 최대 1건. 트랜잭션으로 원자적 적용.
+public class PkAutoEquipRequest
+{
+    /// 일괄 장착할 장비 인스턴스 dbId 목록. 슬롯 중복 시 EquipmentEquipFailed.
+    public List<long> EquipmentDbIds { get; set; } = new();
+    /// 장착 대상 캐릭터 식별 태그.
+    public string CharacterTag { get; set; } = "";
+}
+
+public class PkAutoEquipResponse
+{
+    public ErrorCode Result { get; set; }
+    /// 갱신된 전체 장비 목록.
+    public List<PkUserEquipment> Equipments { get; set; } = new();
+    /// 실제 장착 처리된 개수. 클라가 결과 메시지에 표기.
+    public int EquippedCount { get; set; }
+}
+
 // ============================================================
 // 우편함
 // ============================================================

@@ -12,4 +12,5 @@ public class GdbEquipmentData
     public string icon_name { get; set; } = "";
     public string grade { get; set; } = "";
     public string slot { get; set; } = "";
+    public int sell_price { get; set; }
 }

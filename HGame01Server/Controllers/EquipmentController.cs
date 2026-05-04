@@ -52,4 +52,45 @@ public class EquipmentController : ControllerBase
         response.Equipments = equipments;
         return response;
     }
+
+    /// 자동 장착(다건 일괄). 클라가 슬롯별 최강 1개씩 결정해 dbIds로 전달.
+    /// 슬롯 중복 거절 + 트랜잭션 원자성. 응답에 equipments 전체 + equippedCount.
+    [HttpPost("EquipBatch")]
+    public async Task<PkAutoEquipResponse> EquipBatch([FromHeader] HeaderDTO header, [FromBody] PkAutoEquipRequest request)
+    {
+        var response = new PkAutoEquipResponse();
+
+        MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
+        long uid = userInfo.UId;
+
+        int requestCount = request.EquipmentDbIds?.Count ?? 0;
+        _logger.ZLogInformation($"[Equipment/EquipBatch] Uid:{uid}, Count:{requestCount}, CharacterTag:{request.CharacterTag}");
+
+        var (error, equipments, equippedCount) = await _equipmentService.AutoEquipAsync(uid, request.EquipmentDbIds ?? new(), request.CharacterTag);
+        response.Result = error;
+        response.Equipments = equipments;
+        response.EquippedCount = equippedCount;
+        return response;
+    }
+
+    /// 장비 다건 판매. 응답에 equipments + currencies + soldGold + soldCount.
+    [HttpPost("Sell")]
+    public async Task<PkSellResponse> Sell([FromHeader] HeaderDTO header, [FromBody] PkSellRequest request)
+    {
+        var response = new PkSellResponse();
+
+        MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
+        long uid = userInfo.UId;
+
+        int requestCount = request.EquipmentDbIds?.Count ?? 0;
+        _logger.ZLogInformation($"[Equipment/Sell] Uid:{uid}, Count:{requestCount}");
+
+        var (error, equipments, currencies, soldGold, soldCount) = await _equipmentService.SellAsync(uid, request.EquipmentDbIds ?? new());
+        response.Result = error;
+        response.Equipments = equipments;
+        response.Currencies = currencies;
+        response.SoldGold = soldGold;
+        response.SoldCount = soldCount;
+        return response;
+    }
 }

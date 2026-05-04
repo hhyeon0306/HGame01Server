@@ -6,7 +6,8 @@
     "description_key": "Equipment.Armor.Common_01.Desc",
     "icon_name": "Armor_Common_01",
     "grade": "Common",
-    "slot": "Armor"
+    "slot": "Armor",
+    "sell_price": 10
   },
   {
     "id": 17,
@@ -15,7 +16,8 @@
     "description_key": "Equipment.Armor.Common_02.Desc",
     "icon_name": "Armor_Common_02",
     "grade": "Common",
-    "slot": "Armor"
+    "slot": "Armor",
+    "sell_price": 15
   },
   {
     "id": 19,
@@ -24,7 +26,8 @@
     "description_key": "Equipment.Armor.Epic_01.Desc",
     "icon_name": "Armor_Epic_01",
     "grade": "Epic",
-    "slot": "Armor"
+    "slot": "Armor",
+    "sell_price": 200
   },
   {
     "id": 20,
@@ -33,7 +36,8 @@
     "description_key": "Equipment.Armor.Legendary_01.Desc",
     "icon_name": "Armor_Legendary_01",
     "grade": "Legendary",
-    "slot": "Armor"
+    "slot": "Armor",
+    "sell_price": 1000
   },
   {
     "id": 18,
@@ -42,7 +46,8 @@
     "description_key": "Equipment.Armor.Rare_01.Desc",
     "icon_name": "Armor_Rare_01",
     "grade": "Rare",
-    "slot": "Armor"
+    "slot": "Armor",
+    "sell_price": 50
   },
   {
     "id": 1,
@@ -51,7 +56,8 @@
     "description_key": "Equipment.Bow.Common_01.Desc",
     "icon_name": "Bow_Common_01",
     "grade": "Common",
-    "slot": "Bow"
+    "slot": "Bow",
+    "sell_price": 10
   },
   {
     "id": 2,
@@ -60,7 +66,8 @@
     "description_key": "Equipment.Bow.Common_02.Desc",
     "icon_name": "Bow_Common_02",
     "grade": "Common",
-    "slot": "Bow"
+    "slot": "Bow",
+    "sell_price": 15
   },
   {
     "id": 4,
@@ -69,7 +76,8 @@
     "description_key": "Equipment.Bow.Epic_01.Desc",
     "icon_name": "Bow_Epic_01",
     "grade": "Epic",
-    "slot": "Bow"
+    "slot": "Bow",
+    "sell_price": 200
   },
   {
     "id": 5,
@@ -78,7 +86,8 @@
     "description_key": "Equipment.Bow.Legendary_01.Desc",
     "icon_name": "Bow_Legendary_01",
     "grade": "Legendary",
-    "slot": "Bow"
+    "slot": "Bow",
+    "sell_price": 1000
   },
   {
     "id": 3,
@@ -87,7 +96,8 @@
     "description_key": "Equipment.Bow.Rare_01.Desc",
     "icon_name": "Bow_Rare_01",
     "grade": "Rare",
-    "slot": "Bow"
+    "slot": "Bow",
+    "sell_price": 50
   },
   {
     "id": 21,
@@ -96,7 +106,8 @@
     "description_key": "Equipment.Helmet.Common_01.Desc",
     "icon_name": "Helmet_Common_01",
     "grade": "Common",
-    "slot": "Helmet"
+    "slot": "Helmet",
+    "sell_price": 10
   },
   {
     "id": 22,
@@ -105,7 +116,8 @@
     "description_key": "Equipment.Helmet.Common_02.Desc",
     "icon_name": "Helmet_Common_02",
     "grade": "Common",
-    "slot": "Helmet"
+    "slot": "Helmet",
+    "sell_price": 15
   },
   {
     "id": 24,
@@ -114,7 +126,8 @@
     "description_key": "Equipment.Helmet.Epic_01.Desc",
     "icon_name": "Helmet_Epic_01",
     "grade": "Epic",
-    "slot": "Helmet"
+    "slot": "Helmet",
+    "sell_price": 200
   },
   {
     "id": 25,
@@ -123,7 +136,8 @@
     "description_key": "Equipment.Helmet.Legendary_01.Desc",
     "icon_name": "Helmet_Legendary_01",
     "grade": "Legendary",
-    "slot": "Helmet"
+    "slot": "Helmet",
+    "sell_price": 1000
   },
   {
     "id": 23,
@@ -132,7 +146,8 @@
     "description_key": "Equipment.Helmet.Rare_01.Desc",
     "icon_name": "Helmet_Rare_01",
     "grade": "Rare",
-    "slot": "Helmet"
+    "slot": "Helmet",
+    "sell_price": 50
   },
   {
     "id": 11,
@@ -141,7 +156,8 @@
     "description_key": "Equipment.Shield.Common_01.Desc",
     "icon_name": "Shield_Common_01",
     "grade": "Common",
-    "slot": "Shield"
+    "slot": "Shield",
+    "sell_price": 10
   },
   {
     "id": 12,
@@ -150,7 +166,8 @@
     "description_key": "Equipment.Shield.Common_02.Desc",
     "icon_name": "Shield_Common_02",
     "grade": "Common",
-    "slot": "Shield"
+    "slot": "Shield",
+    "sell_price": 15
   },
   {
     "id": 14,
@@ -159,7 +176,8 @@
     "description_key": "Equipment.Shield.Epic_01.Desc",
     "icon_name": "Shield_Epic_01",
     "grade": "Epic",
-    "slot": "Shield"
+    "slot": "Shield",
+    "sell_price": 200
   },
   {
     "id": 15,
@@ -168,7 +186,8 @@
     "description_key": "Equipment.Shield.Legendary_01.Desc",
     "icon_name": "Shield_Legendary_01",
     "grade": "Legendary",
-    "slot": "Shield"
+    "slot": "Shield",
+    "sell_price": 1000
   },
   {
     "id": 13,
@@ -177,7 +196,8 @@
     "description_key": "Equipment.Shield.Rare_01.Desc",
     "icon_name": "Shield_Rare_01",
     "grade": "Rare",
-    "slot": "Shield"
+    "slot": "Shield",
+    "sell_price": 50
   },
   {
     "id": 6,
@@ -186,7 +206,8 @@
     "description_key": "Equipment.Sword.Common_01.Desc",
     "icon_name": "Sword_Common_01",
     "grade": "Common",
-    "slot": "Sword"
+    "slot": "Sword",
+    "sell_price": 10
   },
   {
     "id": 7,
@@ -195,7 +216,8 @@
     "description_key": "Equipment.Sword.Common_02.Desc",
     "icon_name": "Sword_Common_02",
     "grade": "Common",
-    "slot": "Sword"
+    "slot": "Sword",
+    "sell_price": 15
   },
   {
     "id": 9,
@@ -204,7 +226,8 @@
     "description_key": "Equipment.Sword.Epic_01.Desc",
     "icon_name": "Sword_Epic_01",
     "grade": "Epic",
-    "slot": "Sword"
+    "slot": "Sword",
+    "sell_price": 200
   },
   {
     "id": 10,
@@ -213,7 +236,8 @@
     "description_key": "Equipment.Sword.Legendary_01.Desc",
     "icon_name": "Sword_Legendary_01",
     "grade": "Legendary",
-    "slot": "Sword"
+    "slot": "Sword",
+    "sell_price": 1000
   },
   {
     "id": 8,
@@ -222,6 +246,7 @@
     "description_key": "Equipment.Sword.Rare_01.Desc",
     "icon_name": "Sword_Rare_01",
     "grade": "Rare",
-    "slot": "Sword"
+    "slot": "Sword",
+    "sell_price": 50
   }
 ]
