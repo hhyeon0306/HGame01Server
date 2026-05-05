@@ -64,4 +64,10 @@ public enum ErrorCode : UInt16
     // 장비 보관함 에러 (3101~3120)
     EquipmentStorageFull = 3101,
     EquipmentStorageExpandFailed = 3102,
+
+    // 퀘스트 에러 (3121~3140)
+    QuestInstanceNotFound = 3121,
+    QuestNotClaimable = 3122,
+    QuestDataNotFound = 3123,
+    QuestClaimFailed = 3124,
 }

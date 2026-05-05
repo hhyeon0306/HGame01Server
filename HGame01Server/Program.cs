@@ -31,8 +31,13 @@ builder.Services.AddScoped<GachaService>();
 builder.Services.AddScoped<EquipmentService>();
 builder.Services.AddScoped<EquipmentStorageService>();
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<QuestService>();
+builder.Services.AddScoped<QuestProgressService>();
+builder.Services.AddScoped<QuestEventDeduplicator>();
 builder.Services.AddSingleton<IMemoryDB, MemoryDB>();
 builder.Services.AddSingleton<GameDataManager>();
+builder.Services.AddSingleton<IClock, SystemClock>();
+builder.Services.AddHostedService<QuestSeasonScheduler>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
