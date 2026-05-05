@@ -13,20 +13,25 @@ public class ShopService
     private readonly CurrencyService _currencyService;
     private readonly GameDataManager _gameDataManager;
     private readonly MailService _mailService;
+    private readonly IResetSchedule _dailyReset;
 
-    public ShopService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager, MailService mailService)
+    public ShopService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager, MailService mailService, IClock clock)
     {
         _context = context;
         _gameDB = gameDB;
         _currencyService = currencyService;
         _gameDataManager = gameDataManager;
         _mailService = mailService;
+
+        // dailyResetHourUtc는 GameDataManager가 메모리 로드 후 안정 — Scoped 인스턴스 생성 시 lazy 조회.
+        int resetHour = _gameDataManager.GetConstInt(GdbConst.Shop.Category, GdbConst.Shop.DailyResetHourUtc, 20);
+        _dailyReset = new DailyResetSchedule(clock, resetHour);
     }
 
     /// 일일 상점 아이템 목록 + 구매 여부 조회.
     public async Task<List<PkShopItemState>> GetDailyItemsAsync(long uid)
     {
-        return await GetItemsByTabAsync(uid, "Daily", GetDailyResetTime());
+        return await GetItemsByTabAsync(uid, "Daily", _dailyReset.Current);
     }
 
     /// 주간 상점 — Weekly 탭은 폐기됐지만 endpoint 호환을 위해 빈 리스트 반환.
@@ -83,7 +88,7 @@ public class ShopService
             // 일일 구매 횟수 검증 (Daily만; CashShop/Gacha는 무제한)
             if (shopItem.tab_type == "Daily")
             {
-                var resetStr = FormatResetTime(GetDailyResetTime());
+                var resetStr = FormatResetTime(_dailyReset.Current);
                 var purchases = await _gameDB.GetPurchasesSinceAsync(uid, resetStr);
                 int todayCount = purchases.Count(p => p.shopItemId == shopItemTag);
                 int limit = shopItem.daily_limit > 0 ? shopItem.daily_limit : 1;
