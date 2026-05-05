@@ -15,6 +15,8 @@ public class GameDbContext : DbContext
     public DbSet<GameUserEquipment> UserEquipments { get; set; }
     public DbSet<GameUserShopPurchase> UserShopPurchases { get; set; }
     public DbSet<GameUserMail> UserMails { get; set; }
+    public DbSet<GameUserQuestInstance> UserQuestInstances { get; set; }
+    public DbSet<GameUserQuestEventApplied> UserQuestEventsApplied { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,5 +47,21 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<GameUserMail>()
             .HasIndex(m => m.expireAt)
             .HasDatabaseName("IX_user_mails_expireAt");
+
+        // user_quest_instances: (uid) 인덱스 — Active 조회용
+        modelBuilder.Entity<GameUserQuestInstance>()
+            .HasIndex(q => q.uid)
+            .HasDatabaseName("IX_user_quest_instances_uid");
+
+        // user_quest_events_applied: (uid, eventClientId) unique — 멱등 dedup 핵심
+        modelBuilder.Entity<GameUserQuestEventApplied>()
+            .HasIndex(e => new { e.uid, e.eventClientId })
+            .IsUnique()
+            .HasDatabaseName("IX_user_quest_events_applied_uid_eventClientId");
+
+        // user_quest_events_applied: appliedAtUtc 인덱스 — 7일 GC 쿼리용
+        modelBuilder.Entity<GameUserQuestEventApplied>()
+            .HasIndex(e => e.appliedAtUtc)
+            .HasDatabaseName("IX_user_quest_events_applied_appliedAtUtc");
     }
 }

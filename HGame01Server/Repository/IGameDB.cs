@@ -56,4 +56,38 @@ public interface IGameDB
 
     /// expireAt &lt; nowStr 인 사용자 메일 일괄 삭제 (lazy eviction). List 호출 첫 단계에서 한 번 호출.
     public Task<int> DeleteExpiredMailsAsync(long uid, string nowStr);
+
+    // ===== Quest 인스턴스 =====
+
+    /// 사용자의 모든 활성 quest 인스턴스 조회 — Active endpoint + Reconcile.
+    public Task<List<GameUserQuestInstance>> GetQuestInstancesByUidAsync(long uid);
+
+    /// 단건 조회 — Claim 검증.
+    public Task<GameUserQuestInstance?> GetQuestInstanceAsync(long uid, string instanceId);
+
+    /// 신규 슬롯 발급 (RefreshDaily / 시즌 시작).
+    public Task AddQuestInstanceAsync(GameUserQuestInstance instance);
+
+    /// 다건 발급.
+    public Task AddQuestInstancesBatchAsync(List<GameUserQuestInstance> instances);
+
+    /// 진행/상태 갱신 — EventsBatch 적용 후, Claim 후.
+    public Task UpdateQuestInstanceAsync(GameUserQuestInstance instance);
+
+    /// 다건 갱신 — EventsBatch 한 번에 N개 인스턴스 업데이트.
+    public Task UpdateQuestInstancesBatchAsync(List<GameUserQuestInstance> instances);
+
+    /// 만료된 인스턴스 일괄 만료 처리 (status="Expired"). lazy eviction.
+    public Task<int> ExpireQuestInstancesAsync(long uid, string nowStr);
+
+    // ===== Quest 멱등 dedup =====
+
+    /// (uid, eventClientId) 이미 적용됐는지 검증. 중복이면 entry 반환.
+    public Task<GameUserQuestEventApplied?> GetQuestEventAppliedAsync(long uid, string eventClientId);
+
+    /// 이벤트 적용 기록 — unique 가드 위반 시 throw (catch 후 duplicate 카운트).
+    public Task RecordQuestEventAppliedAsync(GameUserQuestEventApplied applied);
+
+    /// 7일 이전 dedup entry 일괄 삭제 — 주기 GC.
+    public Task<int> GcQuestEventAppliedAsync(string sinceStr);
 }

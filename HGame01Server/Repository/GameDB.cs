@@ -286,4 +286,101 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
         return expired.Count;
     }
+
+    // ===== Quest 인스턴스 =====
+
+    public async Task<List<GameUserQuestInstance>> GetQuestInstancesByUidAsync(long uid)
+    {
+        return await _context.UserQuestInstances
+            .Where(q => q.uid == uid)
+            .ToListAsync();
+    }
+
+    public async Task<GameUserQuestInstance?> GetQuestInstanceAsync(long uid, string instanceId)
+    {
+        return await _context.UserQuestInstances
+            .FirstOrDefaultAsync(q => q.uid == uid && q.instanceId == instanceId);
+    }
+
+    public async Task AddQuestInstanceAsync(GameUserQuestInstance instance)
+    {
+        _context.UserQuestInstances.Add(instance);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task AddQuestInstancesBatchAsync(List<GameUserQuestInstance> instances)
+    {
+        if (instances == null || instances.Count == 0)
+        {
+            return;
+        }
+        _context.UserQuestInstances.AddRange(instances);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateQuestInstanceAsync(GameUserQuestInstance instance)
+    {
+        _context.UserQuestInstances.Update(instance);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateQuestInstancesBatchAsync(List<GameUserQuestInstance> instances)
+    {
+        if (instances == null || instances.Count == 0)
+        {
+            return;
+        }
+        _context.UserQuestInstances.UpdateRange(instances);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<int> ExpireQuestInstancesAsync(long uid, string nowStr)
+    {
+        var stale = await _context.UserQuestInstances
+            .Where(q => q.uid == uid
+                && q.status != "Expired"
+                && q.status != "Claimed"
+                && q.expiresAtUtc != ""
+                && string.Compare(q.expiresAtUtc, nowStr) < 0)
+            .ToListAsync();
+        if (stale.Count == 0)
+        {
+            return 0;
+        }
+        foreach (var s in stale)
+        {
+            s.status = "Expired";
+            s.lastUpdatedUtc = nowStr;
+        }
+        await _context.SaveChangesAsync();
+        return stale.Count;
+    }
+
+    // ===== Quest 멱등 dedup =====
+
+    public async Task<GameUserQuestEventApplied?> GetQuestEventAppliedAsync(long uid, string eventClientId)
+    {
+        return await _context.UserQuestEventsApplied
+            .FirstOrDefaultAsync(e => e.uid == uid && e.eventClientId == eventClientId);
+    }
+
+    public async Task RecordQuestEventAppliedAsync(GameUserQuestEventApplied applied)
+    {
+        _context.UserQuestEventsApplied.Add(applied);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<int> GcQuestEventAppliedAsync(string sinceStr)
+    {
+        var stale = await _context.UserQuestEventsApplied
+            .Where(e => string.Compare(e.appliedAtUtc, sinceStr) < 0)
+            .ToListAsync();
+        if (stale.Count == 0)
+        {
+            return 0;
+        }
+        _context.UserQuestEventsApplied.RemoveRange(stale);
+        await _context.SaveChangesAsync();
+        return stale.Count;
+    }
 }
