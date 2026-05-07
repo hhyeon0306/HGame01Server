@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20260504114043_InitialCreate")]
+    [Migration("20260505082841_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -195,6 +195,80 @@ namespace HGame01Server.Migrations
                         .HasDatabaseName("IX_user_mails_uid_claimedAt");
 
                     b.ToTable("user_mails");
+                });
+
+            modelBuilder.Entity("HGame01Server.Models.GameUserQuestEventApplied", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<string>("appliedAtUtc")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("eventClientId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<long>("uid")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("appliedAtUtc")
+                        .HasDatabaseName("IX_user_quest_events_applied_appliedAtUtc");
+
+                    b.HasIndex("uid", "eventClientId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_user_quest_events_applied_uid_eventClientId");
+
+                    b.ToTable("user_quest_events_applied");
+                });
+
+            modelBuilder.Entity("HGame01Server.Models.GameUserQuestInstance", b =>
+                {
+                    b.Property<string>("instanceId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("containerStableId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("expiresAtUtc")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("issuedAtUtc")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("lastUpdatedUtc")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("questDataId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("subProgressJson")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<long>("uid")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("instanceId");
+
+                    b.HasIndex("uid")
+                        .HasDatabaseName("IX_user_quest_instances_uid");
+
+                    b.ToTable("user_quest_instances");
                 });
 
             modelBuilder.Entity("HGame01Server.Models.GameUserShopPurchase", b =>

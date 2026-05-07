@@ -104,6 +104,50 @@ namespace HGame01Server.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "user_quest_events_applied",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    uid = table.Column<long>(type: "bigint", nullable: false),
+                    eventClientId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    appliedAtUtc = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_quest_events_applied", x => x.id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "user_quest_instances",
+                columns: table => new
+                {
+                    instanceId = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    uid = table.Column<long>(type: "bigint", nullable: false),
+                    questDataId = table.Column<int>(type: "int", nullable: false),
+                    containerStableId = table.Column<int>(type: "int", nullable: false),
+                    subProgressJson = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    status = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    issuedAtUtc = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    expiresAtUtc = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    lastUpdatedUtc = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_quest_instances", x => x.instanceId);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "user_shop_purchases",
                 columns: table => new
                 {
@@ -163,6 +207,22 @@ namespace HGame01Server.Migrations
                 columns: new[] { "uid", "claimedAt" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_user_quest_events_applied_appliedAtUtc",
+                table: "user_quest_events_applied",
+                column: "appliedAtUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_quest_events_applied_uid_eventClientId",
+                table: "user_quest_events_applied",
+                columns: new[] { "uid", "eventClientId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_quest_instances_uid",
+                table: "user_quest_instances",
+                column: "uid");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_user_shop_purchases_uid_shopItemId",
                 table: "user_shop_purchases",
                 columns: new[] { "uid", "shopItemId" });
@@ -182,6 +242,12 @@ namespace HGame01Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "user_mails");
+
+            migrationBuilder.DropTable(
+                name: "user_quest_events_applied");
+
+            migrationBuilder.DropTable(
+                name: "user_quest_instances");
 
             migrationBuilder.DropTable(
                 name: "user_shop_purchases");
