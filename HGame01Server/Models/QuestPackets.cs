@@ -55,7 +55,12 @@ public class PkQuestClaimResponse
 }
 
 // POST api/Quest/RefreshDaily
-public class PkQuestRefreshRequest { }
+public class PkQuestRefreshRequest
+{
+    /// 클라 EGameplayTag.QuestContainer_Daily의 stableId. 서버는 이 컨테이너의 기존 슬롯을 만료 후 신규 발급.
+    /// 클라 권위 — 자기 컨테이너 enum stableId만 보내는 거라 치팅 영향 없음 (서버는 questTag prefix로 풀 자동 필터).
+    public int ContainerStableId { get; set; }
+}
 
 public class PkQuestRefreshResponse
 {

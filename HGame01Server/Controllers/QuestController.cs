@@ -1,4 +1,5 @@
 using HGame01Server.Models;
+using HGame01Server.Models.GameData;
 using HGame01Server.Repository;
 using HGame01Server.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +14,14 @@ public class QuestController : ControllerBase
     private readonly ILogger<QuestController> _logger;
     private readonly QuestService _questService;
     private readonly QuestProgressService _questProgress;
+    private readonly GameDataManager _gameDataManager;
 
-    public QuestController(ILogger<QuestController> logger, QuestService questService, QuestProgressService questProgress)
+    public QuestController(ILogger<QuestController> logger, QuestService questService, QuestProgressService questProgress, GameDataManager gameDataManager)
     {
         _logger = logger;
         _questService = questService;
         _questProgress = questProgress;
+        _gameDataManager = gameDataManager;
     }
 
     /// 활성 quest 인스턴스 조회 — Hydrate / Reconcile.
@@ -69,20 +72,56 @@ public class QuestController : ControllerBase
     }
 
     /// 일일 슬롯 강제 재발급 — 자정 통과 시 클라가 호출.
-    /// Daily 풀 questDataId / slotCount는 Phase 8 후속에서 GdbQuestPool 또는 GdbConst로 외부화.
-    /// 본 라운드는 클라 요청 metadata로 임시 전달 또는 server-side fixed (TODO).
+    /// 풀: GdbQuestData에서 quest_tag prefix "Tag.Quest.Daily." 자동 필터 (디자이너 별도 풀 등록 의무 없음 — Quest tag 카테고리만 맞추면 자동 편입).
+    /// 슬롯 수: DAILY_SLOT_COUNT 상수 (4). 향후 GdbConst.Quest.DailySlotCount로 외부화.
     [HttpPost("RefreshDaily")]
     public async Task<PkQuestRefreshResponse> RefreshDaily([FromHeader] HeaderDTO header, [FromBody] PkQuestRefreshRequest request)
     {
         var response = new PkQuestRefreshResponse();
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
-        _logger.ZLogInformation($"[Quest/RefreshDaily] Uid:{uid}");
+        _logger.ZLogInformation($"[Quest/RefreshDaily] Uid:{uid} ContainerStableId:{request.ContainerStableId}");
 
-        // TODO: Daily 풀 GdbQuestPool 자동 동기화 후 본 endpoint에서 직접 조회.
-        // 본 라운드는 빈 응답 — 클라가 Active로 fallback.
-        response.Instances = new();
+        var dailyIds = CollectDailyQuestDataIds();
+        if (dailyIds.Count == 0)
+        {
+            _logger.ZLogWarning($"[Quest/RefreshDaily] Daily 풀 비어있음 — GdbQuestData 중 quest_tag prefix 'Tag.Quest.Daily.' 0건. 빈 응답 반환.");
+            response.Instances = new();
+            response.Result = ErrorCode.None;
+            return response;
+        }
+
+        var instances = await _questService.RefreshDailyAsync(uid, request.ContainerStableId, DAILY_SLOT_COUNT, dailyIds);
+        response.Instances = instances;
         response.Result = ErrorCode.None;
         return response;
+    }
+
+    private const string DAILY_TAG_PREFIX = "Tag.Quest.Daily.";
+    private const int DAILY_SLOT_COUNT = 4;
+
+    /// GdbQuestData 풀에서 Daily prefix 매칭 questDataId 수집.
+    /// 디자이너 별도 풀 등록 의무 없음 — Quest tag 카테고리만 맞추면 자동 편입 (mock 분기와 동일 패턴).
+    private List<int> CollectDailyQuestDataIds()
+    {
+        var quests = _gameDataManager.GetList<GdbQuestData>();
+        if (quests == null || quests.Count == 0)
+        {
+            return new List<int>();
+        }
+        var ids = new List<int>();
+        for (int i = 0; i < quests.Count; i++)
+        {
+            var q = quests[i];
+            if (q == null || string.IsNullOrEmpty(q.quest_tag))
+            {
+                continue;
+            }
+            if (q.quest_tag.StartsWith(DAILY_TAG_PREFIX))
+            {
+                ids.Add(q.id);
+            }
+        }
+        return ids;
     }
 }
