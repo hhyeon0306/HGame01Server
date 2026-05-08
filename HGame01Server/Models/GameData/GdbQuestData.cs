@@ -10,4 +10,7 @@ public class GdbQuestData
     public string quest_tag { get; set; } = "";
     public string title_key { get; set; } = "";
     public string description_key { get; set; } = "";
+    public string icon_name { get; set; } = "";
+    public string reward_item { get; set; } = "";
+    public int reward_count { get; set; }
 }

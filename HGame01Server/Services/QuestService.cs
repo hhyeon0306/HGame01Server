@@ -87,7 +87,8 @@ public class QuestService
         return newInstances.Select(ToDto).ToList();
     }
 
-    /// 보상 수령 — Completed에서만 허용. RewardResolver로 보상 결정 + Currency 적용.
+    /// 보상 수령 — Completed에서만 허용. RewardResolver로 보상 결정 + Currency 즉시 누적.
+    /// Equipment/Item 등 비-Currency 보상은 응답에 정보만 담고 실제 지급은 Phase 9 RewardGrantService 통합에서 처리.
     public async Task<(ErrorCode error, PkRewardResult? reward, List<PkCurrency> currencies)>
         ClaimAsync(long uid, string instanceId)
     {
@@ -101,7 +102,7 @@ public class QuestService
             return (ErrorCode.QuestNotClaimable, null, new());
         }
 
-        // GdbQuestData 조회 — id 기반. 향후 reward 필드 자동 동기화 후 활성.
+        // GdbQuestData 조회 — id 기반. reward_item / reward_count 자동 동기화 필드 사용.
         var quests = _gameDataManager.GetList<GdbQuestData>();
         var quest = quests?.FirstOrDefault(q => q.id == inst.questDataId);
         if (quest == null)
@@ -109,9 +110,20 @@ public class QuestService
             return (ErrorCode.QuestDataNotFound, null, new());
         }
 
-        // Phase 8 minimum — 보상 모델은 후속 작업에서 GdbQuestData에 reward_item/reward_count 자동 동기화 추가하거나
-        // 별도 GdbQuestRewardData 생성 후 활성. 현 단계는 status 전환만 보장.
+        // 보상 결정 — Shop과 동일 패턴. reward_item 미설정이면 reward null (status 전환만).
         PkRewardResult? reward = null;
+        if (!string.IsNullOrEmpty(quest.reward_item) && quest.reward_count > 0)
+        {
+            reward = RewardResolver.Resolve(_gameDataManager, quest.reward_item, quest.reward_count);
+
+            // Currency 보상은 즉시 누적. 비-Currency(Equipment/Item)는 응답에 정보만 — Phase 9 RewardGrantService 통합 시 실제 지급.
+            string currencyName = RewardResolver.ResolveCurrencyType(_gameDataManager, reward.RewardTag);
+            if (!string.IsNullOrEmpty(currencyName))
+            {
+                int currencyTypeId = ParseCurrencyType(currencyName);
+                await _gameDB.UpsertCurrencyAsync(uid, currencyTypeId, quest.reward_count);
+            }
+        }
 
         // 인스턴스 Claimed 전환.
         inst.status = "Claimed";

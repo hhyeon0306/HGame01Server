@@ -4,27 +4,39 @@
     "tag": "Tag.Quest.Daily.ClearStage3",
     "quest_tag": "Tag.Quest.Daily.ClearStage3",
     "title_key": "quest.daily.clearstage3.title",
-    "description_key": "quest.daily.clearstage3.desc"
+    "description_key": "quest.daily.clearstage3.desc",
+    "icon_name": "",
+    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_count": 30
   },
   {
     "id": 3,
     "tag": "Tag.Quest.Daily.GachaPull1",
     "quest_tag": "Tag.Quest.Daily.GachaPull1",
     "title_key": "quest.daily.gachapull1.title",
-    "description_key": "quest.daily.gachapull1.desc"
+    "description_key": "quest.daily.gachapull1.desc",
+    "icon_name": "",
+    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_count": 10
   },
   {
     "id": 4,
     "tag": "Tag.Quest.Daily.KillBoss1",
     "quest_tag": "Tag.Quest.Daily.KillBoss1",
     "title_key": "quest.daily.killboss1.title",
-    "description_key": "quest.daily.killboss1.desc"
+    "description_key": "quest.daily.killboss1.desc",
+    "icon_name": "",
+    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_count": 50
   },
   {
     "id": 1,
     "tag": "Tag.Quest.Daily.KillEnemy30",
     "quest_tag": "Tag.Quest.Daily.KillEnemy30",
     "title_key": "quest.daily.killenemy30.title",
-    "description_key": "quest.daily.killenemy30.desc"
+    "description_key": "quest.daily.killenemy30.desc",
+    "icon_name": "",
+    "reward_item": "Tag.Item.Currency_Gold",
+    "reward_count": 1500
   }
 ]
