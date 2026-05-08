@@ -8,21 +8,21 @@ using HGame01Server.Repository;
 namespace HGame01Server.Services;
 
 /// 퀘스트 진행 누적 서비스 (Phase 8). 이벤트 → 인스턴스 progress/status 권위 갱신.
-/// 멱등은 QuestEventDeduplicator 책임. 본 서비스는 적용/완료 판정.
+/// 멱등 보장 + 인스턴스 갱신은 단일 트랜잭션으로 묶어 atomic commit/rollback.
 public class QuestProgressService
 {
     private readonly IGameDB _gameDB;
     private readonly IClock _clock;
-    private readonly QuestEventDeduplicator _dedup;
 
-    public QuestProgressService(IGameDB gameDB, IClock clock, QuestEventDeduplicator dedup)
+    public QuestProgressService(IGameDB gameDB, IClock clock)
     {
         _gameDB = gameDB;
         _clock = clock;
-        _dedup = dedup;
     }
 
-    /// 클라 이벤트 배치 적용. 적용/중복 카운트 + 갱신된 인스턴스 목록 반환.
+    /// 클라 이벤트 배치 적용. dedup INSERT + 인스턴스 UPDATE를 단일 SaveChanges로 묶어 atomic 보장.
+    /// 부분 실패 시 dedup 키만 소비되는 사고 차단.
+    /// 반환: (적용 카운트, 중복/skip 카운트, 갱신된 인스턴스 목록).
     public async Task<(int applied, int duplicate, List<GameUserQuestInstance> updated)>
         ApplyBatchAsync(long uid, List<PkQuestEventEntry> events)
     {
@@ -31,12 +31,23 @@ public class QuestProgressService
             return (0, 0, new List<GameUserQuestInstance>());
         }
 
-        // 만료 인스턴스 lazy 정리 — Active 응답이 사용자에게 stale 안 보이도록.
         var nowStr = FormatUtc(_clock.UtcNow);
+
+        // 만료 인스턴스 lazy 정리 — Active 응답이 stale 안 보이도록.
         await _gameDB.ExpireQuestInstancesAsync(uid, nowStr);
 
         var instances = await _gameDB.GetQuestInstancesByUidAsync(uid);
         var byInstanceId = instances.ToDictionary(i => i.instanceId, i => i);
+
+        // 사전 dedup batch 조회 — 한 round-trip으로 모든 eventClientId의 적용 여부 확인.
+        var validEventIds = events
+            .Where(e => e != null && !string.IsNullOrEmpty(e.EventClientId))
+            .Select(e => e.EventClientId)
+            .ToList();
+        var alreadyApplied = await _gameDB.GetAppliedEventClientIdsAsync(uid, validEventIds);
+
+        var newApplieds = new List<GameUserQuestEventApplied>();
+        var seenEventIds = new HashSet<string>();
         var updatedSet = new HashSet<string>();
         int applied = 0;
         int duplicate = 0;
@@ -49,8 +60,15 @@ public class QuestProgressService
                 continue;
             }
 
-            // dedup — 이미 적용됐으면 skip (멱등).
-            if (await _dedup.IsAlreadyAppliedAsync(uid, evt.EventClientId))
+            // 같은 배치 내 동일 eventClientId 중복 — 첫 건만 적용, 이후는 duplicate.
+            if (!seenEventIds.Add(evt.EventClientId))
+            {
+                duplicate++;
+                continue;
+            }
+
+            // 사전 dedup hit — 이미 적용됐던 이벤트.
+            if (alreadyApplied.Contains(evt.EventClientId))
             {
                 duplicate++;
                 continue;
@@ -73,28 +91,27 @@ public class QuestProgressService
                 continue;
             }
 
-            // 적용 기록 시도 — 동시성 가드. 실패면 다른 요청이 먼저 적용한 중복.
-            var recorded = await _dedup.RecordAppliedAsync(uid, evt.EventClientId);
-            if (!recorded)
-            {
-                duplicate++;
-                continue;
-            }
-
-            // progress 누적 — child=0 단일 가정 (Composite는 클라 측 분기, 서버는 합산만).
+            // progress 누적 + 완료 판정 — child=0 단일 가정 (Composite는 클라 측 분기, 서버는 합산만).
             ApplyDelta(inst, evt.Delta);
             inst.lastUpdatedUtc = nowStr;
             updatedSet.Add(inst.instanceId);
+
+            newApplieds.Add(new GameUserQuestEventApplied
+            {
+                uid = uid,
+                eventClientId = evt.EventClientId,
+                appliedAtUtc = nowStr,
+            });
             applied++;
         }
 
-        // 갱신된 인스턴스만 batch update.
-        var updatedList = updatedSet
-            .Select(id => byInstanceId[id])
-            .ToList();
-        if (updatedList.Count > 0)
+        var updatedList = updatedSet.Select(id => byInstanceId[id]).ToList();
+
+        // 단일 트랜잭션으로 dedup INSERT + 인스턴스 UPDATE를 묶음.
+        // unique 가드 위반(race) 시 DbUpdateException — 전체 rollback. 호출자(Controller)는 ErrorCode 반환.
+        if (newApplieds.Count > 0 || updatedList.Count > 0)
         {
-            await _gameDB.UpdateQuestInstancesBatchAsync(updatedList);
+            await _gameDB.ApplyQuestEventBatchAsync(newApplieds, updatedList);
         }
 
         return (applied, duplicate, updatedList);

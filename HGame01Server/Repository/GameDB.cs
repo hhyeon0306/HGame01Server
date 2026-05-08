@@ -358,15 +358,44 @@ public class GameDB : IGameDB
 
     // ===== Quest 멱등 dedup =====
 
-    public async Task<GameUserQuestEventApplied?> GetQuestEventAppliedAsync(long uid, string eventClientId)
+    public async Task<HashSet<string>> GetAppliedEventClientIdsAsync(long uid, IReadOnlyList<string> eventClientIds)
     {
-        return await _context.UserQuestEventsApplied
-            .FirstOrDefaultAsync(e => e.uid == uid && e.eventClientId == eventClientId);
+        if (eventClientIds == null || eventClientIds.Count == 0)
+        {
+            return new HashSet<string>();
+        }
+        var ids = eventClientIds.Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return new HashSet<string>();
+        }
+        var found = await _context.UserQuestEventsApplied
+            .Where(e => e.uid == uid && ids.Contains(e.eventClientId))
+            .Select(e => e.eventClientId)
+            .ToListAsync();
+        return new HashSet<string>(found);
     }
 
-    public async Task RecordQuestEventAppliedAsync(GameUserQuestEventApplied applied)
+    public async Task ApplyQuestEventBatchAsync(
+        List<GameUserQuestEventApplied> applieds,
+        List<GameUserQuestInstance> instances)
     {
-        _context.UserQuestEventsApplied.Add(applied);
+        bool anyApplied = applieds != null && applieds.Count > 0;
+        bool anyInstance = instances != null && instances.Count > 0;
+        if (!anyApplied && !anyInstance)
+        {
+            return;
+        }
+        if (anyApplied)
+        {
+            _context.UserQuestEventsApplied.AddRange(applieds!);
+        }
+        if (anyInstance)
+        {
+            _context.UserQuestInstances.UpdateRange(instances!);
+        }
+        // 단일 SaveChanges = EF Core implicit transaction. INSERT + UPDATE 모두 atomic commit/rollback.
+        // unique 가드 위반(race) 시 DbUpdateException — 전체 rollback 후 호출자에게 throw.
         await _context.SaveChangesAsync();
     }
 

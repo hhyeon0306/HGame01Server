@@ -82,11 +82,16 @@ public interface IGameDB
 
     // ===== Quest 멱등 dedup =====
 
-    /// (uid, eventClientId) 이미 적용됐는지 검증. 중복이면 entry 반환.
-    public Task<GameUserQuestEventApplied?> GetQuestEventAppliedAsync(long uid, string eventClientId);
+    /// (uid, eventClientId) 이미 적용됐는지 사전 batch 조회. 중복 검증을 한 round-trip으로 끝낸다.
+    /// 반환: 이미 적용된 eventClientId 집합 (HashSet 비교는 호출자 책임).
+    public Task<HashSet<string>> GetAppliedEventClientIdsAsync(long uid, IReadOnlyList<string> eventClientIds);
 
-    /// 이벤트 적용 기록 — unique 가드 위반 시 throw (catch 후 duplicate 카운트).
-    public Task RecordQuestEventAppliedAsync(GameUserQuestEventApplied applied);
+    /// 이벤트 적용 기록 + 인스턴스 갱신을 단일 SaveChanges로 묶어 atomic 보장.
+    /// applieds INSERT + instances UPDATE가 같은 EF transaction 안에서 commit/rollback.
+    /// (uid, eventClientId) unique 가드 위반(race) 시 DbUpdateException throw — 호출자가 재시도/duplicate 재분류 결정.
+    public Task ApplyQuestEventBatchAsync(
+        List<GameUserQuestEventApplied> applieds,
+        List<GameUserQuestInstance> instances);
 
     /// 7일 이전 dedup entry 일괄 삭제 — 주기 GC.
     public Task<int> GcQuestEventAppliedAsync(string sinceStr);
