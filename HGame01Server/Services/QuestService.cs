@@ -143,8 +143,9 @@ public class QuestService
 
         // 보상 결정 — Shop과 동일 패턴. reward_item 미설정이면 reward null (status 전환만).
         // Currency 보상은 즉시 누적. 비-Currency(Equipment/Item)는 응답에 정보만 — Phase 9 RewardGrantService 통합 시 실제 지급.
+        // currencyTypeId=-1은 통화 없음 sentinel — Diamond=0이 valid 값이라 0을 sentinel로 절대 사용 금지.
         PkRewardResult? reward = null;
-        int currencyTypeId = 0;
+        int currencyTypeId = -1;
         long currencyDelta = 0;
         if (!string.IsNullOrEmpty(quest.reward_item) && quest.reward_count > 0)
         {
@@ -201,8 +202,9 @@ public class QuestService
     {
         return s?.ToLowerInvariant() switch
         {
+            "diamond" => CurrencyType.Diamond,
             "gold" => CurrencyType.Gold,
-            _ => CurrencyType.Diamond,
+            _ => -1,
         };
     }
 

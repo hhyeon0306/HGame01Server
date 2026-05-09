@@ -291,9 +291,10 @@ public class GameDB : IGameDB
 
     public async Task<List<GameUserQuestInstance>> GetActiveQuestInstancesByUidAsync(long uid)
     {
+        // Claimed는 자정 회전 전까지 사용자가 "받았다" 시각 확인할 수 있도록 응답에 포함.
+        // Expired만 제외 — RefreshDaily/lazy 만료 처리된 row는 클라 스토리지 절감 + dedup 정합.
         return await _context.UserQuestInstances
-            .Where(q => q.uid == uid
-                && (q.status == "InProgress" || q.status == "Completed"))
+            .Where(q => q.uid == uid && q.status != "Expired")
             .ToListAsync();
     }
 
@@ -317,7 +318,8 @@ public class GameDB : IGameDB
     {
         _context.UserQuestInstances.Update(instance);
 
-        if (currencyTypeId > 0 && currencyDelta != 0)
+        // currencyTypeId == -1 = 통화 없음 sentinel. CurrencyType.Diamond=0은 valid 값이라 0 가드 절대 금지.
+        if (currencyTypeId >= 0 && currencyDelta != 0)
         {
             // user_currencies upsert — Update 패턴 합치 (CurrencyService.UpsertCurrencyAsync 동등).
             var row = await _context.UserCurrencies

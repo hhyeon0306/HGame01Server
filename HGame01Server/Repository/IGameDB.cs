@@ -59,8 +59,9 @@ public interface IGameDB
 
     // ===== Quest 인스턴스 =====
 
-    /// 사용자의 활성(InProgress/Completed) quest 인스턴스만 조회 — Active endpoint + Reconcile.
-    /// Expired/Claimed는 응답에 포함하지 않는다 — 클라가 stale row를 dedup으로 채택하는 사고 차단.
+    /// 사용자의 활성(InProgress/Completed/Claimed) quest 인스턴스 조회 — Active endpoint + Reconcile.
+    /// Expired만 제외 — Claimed는 자정 회전 전까지 "받았다" 시각 확인용으로 응답에 포함.
+    /// Hydrate dedup status 우선순위 정렬이 stale → fresh 채택을 차단.
     public Task<List<GameUserQuestInstance>> GetActiveQuestInstancesByUidAsync(long uid);
 
     /// 단건 조회 — Claim 검증.
