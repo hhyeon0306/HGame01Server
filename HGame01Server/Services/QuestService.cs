@@ -17,16 +17,13 @@ public class QuestService
     private readonly GameDataManager _gameDataManager;
     private readonly CurrencyService _currencyService;
 
-    public QuestService(IGameDB gameDB, IClock clock, GameDataManager gameDataManager, CurrencyService currencyService)
+    public QuestService(IGameDB gameDB, IClock clock, IResetSchedule dailyReset, GameDataManager gameDataManager, CurrencyService currencyService)
     {
         _gameDB = gameDB;
         _clock = clock;
+        _dailyReset = dailyReset;
         _gameDataManager = gameDataManager;
         _currencyService = currencyService;
-
-        // Daily 리셋 시간은 ShopConstants와 공유 — 모든 도메인이 같은 자정.
-        int resetHour = _gameDataManager.GetConstInt(GdbConst.Shop.Category, GdbConst.Shop.DailyResetHourUtc, 20);
-        _dailyReset = new DailyResetSchedule(clock, resetHour);
     }
 
     /// 활성(InProgress/Completed) 인스턴스 조회 — 만료 lazy 정리 + DTO 변환.
@@ -145,24 +142,25 @@ public class QuestService
         }
 
         // 보상 결정 — Shop과 동일 패턴. reward_item 미설정이면 reward null (status 전환만).
+        // Currency 보상은 즉시 누적. 비-Currency(Equipment/Item)는 응답에 정보만 — Phase 9 RewardGrantService 통합 시 실제 지급.
         PkRewardResult? reward = null;
+        int currencyTypeId = 0;
+        long currencyDelta = 0;
         if (!string.IsNullOrEmpty(quest.reward_item) && quest.reward_count > 0)
         {
             reward = RewardResolver.Resolve(_gameDataManager, quest.reward_item, quest.reward_count);
-
-            // Currency 보상은 즉시 누적. 비-Currency(Equipment/Item)는 응답에 정보만 — Phase 9 RewardGrantService 통합 시 실제 지급.
             string currencyName = RewardResolver.ResolveCurrencyType(_gameDataManager, reward.RewardTag);
             if (!string.IsNullOrEmpty(currencyName))
             {
-                int currencyTypeId = ParseCurrencyType(currencyName);
-                await _gameDB.UpsertCurrencyAsync(uid, currencyTypeId, quest.reward_count);
+                currencyTypeId = ParseCurrencyType(currencyName);
+                currencyDelta = quest.reward_count;
             }
         }
 
-        // 인스턴스 Claimed 전환.
+        // 인스턴스 Claimed 전환 + Currency 누적을 단일 트랜잭션으로 묶음 — 부분 실패 시 중복 지급 사고 차단.
         inst.status = "Claimed";
         inst.lastUpdatedUtc = FormatUtc(_clock.UtcNow);
-        await _gameDB.UpdateQuestInstanceAsync(inst);
+        await _gameDB.ClaimQuestTransactionAsync(inst, uid, currencyTypeId, currencyDelta);
 
         var currencies = await _currencyService.GetAllAsync(uid);
         return (ErrorCode.None, reward, currencies);

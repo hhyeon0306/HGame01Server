@@ -309,6 +309,40 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
     }
 
+    public async Task ClaimQuestTransactionAsync(
+        GameUserQuestInstance instance,
+        long uid,
+        int currencyTypeId,
+        long currencyDelta)
+    {
+        _context.UserQuestInstances.Update(instance);
+
+        if (currencyTypeId > 0 && currencyDelta != 0)
+        {
+            // user_currencies upsert — Update 패턴 합치 (CurrencyService.UpsertCurrencyAsync 동등).
+            var row = await _context.UserCurrencies
+                .FirstOrDefaultAsync(c => c.uid == uid && c.currencyType == currencyTypeId);
+            if (row == null)
+            {
+                _context.UserCurrencies.Add(new GameUserCurrency
+                {
+                    uid = uid,
+                    currencyType = currencyTypeId,
+                    amount = currencyDelta,
+                });
+            }
+            else
+            {
+                row.amount += currencyDelta;
+                _context.UserCurrencies.Update(row);
+            }
+        }
+
+        // 단일 SaveChanges = EF Core implicit transaction. UPDATE/INSERT 모두 atomic commit/rollback.
+        // 부분 실패 시 통화만 누적되고 인스턴스 Claimed 전환 안 되는 사고 차단.
+        await _context.SaveChangesAsync();
+    }
+
     public async Task RefreshDailyQuestsTransactionAsync(
         List<GameUserQuestInstance> toExpire,
         List<GameUserQuestInstance> toAdd)

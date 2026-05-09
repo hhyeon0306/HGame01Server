@@ -75,6 +75,15 @@ public interface IGameDB
         List<GameUserQuestInstance> toExpire,
         List<GameUserQuestInstance> toAdd);
 
+    /// 보상 수령 — Currency 누적 + 인스턴스 Claimed 전환을 단일 SaveChanges로 묶어 atomic 보장.
+    /// 부분 실패 시 통화만 누적되고 인스턴스는 Completed 잔존 → 재시도 시 중복 지급 사고 차단.
+    /// currencyTypeId<=0이면 통화 없는 보상(Item/Equipment)으로 인스턴스만 갱신.
+    public Task ClaimQuestTransactionAsync(
+        GameUserQuestInstance instance,
+        long uid,
+        int currencyTypeId,
+        long currencyDelta);
+
     /// 만료된 인스턴스 일괄 만료 처리 (status="Expired"). lazy eviction.
     public Task<int> ExpireQuestInstancesAsync(long uid, string nowStr);
 
