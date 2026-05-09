@@ -48,16 +48,21 @@ public class GameDbContext : DbContext
             .HasIndex(m => m.expireAt)
             .HasDatabaseName("IX_user_mails_expireAt");
 
-        // user_quest_instances: (uid) 인덱스 — Active 조회용
+        // user_quest_instances: (uid, containerStableId, status) 복합 인덱스 — Active 필터 + Daily 회전 검색 가속.
         modelBuilder.Entity<GameUserQuestInstance>()
-            .HasIndex(q => q.uid)
-            .HasDatabaseName("IX_user_quest_instances_uid");
+            .HasIndex(q => new { q.uid, q.containerStableId, q.status })
+            .HasDatabaseName("IX_user_quest_instances_uid_container_status");
 
-        // user_quest_events_applied: (uid, eventClientId) unique — 멱등 dedup 핵심
+        // user_quest_instances: (uid, questDataId, status) — 같은 quest 활성 row 중복 검색 가속.
+        modelBuilder.Entity<GameUserQuestInstance>()
+            .HasIndex(q => new { q.uid, q.questDataId, q.status })
+            .HasDatabaseName("IX_user_quest_instances_uid_questData_status");
+
+        // user_quest_events_applied: (uid, questInstanceId, eventClientId) unique — 설계 의도 정합 멱등 dedup.
         modelBuilder.Entity<GameUserQuestEventApplied>()
-            .HasIndex(e => new { e.uid, e.eventClientId })
+            .HasIndex(e => new { e.uid, e.questInstanceId, e.eventClientId })
             .IsUnique()
-            .HasDatabaseName("IX_user_quest_events_applied_uid_eventClientId");
+            .HasDatabaseName("IX_user_quest_events_applied_uid_instance_clientId");
 
         // user_quest_events_applied: appliedAtUtc 인덱스 — 7일 GC 쿼리용
         modelBuilder.Entity<GameUserQuestEventApplied>()

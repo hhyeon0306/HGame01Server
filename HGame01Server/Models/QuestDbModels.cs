@@ -35,7 +35,8 @@ public class GameUserQuestInstance
     public string lastUpdatedUtc { get; set; } = "";
 }
 
-/// 멱등 dedup. (uid, eventClientId) unique. 7일 GC.
+/// 멱등 dedup. (uid, questInstanceId, eventClientId) unique. 7일 GC.
+/// 설계 의도(Architecture §10.3 "Unique 키: (userId, questInstanceId, eventClientId)")에 정합.
 [Table("user_quest_events_applied")]
 public class GameUserQuestEventApplied
 {
@@ -45,9 +46,17 @@ public class GameUserQuestEventApplied
 
     public long uid { get; set; }
 
-    /// GUID v4. (uid, eventClientId) unique 인덱스 — Migration에 명시.
+    /// GameUserQuestInstance.instanceId 매칭 — dedup 키 일부.
+    [MaxLength(64)]
+    public string questInstanceId { get; set; } = "";
+
+    /// GUID v4. (uid, questInstanceId, eventClientId) unique 인덱스 — Migration에 명시.
     [MaxLength(64)]
     public string eventClientId { get; set; } = "";
+
+    /// 클라 typeof(TEvent).Name — 감사/추적 + 향후 라우팅 확장용.
+    [MaxLength(64)]
+    public string eventTypeName { get; set; } = "";
 
     public string appliedAtUtc { get; set; } = "";
 }

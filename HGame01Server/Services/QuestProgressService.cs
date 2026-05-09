@@ -120,7 +120,9 @@ public class QuestProgressService
             newApplieds.Add(new GameUserQuestEventApplied
             {
                 uid = uid,
+                questInstanceId = evt.QuestInstanceId,
                 eventClientId = evt.EventClientId,
+                eventTypeName = evt.EventTypeName,
                 appliedAtUtc = nowStr,
             });
             applied++;
