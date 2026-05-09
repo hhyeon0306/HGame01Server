@@ -15,17 +15,14 @@ public class ShopService
     private readonly MailService _mailService;
     private readonly IResetSchedule _dailyReset;
 
-    public ShopService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager, MailService mailService, IClock clock)
+    public ShopService(GameDbContext context, IGameDB gameDB, CurrencyService currencyService, GameDataManager gameDataManager, MailService mailService, IResetSchedule dailyReset)
     {
         _context = context;
         _gameDB = gameDB;
         _currencyService = currencyService;
         _gameDataManager = gameDataManager;
         _mailService = mailService;
-
-        // dailyResetHourUtc는 GameDataManager가 메모리 로드 후 안정 — Scoped 인스턴스 생성 시 lazy 조회.
-        int resetHour = _gameDataManager.GetConstInt(GdbConst.Shop.Category, GdbConst.Shop.DailyResetHourUtc, 20);
-        _dailyReset = new DailyResetSchedule(clock, resetHour);
+        _dailyReset = dailyReset;
     }
 
     /// 일일 상점 아이템 목록 + 구매 여부 조회.

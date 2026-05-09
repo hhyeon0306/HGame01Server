@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ZLogger;
 using HGame01Server.Repository;
 using HGame01Server.Models;
+using HGame01Server.Models.GameData;
 using HGame01Server.Middleware;
 using HGame01Server.Services;
 
@@ -37,6 +38,16 @@ builder.Services.AddScoped<QuestEventDeduplicator>();
 builder.Services.AddSingleton<IMemoryDB, MemoryDB>();
 builder.Services.AddSingleton<GameDataManager>();
 builder.Services.AddSingleton<IClock, SystemClock>();
+
+// 일일 리셋 스케줄 — Shop/Quest가 같은 인스턴스를 공유해 자정 동기 보장. dailyResetHourUtc는 GameDataManager LoadAll 직후 안정.
+builder.Services.AddSingleton<IResetSchedule>(sp =>
+{
+    var clock = sp.GetRequiredService<IClock>();
+    var gdm = sp.GetRequiredService<GameDataManager>();
+    int resetHour = gdm.GetConstInt(GdbConst.Shop.Category, GdbConst.Shop.DailyResetHourUtc, 20);
+    return new DailyResetSchedule(clock, resetHour);
+});
+
 builder.Services.AddHostedService<QuestSeasonScheduler>();
 
 builder.Services.AddControllers()
