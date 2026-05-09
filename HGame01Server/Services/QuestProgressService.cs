@@ -20,6 +20,16 @@ public class QuestProgressService
         _clock = clock;
     }
 
+    /// 화이트리스트 — 클라 5종 typed Subscribe와 정합. 외 이벤트는 어뷰징/오타로 간주해 거부.
+    private static readonly HashSet<string> AllowedEventTypeNames = new()
+    {
+        "MonsterKillEvent",
+        "StageClearedEvent",
+        "GachaPulledEvent",
+        "EquipItemEvent",
+        "ItemAcquiredEvent",
+    };
+
     /// 클라 이벤트 배치 적용. dedup INSERT + 인스턴스 UPDATE를 단일 SaveChanges로 묶어 atomic 보장.
     /// 부분 실패 시 dedup 키만 소비되는 사고 차단.
     /// 반환: (적용 카운트, 중복/skip 카운트, 갱신된 인스턴스 목록).
@@ -36,7 +46,7 @@ public class QuestProgressService
         // 만료 인스턴스 lazy 정리 — Active 응답이 stale 안 보이도록.
         await _gameDB.ExpireQuestInstancesAsync(uid, nowStr);
 
-        var instances = await _gameDB.GetQuestInstancesByUidAsync(uid);
+        var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
         var byInstanceId = instances.ToDictionary(i => i.instanceId, i => i);
 
         // 사전 dedup batch 조회 — 한 round-trip으로 모든 eventClientId의 적용 여부 확인.
@@ -60,6 +70,13 @@ public class QuestProgressService
                 continue;
             }
 
+            // EventTypeName 화이트리스트 — 5종 외는 어뷰징/오타로 거부.
+            if (!AllowedEventTypeNames.Contains(evt.EventTypeName))
+            {
+                duplicate++;
+                continue;
+            }
+
             // 같은 배치 내 동일 eventClientId 중복 — 첫 건만 적용, 이후는 duplicate.
             if (!seenEventIds.Add(evt.EventClientId))
             {
@@ -74,7 +91,7 @@ public class QuestProgressService
                 continue;
             }
 
-            // 인스턴스 매칭 — 만료/Claimed/Expired면 skip.
+            // 인스턴스 매칭 — Expired/Claimed는 GetActiveQuestInstancesByUidAsync가 이미 거름.
             if (!byInstanceId.TryGetValue(evt.QuestInstanceId, out var inst))
             {
                 duplicate++;
@@ -91,8 +108,12 @@ public class QuestProgressService
                 continue;
             }
 
-            // progress 누적 + 완료 판정 — child=0 단일 가정 (Composite는 클라 측 분기, 서버는 합산만).
-            ApplyDelta(inst, evt.Delta);
+            // progress 누적 + 완료 판정. 빈 entries는 데이터 결함이라 ApplyDelta가 false 반환 → 적용 X.
+            if (!ApplyDelta(inst, evt.Delta))
+            {
+                duplicate++;
+                continue;
+            }
             inst.lastUpdatedUtc = nowStr;
             updatedSet.Add(inst.instanceId);
 
@@ -118,15 +139,16 @@ public class QuestProgressService
     }
 
     /// progress JSON 갱신 + 완료 판정. child=0 슬롯에 delta 누적.
-    /// Composite의 child별 진행은 본 서비스가 모름 — 향후 EventTypeName 별 라우팅으로 확장.
-    private static void ApplyDelta(GameUserQuestInstance inst, int delta)
+    /// Composite의 child별 진행은 본 서비스가 모름 — Phase 9에서 metadata 기반 ChildIndex 라우팅으로 확장.
+    /// 발급 시 BuildInitialSubProgressJson이 required를 채우므로 빈 entries는 데이터 결함이라 적용 거부.
+    private static bool ApplyDelta(GameUserQuestInstance inst, int delta)
     {
         var entries = ParseSubProgress(inst.subProgressJson);
         var slot = entries.FirstOrDefault(e => e.ChildIndex == 0);
-        if (slot == null)
+        if (slot == null || slot.Required <= 0)
         {
-            slot = new PkSubProgressEntry { ChildIndex = 0, Progress = 0, Required = 1 };
-            entries.Add(slot);
+            // 데이터 결함 — RefreshDaily가 required_count를 채우지 못한 quest. 진행 적용 거부.
+            return false;
         }
         slot.Progress += delta;
 
@@ -138,6 +160,7 @@ public class QuestProgressService
         }
 
         inst.subProgressJson = JsonSerializer.Serialize(entries);
+        return true;
     }
 
     private static List<PkSubProgressEntry> ParseSubProgress(string json)

@@ -289,10 +289,11 @@ public class GameDB : IGameDB
 
     // ===== Quest 인스턴스 =====
 
-    public async Task<List<GameUserQuestInstance>> GetQuestInstancesByUidAsync(long uid)
+    public async Task<List<GameUserQuestInstance>> GetActiveQuestInstancesByUidAsync(long uid)
     {
         return await _context.UserQuestInstances
-            .Where(q => q.uid == uid)
+            .Where(q => q.uid == uid
+                && (q.status == "InProgress" || q.status == "Completed"))
             .ToListAsync();
     }
 
@@ -302,35 +303,32 @@ public class GameDB : IGameDB
             .FirstOrDefaultAsync(q => q.uid == uid && q.instanceId == instanceId);
     }
 
-    public async Task AddQuestInstanceAsync(GameUserQuestInstance instance)
-    {
-        _context.UserQuestInstances.Add(instance);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task AddQuestInstancesBatchAsync(List<GameUserQuestInstance> instances)
-    {
-        if (instances == null || instances.Count == 0)
-        {
-            return;
-        }
-        _context.UserQuestInstances.AddRange(instances);
-        await _context.SaveChangesAsync();
-    }
-
     public async Task UpdateQuestInstanceAsync(GameUserQuestInstance instance)
     {
         _context.UserQuestInstances.Update(instance);
         await _context.SaveChangesAsync();
     }
 
-    public async Task UpdateQuestInstancesBatchAsync(List<GameUserQuestInstance> instances)
+    public async Task RefreshDailyQuestsTransactionAsync(
+        List<GameUserQuestInstance> toExpire,
+        List<GameUserQuestInstance> toAdd)
     {
-        if (instances == null || instances.Count == 0)
+        bool anyExpire = toExpire != null && toExpire.Count > 0;
+        bool anyAdd = toAdd != null && toAdd.Count > 0;
+        if (!anyExpire && !anyAdd)
         {
             return;
         }
-        _context.UserQuestInstances.UpdateRange(instances);
+        if (anyExpire)
+        {
+            _context.UserQuestInstances.UpdateRange(toExpire!);
+        }
+        if (anyAdd)
+        {
+            _context.UserQuestInstances.AddRange(toAdd!);
+        }
+        // 단일 SaveChanges = EF Core implicit transaction. UPDATE + INSERT atomic commit/rollback.
+        // 부분 실패 시 만료만 적용되고 신규 0건이 되는 사고 차단.
         await _context.SaveChangesAsync();
     }
 

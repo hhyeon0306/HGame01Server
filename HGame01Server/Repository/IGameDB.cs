@@ -59,23 +59,21 @@ public interface IGameDB
 
     // ===== Quest 인스턴스 =====
 
-    /// 사용자의 모든 활성 quest 인스턴스 조회 — Active endpoint + Reconcile.
-    public Task<List<GameUserQuestInstance>> GetQuestInstancesByUidAsync(long uid);
+    /// 사용자의 활성(InProgress/Completed) quest 인스턴스만 조회 — Active endpoint + Reconcile.
+    /// Expired/Claimed는 응답에 포함하지 않는다 — 클라가 stale row를 dedup으로 채택하는 사고 차단.
+    public Task<List<GameUserQuestInstance>> GetActiveQuestInstancesByUidAsync(long uid);
 
     /// 단건 조회 — Claim 검증.
     public Task<GameUserQuestInstance?> GetQuestInstanceAsync(long uid, string instanceId);
 
-    /// 신규 슬롯 발급 (RefreshDaily / 시즌 시작).
-    public Task AddQuestInstanceAsync(GameUserQuestInstance instance);
-
-    /// 다건 발급.
-    public Task AddQuestInstancesBatchAsync(List<GameUserQuestInstance> instances);
-
-    /// 진행/상태 갱신 — EventsBatch 적용 후, Claim 후.
+    /// 진행/상태 갱신 — Claim 후.
     public Task UpdateQuestInstanceAsync(GameUserQuestInstance instance);
 
-    /// 다건 갱신 — EventsBatch 한 번에 N개 인스턴스 업데이트.
-    public Task UpdateQuestInstancesBatchAsync(List<GameUserQuestInstance> instances);
+    /// 일일 슬롯 회전 — 기존 InProgress 만료 + 신규 InProgress 발급을 단일 SaveChanges로 묶어 atomic 보장.
+    /// 부분 실패 시 만료만 적용되고 신규 0건이 되는 사고 차단.
+    public Task RefreshDailyQuestsTransactionAsync(
+        List<GameUserQuestInstance> toExpire,
+        List<GameUserQuestInstance> toAdd);
 
     /// 만료된 인스턴스 일괄 만료 처리 (status="Expired"). lazy eviction.
     public Task<int> ExpireQuestInstancesAsync(long uid, string nowStr);

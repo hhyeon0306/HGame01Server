@@ -29,62 +29,96 @@ public class QuestService
         _dailyReset = new DailyResetSchedule(clock, resetHour);
     }
 
-    /// 활성 인스턴스 조회 — 만료 lazy 정리 + DTO 변환.
+    /// 활성(InProgress/Completed) 인스턴스 조회 — 만료 lazy 정리 + DTO 변환.
+    /// Expired/Claimed는 응답에서 제외 — 클라가 stale row를 dedup으로 채택하는 사고 차단.
     public async Task<List<PkQuestInstanceDto>> GetActiveAsync(long uid)
     {
         var nowStr = FormatUtc(_clock.UtcNow);
         await _gameDB.ExpireQuestInstancesAsync(uid, nowStr);
-        var instances = await _gameDB.GetQuestInstancesByUidAsync(uid);
+        var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
         return instances.Select(ToDto).ToList();
     }
 
-    /// 일일 슬롯 발급 — 자정 통과 시 호출. 기존 Daily 슬롯 만료 + 신규 발급.
+    /// 일일 슬롯 발급 — 자정 통과 시 호출. 기존 InProgress 만료 + 신규 InProgress 발급을 단일 트랜잭션으로 atomic 보장.
+    /// Completed(미수령)는 만료 대상에서 제외 — 사용자 보상 보호.
+    /// 신규 인스턴스의 subProgressJson은 GdbQuestData required count로 채움 — 서버 권위 progress 판정의 토대.
+    /// idempotency 가드 — 만료 시각 전 fresh InProgress가 존재하면 skip 후 기존 슬롯 반환.
+    /// 자정 통과 후엔 ExpireQuestInstancesAsync(GetActiveAsync 진입점)가 expiresAtUtc 비교로 자동 Expired 처리하므로 정상 발급 흐름 진입.
     public async Task<List<PkQuestInstanceDto>> RefreshDailyAsync(long uid, int dailyContainerStableId, int slotCount, IReadOnlyList<int> dailyQuestDataIds)
     {
         var nowStr = FormatUtc(_clock.UtcNow);
 
-        // 기존 Daily 슬롯 만료 — 같은 컨테이너 + InProgress/Completed 상태인 인스턴스.
-        var existing = await _gameDB.GetQuestInstancesByUidAsync(uid);
-        var dailyExisting = existing
+        var existing = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
+        var dailyInProgress = existing
             .Where(q => q.containerStableId == dailyContainerStableId
-                && (q.status == "InProgress" || q.status == "Completed"))
+                && q.status == "InProgress")
             .ToList();
+
+        // idempotency — 같은 reset window 내 재호출은 기존 슬롯 그대로 반환.
+        // string.Compare는 yyyy-MM-dd HH:mm:ss 형식이라 lexical = chronological 일치.
+        bool anyFresh = dailyInProgress.Any(q =>
+            !string.IsNullOrEmpty(q.expiresAtUtc) && string.Compare(q.expiresAtUtc, nowStr) > 0);
+        if (anyFresh)
+        {
+            return dailyInProgress.Select(ToDto).ToList();
+        }
+
+        // 만료 진행 — InProgress만 Expired로. Completed(미수령)는 유지하여 사용자 보상 보호.
+        var dailyExisting = dailyInProgress;
         foreach (var q in dailyExisting)
         {
             q.status = "Expired";
             q.lastUpdatedUtc = nowStr;
         }
-        if (dailyExisting.Count > 0)
-        {
-            await _gameDB.UpdateQuestInstancesBatchAsync(dailyExisting);
-        }
 
         // 신규 발급 — pool에서 slotCount만큼.
-        if (dailyQuestDataIds == null || dailyQuestDataIds.Count == 0)
+        var newInstances = new List<GameUserQuestInstance>();
+        if (dailyQuestDataIds != null && dailyQuestDataIds.Count > 0)
         {
-            return new List<PkQuestInstanceDto>();
-        }
-        var nextResetStr = FormatUtc(_dailyReset.Next);
-        int limit = System.Math.Min(slotCount, dailyQuestDataIds.Count);
-        var newInstances = new List<GameUserQuestInstance>(limit);
-        for (int i = 0; i < limit; i++)
-        {
-            int qdId = dailyQuestDataIds[i];
-            newInstances.Add(new GameUserQuestInstance
+            var nextResetStr = FormatUtc(_dailyReset.Next);
+            int limit = System.Math.Min(slotCount, dailyQuestDataIds.Count);
+            for (int i = 0; i < limit; i++)
             {
-                instanceId = System.Guid.NewGuid().ToString(),
-                uid = uid,
-                questDataId = qdId,
-                containerStableId = dailyContainerStableId,
-                subProgressJson = "[]",
-                status = "InProgress",
-                issuedAtUtc = nowStr,
-                expiresAtUtc = nextResetStr,
-                lastUpdatedUtc = nowStr,
-            });
+                int qdId = dailyQuestDataIds[i];
+                newInstances.Add(new GameUserQuestInstance
+                {
+                    instanceId = System.Guid.NewGuid().ToString(),
+                    uid = uid,
+                    questDataId = qdId,
+                    containerStableId = dailyContainerStableId,
+                    subProgressJson = BuildInitialSubProgressJson(qdId),
+                    status = "InProgress",
+                    issuedAtUtc = nowStr,
+                    expiresAtUtc = nextResetStr,
+                    lastUpdatedUtc = nowStr,
+                });
+            }
         }
-        await _gameDB.AddQuestInstancesBatchAsync(newInstances);
+
+        await _gameDB.RefreshDailyQuestsTransactionAsync(dailyExisting, newInstances);
         return newInstances.Select(ToDto).ToList();
+    }
+
+    /// 신규 인스턴스의 초기 subProgress JSON. GdbQuestData.required_count로 채움 — ApplyDelta가 Required 정합 판정 가능.
+    /// 본 라운드는 단일 condition 가정. Composite는 Phase 9 도입 시 condition 다형 직렬화로 확장.
+    /// quest 미발견 또는 required_count<=0이면 데이터 결함 — fail-fast throw로 즉시 노출 (Active 응답 자체가 실패).
+    private string BuildInitialSubProgressJson(int questDataId)
+    {
+        var quests = _gameDataManager.GetList<GdbQuestData>();
+        var quest = quests?.FirstOrDefault(q => q.id == questDataId);
+        if (quest == null)
+        {
+            throw new InvalidOperationException($"[Quest] BuildInitialSubProgressJson: GdbQuestData id={questDataId} 미발견 — 데이터 시드 결함.");
+        }
+        if (quest.required_count <= 0)
+        {
+            throw new InvalidOperationException($"[Quest] BuildInitialSubProgressJson: GdbQuestData id={questDataId} (tag={quest.quest_tag}) required_count={quest.required_count} 무효 — 디자이너 데이터 결함.");
+        }
+        var entries = new List<PkSubProgressEntry>
+        {
+            new() { ChildIndex = 0, Progress = 0, Required = quest.required_count }
+        };
+        return JsonSerializer.Serialize(entries);
     }
 
     /// 보상 수령 — Completed에서만 허용. RewardResolver로 보상 결정 + Currency 즉시 누적.

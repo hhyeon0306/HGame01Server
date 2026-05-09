@@ -25,6 +25,9 @@ public class QuestController : ControllerBase
     }
 
     /// 활성 quest 인스턴스 조회 — Hydrate / Reconcile.
+    /// 신규 유저 또는 모든 Daily 슬롯이 Expired인 경우 자동 RefreshDaily 트리거 — 서버 권위 진입점 단일화.
+    /// 활성 InProgress/Completed Daily 슬롯이 하나라도 있으면 자동 발급 안 함 (기존 진행 보존).
+    /// 자동 RefreshDaily 후에는 GetActiveAsync 재호출로 응답을 권위 상태로 재구성 — stale row 섞임 차단.
     [HttpPost("Active")]
     public async Task<PkQuestActiveResponse> Active([FromHeader] HeaderDTO header)
     {
@@ -33,7 +36,32 @@ public class QuestController : ControllerBase
         long uid = userInfo.UId;
         _logger.ZLogInformation($"[Quest/Active] Uid:{uid}");
 
-        response.Instances = await _questService.GetActiveAsync(uid);
+        var instances = await _questService.GetActiveAsync(uid);
+
+        bool hasActiveDaily = instances.Any(i =>
+            i.ContainerStableId == QuestServerConstants.QuestContainerDailyStableId
+            && (i.Status == "InProgress" || i.Status == "Completed"));
+        if (!hasActiveDaily)
+        {
+            var dailyIds = CollectDailyQuestDataIds();
+            if (dailyIds.Count > 0)
+            {
+                _logger.ZLogInformation($"[Quest/Active] Uid:{uid} 활성 Daily 슬롯 0건 — 자동 RefreshDaily 트리거 (slotCount:{QuestServerConstants.DailySlotCount}).");
+                await _questService.RefreshDailyAsync(
+                    uid,
+                    QuestServerConstants.QuestContainerDailyStableId,
+                    QuestServerConstants.DailySlotCount,
+                    dailyIds);
+                // 재호출로 권위 응답 재구성 — RefreshDaily가 만든 신규 InProgress + 기존 Completed(미수령) 모두 포함.
+                instances = await _questService.GetActiveAsync(uid);
+            }
+            else
+            {
+                _logger.ZLogWarning($"[Quest/Active] Uid:{uid} Daily 풀 비어있음 — GdbQuestData 중 quest_tag prefix 'Tag.Quest.Daily.' 0건. 자동 발급 skip.");
+            }
+        }
+
+        response.Instances = instances;
         response.Result = ErrorCode.None;
         return response;
     }

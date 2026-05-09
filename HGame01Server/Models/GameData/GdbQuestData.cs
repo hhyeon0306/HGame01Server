@@ -13,4 +13,5 @@ public class GdbQuestData
     public string icon_name { get; set; } = "";
     public string reward_item { get; set; } = "";
     public int reward_count { get; set; }
+    public int required_count { get; set; }
 }
