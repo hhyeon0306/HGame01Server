@@ -73,13 +73,12 @@ public class PkQuestRefreshResponse
 // ============================================================
 
 /// 서버 → 클라 인스턴스 권위 모델. Architecture §10.2 Phase 8 full.
+/// quest_tag stableId는 GdbQuestData 자동 동기화에 미포함이라 DTO에서 제거 (Phase 9 condition 다형 직렬화 도입 시 재검토).
 public class PkQuestInstanceDto
 {
     public string InstanceId { get; set; } = "";
     public int QuestDataId { get; set; }
 
-    /// 클라 GameplayTag.stableId — Tag 인덱스 매칭용.
-    public int QuestTagStableId { get; set; }
     public int ContainerStableId { get; set; }
 
     public List<PkSubProgressEntry> SubProgress { get; set; } = new();

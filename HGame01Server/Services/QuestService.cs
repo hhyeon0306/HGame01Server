@@ -173,7 +173,6 @@ public class QuestService
         {
             InstanceId = inst.instanceId,
             QuestDataId = inst.questDataId,
-            QuestTagStableId = 0, // GdbQuestData lookup은 호출자가 필요시 채움 (현재 미사용)
             ContainerStableId = inst.containerStableId,
             SubProgress = ParseSubProgress(inst.subProgressJson),
             Status = inst.status,
