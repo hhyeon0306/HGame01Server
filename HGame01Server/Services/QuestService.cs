@@ -216,11 +216,14 @@ public class QuestService
         await _gameDB.ClaimDailyBundleTransactionAsync(uid, currentDateUtc, CurrencyType.Diamond, delta);
 
         var currencies = await _currencyService.GetAllAsync(uid);
+        // RewardTag을 Tag.Item.Currency_Diamond + RewardType="Item" + ItemKind="Currency"로 명시 —
+        // CoinFlyStep이 ItemDataLookup으로 Diamond ItemData를 찾아 Diamond sprite + DiamondFlyTarget로 분기.
+        // 이전 RewardTag="DailyBundle" + RewardType="Currency"는 CoinFlyStep의 if 분기를 통과하지 못해 fallback Gold sprite로 떨어지는 결함.
         var reward = new PkRewardResult
         {
-            RewardTag = "DailyBundle",
+            RewardTag = "Tag.Item.Currency_Diamond",
             Count = (int)delta,
-            RewardType = "Currency",
+            RewardType = "Item",
             ItemKind = "Currency",
         };
         return (ErrorCode.None, reward, currencies);
