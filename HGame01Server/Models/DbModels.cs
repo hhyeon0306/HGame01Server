@@ -28,6 +28,10 @@ public class GameUser
     public string createdAt { get; set; } = "";
     /// 장비 보관함 최대 칸 수. 기본 21. 다이아 100당 +5씩 확장 가능. 장비 row 수가 이 값을 초과하면 가챠 진입 차단.
     public int equipmentStorageCapacity { get; set; } = 21;
+    /// 일일 종합 보상 마지막 수령 일자 (yyyy-MM-dd, IResetSchedule.Current 기준 UTC).
+    /// ClaimDailyBundleAsync atomic 가드 — 같은 reset window에서 두 번째 시도 시 QuestDailyBundleAlreadyClaimed.
+    /// 빈 문자열이면 미수령.
+    public string lastDailyBundleClaimedDateUtc { get; set; } = "";
 }
 
 // ============================================================

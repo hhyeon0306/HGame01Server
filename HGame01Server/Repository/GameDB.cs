@@ -390,6 +390,50 @@ public class GameDB : IGameDB
         return stale.Count;
     }
 
+    public async Task<string> GetLastDailyBundleClaimedDateAsync(long uid)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
+        return user?.lastDailyBundleClaimedDateUtc ?? "";
+    }
+
+    public async Task ClaimDailyBundleTransactionAsync(
+        long uid,
+        string claimedDateUtc,
+        int currencyTypeId,
+        long currencyDelta)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
+        if (user == null)
+        {
+            // user 미발견은 호출 직전 단계에서 차단됨 — 도달 시 데이터 결함.
+            throw new InvalidOperationException($"[GameDB] ClaimDailyBundleTransactionAsync: uid={uid} 미발견.");
+        }
+        user.lastDailyBundleClaimedDateUtc = claimedDateUtc;
+
+        if (currencyTypeId >= 0 && currencyDelta != 0)
+        {
+            var row = await _context.UserCurrencies
+                .FirstOrDefaultAsync(c => c.uid == uid && c.currencyType == currencyTypeId);
+            if (row == null)
+            {
+                _context.UserCurrencies.Add(new GameUserCurrency
+                {
+                    uid = uid,
+                    currencyType = currencyTypeId,
+                    amount = currencyDelta,
+                });
+            }
+            else
+            {
+                row.amount += currencyDelta;
+            }
+        }
+
+        // 단일 SaveChanges = EF Core implicit transaction. UPDATE/INSERT 모두 atomic commit/rollback.
+        // 부분 실패 시 통화만 누적되고 lastDailyBundleClaimedDateUtc 미갱신으로 재호출 시 중복 지급되는 사고 차단.
+        await _context.SaveChangesAsync();
+    }
+
     // ===== Quest 멱등 dedup =====
 
     public async Task<HashSet<string>> GetAppliedEventClientIdsAsync(long uid, IReadOnlyList<string> eventClientIds)

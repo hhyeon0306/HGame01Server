@@ -185,11 +185,21 @@ public class QuestService
     }
 
     /// 일일 종합 보상 수령 — 활성 Daily 슬롯 중 Claimed 카운트가 임계 이상이면 Currency 누적.
-    /// 라운드 D 1차: 일일 1회 제한 미구현 (클라 session memory만 가드). 라운드 D 2차에 schema 추가 예정.
-    /// 향후: 서버 last_daily_bundle_claimed_date 컬럼 추가 + atomic 체크 + 일일 회전 정합.
+    /// 일일 1회 제한: users.lastDailyBundleClaimedDateUtc 컬럼이 현 reset window 일자와 일치하면 AlreadyClaimed.
+    /// users 컬럼 갱신 + Currency 누적은 ClaimDailyBundleTransactionAsync로 atomic 보장.
     public async Task<(ErrorCode error, PkRewardResult? reward, List<PkCurrency> currencies)>
         ClaimDailyBundleAsync(long uid)
     {
+        // ① 일일 1회 제한 — IResetSchedule.Current 기준 일자(yyyy-MM-dd) 비교.
+        // 자정(또는 dailyResetHourUtc) 통과 시 reset window가 새 일자로 회전 → 컬럼 값과 달라지므로 자동으로 다시 수령 가능.
+        var currentDateUtc = _dailyReset.Current.ToString("yyyy-MM-dd");
+        var lastClaimedDate = await _gameDB.GetLastDailyBundleClaimedDateAsync(uid);
+        if (lastClaimedDate == currentDateUtc)
+        {
+            return (ErrorCode.QuestDailyBundleAlreadyClaimed, null, new());
+        }
+
+        // ② Claimed 카운트 검증 — 활성 Daily 인스턴스 중 Claimed가 임계 이상이어야 함.
         var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
         int claimedDailyCount = instances.Count(i =>
             i.containerStableId == QuestServerConstants.QuestContainerDailyStableId
@@ -200,9 +210,10 @@ public class QuestService
             return (ErrorCode.QuestDailyBundleNotReady, null, new());
         }
 
-        // Currency 즉시 누적 — Claim 패턴과 동일. Diamond hardcoded (라운드 D 2차에 데이터 기반 전환).
+        // ③ Currency 누적 + 컬럼 갱신을 atomic 트랜잭션으로 묶음 — 부분 실패 시 컬럼 미갱신으로 재호출 중복 지급 사고 차단.
+        // Diamond hardcoded (라운드 D 2차에 데이터 기반 전환 예정).
         long delta = QuestServerConstants.DailyBundleRewardDiamondAmount;
-        await _gameDB.UpsertCurrencyAsync(uid, CurrencyType.Diamond, delta);
+        await _gameDB.ClaimDailyBundleTransactionAsync(uid, currentDateUtc, CurrencyType.Diamond, delta);
 
         var currencies = await _currencyService.GetAllAsync(uid);
         var reward = new PkRewardResult

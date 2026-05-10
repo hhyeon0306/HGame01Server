@@ -88,6 +88,18 @@ public interface IGameDB
     /// 만료된 인스턴스 일괄 만료 처리 (status="Expired"). lazy eviction.
     public Task<int> ExpireQuestInstancesAsync(long uid, string nowStr);
 
+    /// users.lastDailyBundleClaimedDateUtc 조회 — 일일 종합 보상 1회 제한 가드용.
+    /// 빈 문자열이면 미수령. user 미발견 시 빈 문자열로 fallback.
+    public Task<string> GetLastDailyBundleClaimedDateAsync(long uid);
+
+    /// 일일 종합 보상 atomic 수령 — users 컬럼 갱신 + Currency 누적을 단일 SaveChanges로 묶음.
+    /// 부분 실패 시 통화만 누적되고 컬럼 미갱신 → 재호출 시 중복 지급 사고 차단.
+    public Task ClaimDailyBundleTransactionAsync(
+        long uid,
+        string claimedDateUtc,
+        int currencyTypeId,
+        long currencyDelta);
+
     // ===== Quest 멱등 dedup =====
 
     /// (uid, eventClientId) 이미 적용됐는지 사전 batch 조회. 중복 검증을 한 round-trip으로 끝낸다.
