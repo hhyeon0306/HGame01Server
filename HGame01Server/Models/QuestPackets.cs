@@ -54,6 +54,22 @@ public class PkQuestClaimResponse
     public List<PkCurrency> Currencies { get; set; } = new();
 }
 
+// POST api/Quest/ClaimDailyBundle
+// 일일 종합 보상 — 활성 Daily 슬롯 중 Claimed 카운트가 임계치 이상일 때 일괄 보상 지급.
+// 라운드 D 1차: 서버 일일 1회 제한 미구현 (클라 session memory만). 라운드 D 2차에 schema 추가.
+public class PkQuestClaimDailyBundleRequest { }
+
+public class PkQuestClaimDailyBundleResponse
+{
+    public ErrorCode Result { get; set; }
+
+    /// 보상 정보 — 클라 RewardContext.Reward로 전달.
+    public PkRewardResult? Reward { get; set; }
+
+    /// 갱신된 currencies absolute. CurrencyApplyStep이 UserCurrencyStore.UpdateFromServer에 적용.
+    public List<PkCurrency> Currencies { get; set; } = new();
+}
+
 // POST api/Quest/RefreshDaily
 public class PkQuestRefreshRequest
 {

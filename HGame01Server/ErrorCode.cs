@@ -70,4 +70,6 @@ public enum ErrorCode : UInt16
     QuestNotClaimable = 3122,
     QuestDataNotFound = 3123,
     QuestClaimFailed = 3124,
+    QuestDailyBundleNotReady = 3125,
+    QuestDailyBundleAlreadyClaimed = 3126,
 }

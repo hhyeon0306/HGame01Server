@@ -167,6 +167,37 @@ public class QuestService
         return (ErrorCode.None, reward, currencies);
     }
 
+    /// 일일 종합 보상 수령 — 활성 Daily 슬롯 중 Claimed 카운트가 임계 이상이면 Currency 누적.
+    /// 라운드 D 1차: 일일 1회 제한 미구현 (클라 session memory만 가드). 라운드 D 2차에 schema 추가 예정.
+    /// 향후: 서버 last_daily_bundle_claimed_date 컬럼 추가 + atomic 체크 + 일일 회전 정합.
+    public async Task<(ErrorCode error, PkRewardResult? reward, List<PkCurrency> currencies)>
+        ClaimDailyBundleAsync(long uid)
+    {
+        var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
+        int claimedDailyCount = instances.Count(i =>
+            i.containerStableId == QuestServerConstants.QuestContainerDailyStableId
+            && i.status == "Claimed");
+
+        if (claimedDailyCount < QuestServerConstants.DailyBundleRequiredClaimedCount)
+        {
+            return (ErrorCode.QuestDailyBundleNotReady, null, new());
+        }
+
+        // Currency 즉시 누적 — Claim 패턴과 동일. Diamond hardcoded (라운드 D 2차에 데이터 기반 전환).
+        long delta = QuestServerConstants.DailyBundleRewardDiamondAmount;
+        await _gameDB.UpsertCurrencyAsync(uid, CurrencyType.Diamond, delta);
+
+        var currencies = await _currencyService.GetAllAsync(uid);
+        var reward = new PkRewardResult
+        {
+            RewardTag = "DailyBundle",
+            Count = (int)delta,
+            RewardType = "Currency",
+            ItemKind = "Currency",
+        };
+        return (ErrorCode.None, reward, currencies);
+    }
+
     /// DB row → DTO 변환.
     public static PkQuestInstanceDto ToDto(GameUserQuestInstance inst)
     {

@@ -99,6 +99,23 @@ public class QuestController : ControllerBase
         return response;
     }
 
+    /// 일일 종합 보상 수령 — 4 일일 퀘스트 모두 수령 후 일괄 보너스(Diamond 450).
+    /// 라운드 D 1차: 일일 1회 제한 미구현 (클라 session memory만 가드). 라운드 D 2차에 schema 추가.
+    [HttpPost("ClaimDailyBundle")]
+    public async Task<PkQuestClaimDailyBundleResponse> ClaimDailyBundle([FromHeader] HeaderDTO header, [FromBody] PkQuestClaimDailyBundleRequest request)
+    {
+        var response = new PkQuestClaimDailyBundleResponse();
+        MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
+        long uid = userInfo.UId;
+        _logger.ZLogInformation($"[Quest/ClaimDailyBundle] Uid:{uid}");
+
+        var (error, reward, currencies) = await _questService.ClaimDailyBundleAsync(uid);
+        response.Result = error;
+        response.Reward = reward;
+        response.Currencies = currencies;
+        return response;
+    }
+
     /// 일일 슬롯 강제 재발급 — 자정 통과 시 클라가 호출.
     /// 풀: GdbQuestData에서 quest_tag prefix "Tag.Quest.Daily." 자동 필터 (디자이너 별도 풀 등록 의무 없음 — Quest tag 카테고리만 맞추면 자동 편입).
     /// 슬롯 수: DAILY_SLOT_COUNT 상수 (4). 향후 GdbConst.Quest.DailySlotCount로 외부화.
