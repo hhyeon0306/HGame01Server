@@ -19,6 +19,6 @@ public class GdbShopData
     public int reward_count { get; set; }
     public int daily_limit { get; set; }
     public object reward_sequence { get; set; }
-    public string popularity_label_icon { get; set; } = "";
-    public string popularity_icon { get; set; } = "";
+    public object popularity_label_icon { get; set; }
+    public object popularity_icon { get; set; }
 }

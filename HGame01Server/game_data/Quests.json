@@ -40,7 +40,7 @@
     "description_key": "quest.daily.killenemy30.desc",
     "icon_name": "",
     "reward_item": "Tag.Item.Currency_Gold",
-    "reward_count": 15000,
+    "reward_count": 5000,
     "required_count": 30
   }
 ]
