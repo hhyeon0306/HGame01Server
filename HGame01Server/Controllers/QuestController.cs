@@ -62,6 +62,7 @@ public class QuestController : ControllerBase
         }
 
         response.Instances = instances;
+        response.DailyBundleClaimedToday = await _questService.IsDailyBundleClaimedTodayAsync(uid);
         response.Result = ErrorCode.None;
         return response;
     }

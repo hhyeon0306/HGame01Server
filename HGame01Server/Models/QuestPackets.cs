@@ -14,6 +14,11 @@ public class PkQuestActiveResponse
 {
     public ErrorCode Result { get; set; }
     public List<PkQuestInstanceDto> Instances { get; set; } = new();
+
+    /// 현 reset window 안에서 일일 종합 보상을 이미 수령했는가.
+    /// users.lastDailyBundleClaimedDateUtc == IResetSchedule.Current(yyyy-MM-dd) 비교 결과.
+    /// 클라 popup이 부팅 시점에 받기 버튼 잠금 결정용 — popup 재오픈 시 자동 잠금 복원.
+    public bool DailyBundleClaimedToday { get; set; }
 }
 
 // POST api/Quest/EventsBatch

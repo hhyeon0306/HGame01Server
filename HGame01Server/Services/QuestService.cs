@@ -184,6 +184,15 @@ public class QuestService
         return (ErrorCode.None, reward, currencies);
     }
 
+    /// 현 reset window 안에서 일일 종합 보상을 이미 수령했는가.
+    /// PkQuestActiveResponse.DailyBundleClaimedToday 채움 — 클라 popup이 부팅 시점 받기 버튼 잠금 결정용.
+    public async Task<bool> IsDailyBundleClaimedTodayAsync(long uid)
+    {
+        var currentDateUtc = _dailyReset.Current.ToString("yyyy-MM-dd");
+        var lastClaimedDate = await _gameDB.GetLastDailyBundleClaimedDateAsync(uid);
+        return lastClaimedDate == currentDateUtc;
+    }
+
     /// 일일 종합 보상 수령 — 활성 Daily 슬롯 중 Claimed 카운트가 임계 이상이면 Currency 누적.
     /// 일일 1회 제한: users.lastDailyBundleClaimedDateUtc 컬럼이 현 reset window 일자와 일치하면 AlreadyClaimed.
     /// users 컬럼 갱신 + Currency 누적은 ClaimDailyBundleTransactionAsync로 atomic 보장.
