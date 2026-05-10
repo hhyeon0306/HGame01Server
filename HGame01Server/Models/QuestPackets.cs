@@ -76,6 +76,10 @@ public class PkQuestRefreshRequest
     /// 클라 EGameplayTag.QuestContainer_Daily의 stableId. 서버는 이 컨테이너의 기존 슬롯을 만료 후 신규 발급.
     /// 클라 권위 — 자기 컨테이너 enum stableId만 보내는 거라 치팅 영향 없음 (서버는 questTag prefix로 풀 자동 필터).
     public int ContainerStableId { get; set; }
+
+    /// cheat 강제 재발급 — true면 기존 fresh InProgress가 있어도 idempotency 가드 우회 + 강제 만료 + 신규 발급.
+    /// 자정 broadcaster 정상 흐름은 false (자연 idempotency). DEBUG 빌드/cheat 한정 사용.
+    public bool Force { get; set; }
 }
 
 public class PkQuestRefreshResponse

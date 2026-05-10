@@ -41,7 +41,7 @@ public class QuestService
     /// 신규 인스턴스의 subProgressJson은 GdbQuestData required count로 채움 — 서버 권위 progress 판정의 토대.
     /// idempotency 가드 — 만료 시각 전 fresh InProgress가 존재하면 skip 후 기존 슬롯 반환.
     /// 자정 통과 후엔 ExpireQuestInstancesAsync(GetActiveAsync 진입점)가 expiresAtUtc 비교로 자동 Expired 처리하므로 정상 발급 흐름 진입.
-    public async Task<List<PkQuestInstanceDto>> RefreshDailyAsync(long uid, int dailyContainerStableId, int slotCount, IReadOnlyList<int> dailyQuestDataIds)
+    public async Task<List<PkQuestInstanceDto>> RefreshDailyAsync(long uid, int dailyContainerStableId, int slotCount, IReadOnlyList<int> dailyQuestDataIds, bool force = false)
     {
         var nowStr = FormatUtc(_clock.UtcNow);
 
@@ -51,13 +51,19 @@ public class QuestService
                 && q.status == "InProgress")
             .ToList();
 
-        // idempotency — 같은 reset window 내 재호출은 기존 슬롯 그대로 반환.
+        // idempotency — 같은 reset window 내 재호출은 신규 발급 skip.
         // string.Compare는 yyyy-MM-dd HH:mm:ss 형식이라 lexical = chronological 일치.
-        bool anyFresh = dailyInProgress.Any(q =>
+        // 응답은 신규 발급 여부와 무관하게 자기 컨테이너의 모든 활성(InProgress/Completed/Claimed) 인스턴스 — 클라 Hydrate가 dedup 정렬.
+        // Claimed 인스턴스 누락 시 클라가 destroy → UX 사고 차단.
+        // force=true면 idempotency 가드 우회 — cheat resetdaily 강제 재발급 흐름.
+        bool anyFresh = !force && dailyInProgress.Any(q =>
             !string.IsNullOrEmpty(q.expiresAtUtc) && string.Compare(q.expiresAtUtc, nowStr) > 0);
         if (anyFresh)
         {
-            return dailyInProgress.Select(ToDto).ToList();
+            return existing
+                .Where(q => q.containerStableId == dailyContainerStableId)
+                .Select(ToDto)
+                .ToList();
         }
 
         // 만료 진행 — InProgress만 Expired로. Completed(미수령)는 유지하여 사용자 보상 보호.
@@ -93,7 +99,14 @@ public class QuestService
         }
 
         await _gameDB.RefreshDailyQuestsTransactionAsync(dailyExisting, newInstances);
-        return newInstances.Select(ToDto).ToList();
+
+        // 응답 — 신규 InProgress + 기존 Completed/Claimed (Expired 제외).
+        // 신규 발급 흐름에서도 기존 Claimed가 응답에 살아있어야 클라가 destroy 사고 X.
+        var refreshed = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
+        return refreshed
+            .Where(q => q.containerStableId == dailyContainerStableId)
+            .Select(ToDto)
+            .ToList();
     }
 
     /// 신규 인스턴스의 초기 subProgress JSON. GdbQuestData.required_count로 채움 — ApplyDelta가 Required 정합 판정 가능.

@@ -136,7 +136,7 @@ public class QuestController : ControllerBase
             return response;
         }
 
-        var instances = await _questService.RefreshDailyAsync(uid, request.ContainerStableId, DAILY_SLOT_COUNT, dailyIds);
+        var instances = await _questService.RefreshDailyAsync(uid, request.ContainerStableId, DAILY_SLOT_COUNT, dailyIds, request.Force);
         response.Instances = instances;
         response.Result = ErrorCode.None;
         return response;
