@@ -7,8 +7,8 @@
     "description_key": "quest.daily.clearstage3.desc",
     "icon_name": "",
     "reward_item": "Tag.Item.Currency_Diamond",
-    "reward_count": 30,
-    "required_count": 3
+    "reward_count": 3000,
+    "required_count": 1
   },
   {
     "id": 3,
@@ -18,7 +18,7 @@
     "description_key": "quest.daily.gachapull1.desc",
     "icon_name": "",
     "reward_item": "Tag.Item.Currency_Diamond",
-    "reward_count": 10,
+    "reward_count": 1000,
     "required_count": 1
   },
   {
@@ -29,7 +29,7 @@
     "description_key": "quest.daily.killboss1.desc",
     "icon_name": "",
     "reward_item": "Tag.Item.Currency_Diamond",
-    "reward_count": 50,
+    "reward_count": 5000,
     "required_count": 1
   },
   {
@@ -40,7 +40,7 @@
     "description_key": "quest.daily.killenemy30.desc",
     "icon_name": "",
     "reward_item": "Tag.Item.Currency_Gold",
-    "reward_count": 1500,
+    "reward_count": 15000,
     "required_count": 30
   }
 ]

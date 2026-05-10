@@ -14,8 +14,8 @@
     "reward_count": 100,
     "daily_limit": 1,
     "reward_sequence": null,
-    "popularity_label_icon": null,
-    "popularity_icon": null
+    "popularity_label_icon": "",
+    "popularity_icon": ""
   },
   {
     "id": 2,
@@ -32,8 +32,8 @@
     "reward_count": 300,
     "daily_limit": 1,
     "reward_sequence": null,
-    "popularity_label_icon": null,
-    "popularity_icon": null
+    "popularity_label_icon": "",
+    "popularity_icon": ""
   },
   {
     "id": 3,
@@ -50,8 +50,8 @@
     "reward_count": 900,
     "daily_limit": 1,
     "reward_sequence": null,
-    "popularity_label_icon": null,
-    "popularity_icon": null
+    "popularity_label_icon": "",
+    "popularity_icon": ""
   },
   {
     "id": 4,
@@ -68,8 +68,8 @@
     "reward_count": 3000,
     "daily_limit": 1,
     "reward_sequence": null,
-    "popularity_label_icon": null,
-    "popularity_icon": null
+    "popularity_label_icon": "",
+    "popularity_icon": ""
   },
   {
     "id": 5,

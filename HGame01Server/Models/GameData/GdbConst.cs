@@ -58,6 +58,14 @@ public static class GdbConst
         public const string SeasonDurationDays = "seasonDurationDays";
     }
 
+    public static class Quest
+    {
+        public const string Category = "quest";
+        public const string RequiredCompletedCount = "requiredCompletedCount";
+        public const string DailyMissionRewards = "dailyMissionRewards";
+        public const string DailyMissionRewardSequence = "dailyMissionRewardSequence";
+    }
+
     public static class Shop
     {
         public const string Category = "shop";

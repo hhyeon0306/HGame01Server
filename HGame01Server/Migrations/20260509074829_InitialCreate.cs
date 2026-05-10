@@ -110,7 +110,11 @@ namespace HGame01Server.Migrations
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     uid = table.Column<long>(type: "bigint", nullable: false),
+                    questInstanceId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     eventClientId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    eventTypeName = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     appliedAtUtc = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
@@ -132,7 +136,7 @@ namespace HGame01Server.Migrations
                     containerStableId = table.Column<int>(type: "int", nullable: false),
                     subProgressJson = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    status = table.Column<string>(type: "longtext", nullable: false)
+                    status = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     issuedAtUtc = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -212,15 +216,20 @@ namespace HGame01Server.Migrations
                 column: "appliedAtUtc");
 
             migrationBuilder.CreateIndex(
-                name: "IX_user_quest_events_applied_uid_eventClientId",
+                name: "IX_user_quest_events_applied_uid_instance_clientId",
                 table: "user_quest_events_applied",
-                columns: new[] { "uid", "eventClientId" },
+                columns: new[] { "uid", "questInstanceId", "eventClientId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_user_quest_instances_uid",
+                name: "IX_user_quest_instances_uid_container_status",
                 table: "user_quest_instances",
-                column: "uid");
+                columns: new[] { "uid", "containerStableId", "status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_quest_instances_uid_questData_status",
+                table: "user_quest_instances",
+                columns: new[] { "uid", "questDataId", "status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_user_shop_purchases_uid_shopItemId",

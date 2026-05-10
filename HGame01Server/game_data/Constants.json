@@ -115,6 +115,21 @@
     "category": "pass"
   },
   {
+    "key": "requiredCompletedCount",
+    "value": "4",
+    "category": "quest"
+  },
+  {
+    "key": "dailyMissionRewards",
+    "value": "System.Collections.Generic.List\u00601[QuestRewardLine]",
+    "category": "quest"
+  },
+  {
+    "key": "dailyMissionRewardSequence",
+    "value": "RewardSequence_Quest_Empty (RewardSequence)",
+    "category": "quest"
+  },
+  {
     "key": "dailyResetHourUtc",
     "value": "20",
     "category": "shop"
