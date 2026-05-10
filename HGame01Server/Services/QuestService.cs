@@ -66,8 +66,12 @@ public class QuestService
                 .ToList();
         }
 
-        // 만료 진행 — InProgress만 Expired로. Completed(미수령)는 유지하여 사용자 보상 보호.
-        var dailyExisting = dailyInProgress;
+        // 만료 진행 — InProgress + Claimed 모두 Expired로. Completed(미수령)는 유지하여 사용자 보상 보호.
+        // Claimed를 함께 만료해야 자정 회전마다 history row 누적되는 사고 차단 (어제 받은 보상은 다음 window에서는 의미 없음).
+        var dailyExisting = existing
+            .Where(q => q.containerStableId == dailyContainerStableId
+                && (q.status == "InProgress" || q.status == "Claimed"))
+            .ToList();
         foreach (var q in dailyExisting)
         {
             q.status = "Expired";
