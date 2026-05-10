@@ -66,6 +66,14 @@ public class QuestService
                 .ToList();
         }
 
+        // force=true(cheat resetdaily) — 자연 자정 회전과 동등 효과 보장.
+        // 자연 자정은 IResetSchedule.Current가 새 일자라 lastDailyBundleClaimedDateUtc 비교 미일치로 자동 풀림.
+        // cheat는 시각이 그대로라 컬럼을 명시 클리어 안 하면 종합 보상 잠금이 영원히 유지되는 사고.
+        if (force)
+        {
+            await _gameDB.ClearDailyBundleClaimedDateAsync(uid);
+        }
+
         // 만료 진행 — InProgress + Claimed 모두 Expired로. Completed(미수령)는 유지하여 사용자 보상 보호.
         // Claimed를 함께 만료해야 자정 회전마다 history row 누적되는 사고 차단 (어제 받은 보상은 다음 window에서는 의미 없음).
         var dailyExisting = existing

@@ -396,6 +396,17 @@ public class GameDB : IGameDB
         return user?.lastDailyBundleClaimedDateUtc ?? "";
     }
 
+    public async Task ClearDailyBundleClaimedDateAsync(long uid)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
+        if (user == null || user.lastDailyBundleClaimedDateUtc == "")
+        {
+            return;
+        }
+        user.lastDailyBundleClaimedDateUtc = "";
+        await _context.SaveChangesAsync();
+    }
+
     public async Task ClaimDailyBundleTransactionAsync(
         long uid,
         string claimedDateUtc,

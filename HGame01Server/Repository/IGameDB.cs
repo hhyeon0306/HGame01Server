@@ -92,6 +92,10 @@ public interface IGameDB
     /// 빈 문자열이면 미수령. user 미발견 시 빈 문자열로 fallback.
     public Task<string> GetLastDailyBundleClaimedDateAsync(long uid);
 
+    /// users.lastDailyBundleClaimedDateUtc 빈 문자열로 클리어 — cheat resetdaily가 자연 자정 회전과 동등 효과 보장.
+    /// 자연 자정 회전은 IResetSchedule.Current가 새 일자라 컬럼을 안 건드려도 비교 미일치로 자동 false. cheat는 시각이 그대로라 명시적 클리어 필요.
+    public Task ClearDailyBundleClaimedDateAsync(long uid);
+
     /// 일일 종합 보상 atomic 수령 — users 컬럼 갱신 + Currency 누적을 단일 SaveChanges로 묶음.
     /// 부분 실패 시 통화만 누적되고 컬럼 미갱신 → 재호출 시 중복 지급 사고 차단.
     public Task ClaimDailyBundleTransactionAsync(
