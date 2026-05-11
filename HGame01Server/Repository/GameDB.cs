@@ -410,8 +410,7 @@ public class GameDB : IGameDB
     public async Task ClaimDailyBundleTransactionAsync(
         long uid,
         string claimedDateUtc,
-        int currencyTypeId,
-        long currencyDelta)
+        IReadOnlyList<(int currencyTypeId, long delta)> currencyDeltas)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
         if (user == null)
@@ -421,22 +420,31 @@ public class GameDB : IGameDB
         }
         user.lastDailyBundleClaimedDateUtc = claimedDateUtc;
 
-        if (currencyTypeId >= 0 && currencyDelta != 0)
+        if (currencyDeltas != null && currencyDeltas.Count > 0)
         {
-            var row = await _context.UserCurrencies
-                .FirstOrDefaultAsync(c => c.uid == uid && c.currencyType == currencyTypeId);
-            if (row == null)
+            // currencyType별 row 1회 조회 — 같은 type 중복 호출 시 호출자가 미리 sum 책임. 본 메서드는 그대로 누적.
+            for (int i = 0; i < currencyDeltas.Count; i++)
             {
-                _context.UserCurrencies.Add(new GameUserCurrency
+                var (currencyTypeId, delta) = currencyDeltas[i];
+                if (currencyTypeId < 0 || delta == 0)
                 {
-                    uid = uid,
-                    currencyType = currencyTypeId,
-                    amount = currencyDelta,
-                });
-            }
-            else
-            {
-                row.amount += currencyDelta;
+                    continue;
+                }
+                var row = await _context.UserCurrencies
+                    .FirstOrDefaultAsync(c => c.uid == uid && c.currencyType == currencyTypeId);
+                if (row == null)
+                {
+                    _context.UserCurrencies.Add(new GameUserCurrency
+                    {
+                        uid = uid,
+                        currencyType = currencyTypeId,
+                        amount = delta,
+                    });
+                }
+                else
+                {
+                    row.amount += delta;
+                }
             }
         }
 

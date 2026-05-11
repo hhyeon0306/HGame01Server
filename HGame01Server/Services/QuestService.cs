@@ -204,6 +204,7 @@ public class QuestService
     /// 일일 종합 보상 수령 — 활성 Daily 슬롯 중 Claimed 카운트가 임계 이상이면 Currency 누적.
     /// 일일 1회 제한: users.lastDailyBundleClaimedDateUtc 컬럼이 현 reset window 일자와 일치하면 AlreadyClaimed.
     /// users 컬럼 갱신 + Currency 누적은 ClaimDailyBundleTransactionAsync로 atomic 보장.
+    /// 임계 + 보상은 GdbConstants(Quest 카테고리)에서 조회 — 디자이너가 SO만 수정/재업로드하면 코드 변경 없이 반영.
     public async Task<(ErrorCode error, PkRewardResult? reward, List<PkCurrency> currencies)>
         ClaimDailyBundleAsync(long uid)
     {
@@ -217,33 +218,125 @@ public class QuestService
         }
 
         // ② Claimed 카운트 검증 — 활성 Daily 인스턴스 중 Claimed가 임계 이상이어야 함.
+        // 임계는 GdbConst.Quest.RequiredCompletedCount 조회 (QuestConstantsData.requiredCompletedCount SO 필드).
+        int requiredCompletedCount = _gameDataManager.GetConstInt(
+            GdbConst.Quest.Category,
+            GdbConst.Quest.RequiredCompletedCount,
+            defaultValue: 4);
+
         var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
         int claimedDailyCount = instances.Count(i =>
             i.containerStableId == QuestServerConstants.QuestContainerDailyStableId
             && i.status == "Claimed");
 
-        if (claimedDailyCount < QuestServerConstants.DailyBundleRequiredClaimedCount)
+        if (claimedDailyCount < requiredCompletedCount)
         {
             return (ErrorCode.QuestDailyBundleNotReady, null, new());
         }
 
-        // ③ Currency 누적 + 컬럼 갱신을 atomic 트랜잭션으로 묶음 — 부분 실패 시 컬럼 미갱신으로 재호출 중복 지급 사고 차단.
-        // Diamond hardcoded (라운드 D 2차에 데이터 기반 전환 예정).
-        long delta = QuestServerConstants.DailyBundleRewardDiamondAmount;
-        await _gameDB.ClaimDailyBundleTransactionAsync(uid, currentDateUtc, CurrencyType.Diamond, delta);
+        // ③ 보상 sum — GdbConst.Quest.DailyMissionRewards JSON 배열 파싱 → currency별 누적.
+        // 클라 QuestConstantsData.dailyMissionRewards (List<QuestRewardLine>)이 GameDataUploader로 JSON 배열 문자열로 직렬화됨.
+        // 각 line.item(GameplayTag.name) → GdbItemData lookup → currency_type → 누적.
+        var sumByCurrency = AccumulateDailyBundleRewards(uid);
+        if (sumByCurrency.Count == 0)
+        {
+            // 데이터 결함 — 빈 SO 또는 직렬화 실패. fail-fast로 노출.
+            throw new InvalidOperationException($"[Quest] ClaimDailyBundleAsync: GdbConst.Quest.DailyMissionRewards 비어있음 또는 currency 매칭 실패. Constants.json 점검 필요.");
+        }
+
+        // ④ Currency 누적 + 컬럼 갱신을 atomic 트랜잭션으로 묶음.
+        var currencyDeltas = sumByCurrency.Select(kv => (kv.Key, kv.Value)).ToList();
+        await _gameDB.ClaimDailyBundleTransactionAsync(uid, currentDateUtc, currencyDeltas);
 
         var currencies = await _currencyService.GetAllAsync(uid);
-        // RewardTag을 Tag.Item.Currency_Diamond + RewardType="Item" + ItemKind="Currency"로 명시 —
-        // CoinFlyStep이 ItemDataLookup으로 Diamond ItemData를 찾아 Diamond sprite + DiamondFlyTarget로 분기.
-        // 이전 RewardTag="DailyBundle" + RewardType="Currency"는 CoinFlyStep의 if 분기를 통과하지 못해 fallback Gold sprite로 떨어지는 결함.
+
+        // primary reward — 합산 amount가 가장 큰 currency를 UI 연출용으로 응답.
+        // 나머지 currency는 currencies(GetAllAsync) 절대값 갱신으로 클라 UI 자연 반영.
+        // PkRewardResult 단일 반환은 RewardSequence(CoinFlyStep)가 1종 sprite/flyTarget으로 분기하는 기존 제약 정합 — 다중 currency 동시 연출은 응답 List 확장이 필요한 별도 작업.
+        var topCurrency = sumByCurrency.OrderByDescending(kv => kv.Value).First();
         var reward = new PkRewardResult
         {
-            RewardTag = "Tag.Item.Currency_Diamond",
-            Count = (int)delta,
+            RewardTag = CurrencyTypeIdToItemTag(topCurrency.Key),
+            Count = (int)topCurrency.Value,
             RewardType = "Item",
             ItemKind = "Currency",
         };
         return (ErrorCode.None, reward, currencies);
+    }
+
+    /// GdbConst.Quest.DailyMissionRewards JSON 배열 파싱 → currency_type별 sum.
+    /// 빈 문자열/파싱 실패/currency 매칭 실패 시 빈 Dictionary 반환 — 호출자가 fail-fast 분기.
+    private Dictionary<int, long> AccumulateDailyBundleRewards(long uid)
+    {
+        var result = new Dictionary<int, long>();
+        string rewardsJson = _gameDataManager.GetConstString(
+            GdbConst.Quest.Category,
+            GdbConst.Quest.DailyMissionRewards,
+            defaultValue: "");
+        if (string.IsNullOrEmpty(rewardsJson))
+        {
+            return result;
+        }
+
+        List<DailyBundleRewardLineDto>? lines;
+        try
+        {
+            lines = JsonSerializer.Deserialize<List<DailyBundleRewardLineDto>>(rewardsJson);
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException($"[Quest] dailyMissionRewards JSON 파싱 실패 — Constants.json 직렬화 결함: {ex.Message}");
+        }
+        if (lines == null)
+        {
+            return result;
+        }
+
+        for (int i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            if (line == null || line.amount <= 0 || string.IsNullOrEmpty(line.item))
+            {
+                continue;
+            }
+            string currencyName = RewardResolver.ResolveCurrencyType(_gameDataManager, line.item);
+            if (string.IsNullOrEmpty(currencyName))
+            {
+                continue;
+            }
+            int currencyTypeId = ParseCurrencyType(currencyName);
+            if (currencyTypeId < 0)
+            {
+                continue;
+            }
+            if (result.TryGetValue(currencyTypeId, out var prev))
+            {
+                result[currencyTypeId] = prev + line.amount;
+            }
+            else
+            {
+                result[currencyTypeId] = line.amount;
+            }
+        }
+        return result;
+    }
+
+    /// CurrencyType.Diamond/Gold → Item tag로 역매핑. UI 연출(CoinFlyStep)이 RewardTag로 sprite/flyTarget 분기.
+    private static string CurrencyTypeIdToItemTag(int currencyTypeId)
+    {
+        return currencyTypeId switch
+        {
+            CurrencyType.Diamond => "Tag.Item.Currency_Diamond",
+            CurrencyType.Gold => "Tag.Item.Currency_Gold",
+            _ => "",
+        };
+    }
+
+    /// 클라 QuestRewardLine 직렬화 형태 — GameDataUploader.FlattenObject가 snake_case 변환 X (이미 lowercase 필드).
+    private class DailyBundleRewardLineDto
+    {
+        public string item { get; set; } = "";
+        public int amount { get; set; }
     }
 
     /// DB row → DTO 변환.

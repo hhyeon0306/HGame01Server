@@ -121,12 +121,12 @@
   },
   {
     "key": "dailyMissionRewards",
-    "value": "System.Collections.Generic.List\u00601[QuestRewardLine]",
+    "value": "[{\u0022item\u0022:\u0022Tag.Item.Currency_Diamond\u0022,\u0022amount\u0022:1000},{\u0022item\u0022:\u0022Tag.Item.Currency_Diamond\u0022,\u0022amount\u0022:2000},{\u0022item\u0022:\u0022Tag.Item.Currency_Diamond\u0022,\u0022amount\u0022:3000},{\u0022item\u0022:\u0022Tag.Item.Currency_Diamond\u0022,\u0022amount\u0022:4000},{\u0022item\u0022:\u0022Tag.Item.Currency_Diamond\u0022,\u0022amount\u0022:5000}]",
     "category": "quest"
   },
   {
     "key": "dailyMissionRewardSequence",
-    "value": "RewardSequence_Quest_Empty (RewardSequence)",
+    "value": "{\u0022steps\u0022:[{\u0022count\u0022:12,\u0022start_jitter_radius\u0022:75.0,\u0022spread\u0022:280.0,\u0022arc_height\u0022:120.0,\u0022per_coin_duration\u0022:1.5,\u0022spawn_interval\u0022:0.07,\u0022mode\u0022:\u0022Sequential\u0022},{\u0022delay_before_apply\u0022:0.0,\u0022mode\u0022:\u0022Sequential\u0022}]}",
     "category": "quest"
   },
   {
@@ -136,7 +136,7 @@
   },
   {
     "key": "gachaProducts",
-    "value": "System.Collections.Generic.List\u00601[GachaProductEntry]",
+    "value": "[{\u0022pull_count\u0022:1,\u0022name_key\u0022:\u0022Shop.Gacha.Single\u0022,\u0022icon_key\u0022:\u0022Shop_Gacha_Icon_Equipment\u0022,\u0022tag_label_key\u0022:\u0022\u0022},{\u0022pull_count\u0022:10,\u0022name_key\u0022:\u0022Shop.Gacha.Multi\u0022,\u0022icon_key\u0022:\u0022Shop_Gacha_Icon_Equipment\u0022,\u0022tag_label_key\u0022:\u0022Shop.Gacha.Tag.Recommended\u0022}]",
     "category": "shop"
   }
 ]
