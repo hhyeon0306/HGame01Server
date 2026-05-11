@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20260509074829_InitialCreate")]
+    [Migration("20260511014456_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -38,6 +38,10 @@ namespace HGame01Server.Migrations
 
                     b.Property<int>("equipmentStorageCapacity")
                         .HasColumnType("int");
+
+                    b.Property<string>("lastDailyBundleClaimedDateUtc")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("name")
                         .IsRequired()

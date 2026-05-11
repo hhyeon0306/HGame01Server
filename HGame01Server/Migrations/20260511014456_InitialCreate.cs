@@ -181,7 +181,9 @@ namespace HGame01Server.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     createdAt = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    equipmentStorageCapacity = table.Column<int>(type: "int", nullable: false)
+                    equipmentStorageCapacity = table.Column<int>(type: "int", nullable: false),
+                    lastDailyBundleClaimedDateUtc = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
