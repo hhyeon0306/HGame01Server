@@ -38,9 +38,11 @@ public class QuestController : ControllerBase
 
         var instances = await _questService.GetActiveAsync(uid);
 
+        // Claimed도 "오늘의 슬롯"으로 카운트 — 모두 받기 완료 후 재접속 시 자동 RefreshDaily가 어제 Claimed를 만료시키는 사고 차단.
+        // 자정 통과는 ExpireQuestInstancesAsync(GetActiveAsync 진입점)가 expiresAtUtc 비교로 Expired 처리하므로 정상 발급 흐름 자연 진입.
         bool hasActiveDaily = instances.Any(i =>
             i.ContainerStableId == QuestServerConstants.QuestContainerDailyStableId
-            && (i.Status == "InProgress" || i.Status == "Completed"));
+            && (i.Status == "InProgress" || i.Status == "Completed" || i.Status == "Claimed"));
         if (!hasActiveDaily)
         {
             var dailyIds = CollectDailyQuestDataIds();
