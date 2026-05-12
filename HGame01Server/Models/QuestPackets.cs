@@ -7,6 +7,20 @@ namespace HGame01Server.Models;
 // 클라 Architecture.md §10 서버 프로토콜 준수.
 // ============================================================
 
+// POST api/Quest/CheatCompleteDaily
+// DEBUG/cheat 전용 — 일일 quest 인스턴스 progress 가득 채워 Completed 전환.
+public class PkQuestCheatCompleteDailyRequest
+{
+    /// 1~4 = 발급 순서(issuedAtUtc) 기준 N번째 InProgress 슬롯. -1 = 전체.
+    public int SlotIndex { get; set; }
+}
+
+public class PkQuestCheatCompleteDailyResponse
+{
+    public ErrorCode Result { get; set; }
+    public List<PkQuestInstanceDto> UpdatedInstances { get; set; } = new();
+}
+
 // POST api/Quest/Active
 public class PkQuestActiveRequest { }
 

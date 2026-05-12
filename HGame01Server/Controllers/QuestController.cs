@@ -145,6 +145,22 @@ public class QuestController : ControllerBase
         return response;
     }
 
+    /// cheat 전용 — 활성 Daily InProgress 슬롯 progress 가득 채워 Completed 전환.
+    /// SlotIndex: 1~4 = issuedAtUtc 순서 / -1 = 전체. 빈 UpdatedInstances는 매칭 슬롯 없음.
+    [HttpPost("CheatCompleteDaily")]
+    public async Task<PkQuestCheatCompleteDailyResponse> CheatCompleteDaily([FromHeader] HeaderDTO header, [FromBody] PkQuestCheatCompleteDailyRequest request)
+    {
+        var response = new PkQuestCheatCompleteDailyResponse();
+        MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
+        long uid = userInfo.UId;
+        _logger.ZLogInformation($"[Quest/CheatCompleteDaily] Uid:{uid} SlotIndex:{request.SlotIndex}");
+
+        var updated = await _questService.CheatCompleteDailyAsync(uid, request.SlotIndex);
+        response.UpdatedInstances = updated;
+        response.Result = ErrorCode.None;
+        return response;
+    }
+
     private const string DAILY_TAG_PREFIX = "Tag.Quest.Daily.";
     private const int DAILY_SLOT_COUNT = 4;
 
