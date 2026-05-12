@@ -16,34 +16,205 @@ public class QuestService
     private readonly IResetSchedule _dailyReset;
     private readonly GameDataManager _gameDataManager;
     private readonly CurrencyService _currencyService;
+    private readonly MailService _mailService;
 
-    public QuestService(IGameDB gameDB, IClock clock, IResetSchedule dailyReset, GameDataManager gameDataManager, CurrencyService currencyService)
+    public QuestService(IGameDB gameDB, IClock clock, IResetSchedule dailyReset, GameDataManager gameDataManager, CurrencyService currencyService, MailService mailService)
     {
         _gameDB = gameDB;
         _clock = clock;
         _dailyReset = dailyReset;
         _gameDataManager = gameDataManager;
         _currencyService = currencyService;
+        _mailService = mailService;
     }
 
-    /// 활성(InProgress/Completed) 인스턴스 조회 — 만료 lazy 정리 + DTO 변환.
-    /// Expired/Claimed는 응답에서 제외 — 클라가 stale row를 dedup으로 채택하는 사고 차단.
+    // ===== 일일 cycle 정산 (Daily reset settlement) =====
+    //
+    // 도메인: "어제 reset window를 마무리하고 미수령 보상을 우편함으로 회수".
+    // 호출자: GetActiveAsync / RefreshDailyAsync (자연 + cheat 통합).
+    // 사용자 명시 종합 수령(ClaimDailyBundleAsync)은 CompensateExpiringCompletedAsync만 호출 (중복 지급 차단).
+    //
+    // force 의미:
+    // - false: 자연 자정 통과 흐름. expiresAtUtc 도과 슬롯 + lastDailyBundleClaimedDateUtc 비교 기반 자격.
+    // - true:  cheat resetdaily. 도과 검사 우회 + 종합 보상 자격 비교 우회 (자정 시뮬).
+
+    /// 일일 cycle 정산 orchestrator — 호출자는 1줄.
+    /// (1) 종합 보상 자격(Completed+Claimed) 판정 후 우편함 발송, (2) Quest 인스턴스 미수령 → 우편함 + Expired 마킹.
+    /// 순서 중요 — Completed가 Expired로 마킹되기 전에 종합 보상 자격 판정해야 카운트 정확.
+    private async Task SettleDailyResetAsync(long uid, string nowStr, bool force)
+    {
+        await CompensateUnclaimedBundleAsync(uid, nowStr, force);
+        await CompensateExpiringCompletedAsync(uid, nowStr, force);
+    }
+
+    /// 미수령 Completed 슬롯의 보상을 quest별 개별 mail로 발송 + atomic Expired 마킹.
+    /// 개별 발송 사유: 우편함 UI(InboxCellUI)가 cell당 단일 reward 표시이라 묶음 1통이면 첫 entry만 보임.
+    /// reward_item 미설정/0 count quest는 mail 없이 expire만 (보상 자체가 없으므로 손실 X).
+    private async Task CompensateExpiringCompletedAsync(long uid, string nowStr, bool force)
+    {
+        var expiring = await ResolveCompensableCompletedAsync(uid, nowStr, force);
+        if (expiring.Count == 0)
+        {
+            return;
+        }
+
+        var quests = _gameDataManager.GetList<GdbQuestData>();
+        var mails = new List<GameUserMail>();
+        foreach (var inst in expiring)
+        {
+            var quest = quests?.FirstOrDefault(q => q.id == inst.questDataId);
+            if (quest != null && !string.IsNullOrEmpty(quest.reward_item) && quest.reward_count > 0)
+            {
+                var singleReward = new List<MailRewardEntry>
+                {
+                    new() { rewardTag = quest.reward_item, count = quest.reward_count },
+                };
+                mails.Add(BuildExpiredQuestMail(uid, singleReward, nowStr));
+            }
+            inst.status = "Expired";
+            inst.lastUpdatedUtc = nowStr;
+        }
+        await _gameDB.ExpireCompletedWithMailsAsync(expiring, mails);
+    }
+
+    /// 일일 완료(Completed+Claimed >= 임계) + 종합 보상 미수령 시 종합 보상 우편함 발송.
+    /// 카운트 범위: force=false면 도과 Daily 슬롯만(어제 cycle), force=true면 활성 Daily 전체(cheat 시뮬).
+    /// 자격 비교: force=false면 lastDailyBundleClaimedDateUtc 비교, force=true면 우회.
+    /// 발송 후 컬럼 값: 자연 흐름은 어제 일자(오늘 새 cycle 수령 가능), cheat는 임의(직후 ClearDailyBundleClaimedDateAsync로 덮어쓰기).
+    private async Task CompensateUnclaimedBundleAsync(long uid, string nowStr, bool force)
+    {
+        var currentDateUtc = _dailyReset.Current.ToString("yyyy-MM-dd");
+        if (!force)
+        {
+            var lastClaimedDate = await _gameDB.GetLastDailyBundleClaimedDateAsync(uid);
+            if (lastClaimedDate == currentDateUtc)
+            {
+                return;
+            }
+        }
+
+        int requiredCount = _gameDataManager.GetConstInt(
+            GdbConst.Quest.Category, GdbConst.Quest.RequiredCompletedCount, defaultValue: 4);
+        var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
+        int qualifiedCount = instances.Count(i =>
+            i.containerStableId == QuestServerConstants.QuestContainerDailyStableId
+            && (i.status == "Completed" || i.status == "Claimed")
+            && (force || (!string.IsNullOrEmpty(i.expiresAtUtc) && string.Compare(i.expiresAtUtc, nowStr) < 0)));
+        if (qualifiedCount < requiredCount)
+        {
+            return;
+        }
+
+        var rewardSum = AccumulateDailyBundleRewards(uid);
+        if (rewardSum.Count == 0)
+        {
+            return;
+        }
+
+        // currency별 개별 mail 발송 — 우편함 UI cell당 단일 reward 표시 정합.
+        var mails = new List<GameUserMail>();
+        foreach (var kv in rewardSum)
+        {
+            string tag = CurrencyTypeIdToItemTag(kv.Key);
+            if (string.IsNullOrEmpty(tag))
+            {
+                continue;
+            }
+            var singleReward = new List<MailRewardEntry>
+            {
+                new() { rewardTag = tag, count = (int)kv.Value },
+            };
+            mails.Add(BuildBundleMail(uid, singleReward, nowStr));
+        }
+        if (mails.Count == 0)
+        {
+            return;
+        }
+
+        string dateToSet = force
+            ? currentDateUtc
+            : _dailyReset.Current.AddDays(-1).ToString("yyyy-MM-dd");
+        await _gameDB.SendBundleMailAtomicAsync(uid, dateToSet, mails);
+    }
+
+    /// 만료 대상 Completed 슬롯 조회. force 분기 캡슐화.
+    private async Task<List<GameUserQuestInstance>> ResolveCompensableCompletedAsync(long uid, string nowStr, bool force)
+    {
+        if (force)
+        {
+            var all = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
+            return all.Where(q => q.status == "Completed").ToList();
+        }
+        return await _gameDB.GetCompletedExpiringInstancesAsync(uid, nowStr);
+    }
+
+    /// 미수령 Quest 보상 1통 mail entity (quest당 1통).
+    private GameUserMail BuildExpiredQuestMail(long uid, List<MailRewardEntry> rewards, string nowStr)
+        => BuildCompensationMail(uid, rewards, nowStr, "Mail.Quest.DailyExpired", "QuestExpired");
+
+    /// 종합 보상 묶음 1통 mail entity.
+    private GameUserMail BuildBundleMail(long uid, List<MailRewardEntry> rewards, string nowStr)
+        => BuildCompensationMail(uid, rewards, nowStr, "Mail.Quest.DailyBundleExpired", "QuestBundleExpired");
+
+    /// Quest 도메인 보상 회수 mail factory. ShopService.BuyDiamondAsync와 동일 패턴 — iconAtlas/iconKey를 명시 set.
+    /// rewards[0].rewardTag(GameplayTag) → GdbItemData 룩업 → icon_name. ItemAtlas sprite로 우편함 cell 아이콘 표시.
+    /// 매칭 실패 시 빈 문자열 → 클라 ResolveIcon fallback 흐름. (Currency만 ItemData 매칭 — Equipment 등 미래 보상은 별도 atlas 정책 필요.)
+    private GameUserMail BuildCompensationMail(long uid, List<MailRewardEntry> rewards, string nowStr, string titleKey, string mailKind)
+    {
+        string iconKey = ResolveItemIconName(rewards);
+        return new GameUserMail
+        {
+            mailId = Guid.NewGuid().ToString("N"),
+            uid = uid,
+            titleKey = titleKey,
+            mailKind = mailKind,
+            rewardsJson = JsonSerializer.Serialize(rewards),
+            iconAtlas = string.IsNullOrEmpty(iconKey) ? "" : "ItemAtlas",
+            iconKey = iconKey,
+            senderType = "Compensation",
+            sentAt = nowStr,
+            expireAt = FormatUtc(_clock.UtcNow.AddDays(30)),
+            claimedAt = "",
+        };
+    }
+
+    /// rewards 첫 entry의 rewardTag(GameplayTag string) → GdbItemData.icon_name 룩업.
+    /// 매칭 실패 시 빈 문자열.
+    private string ResolveItemIconName(List<MailRewardEntry> rewards)
+    {
+        if (rewards == null || rewards.Count == 0)
+        {
+            return "";
+        }
+        string rewardTag = rewards[0].rewardTag;
+        if (string.IsNullOrEmpty(rewardTag))
+        {
+            return "";
+        }
+        var items = _gameDataManager.GetList<GdbItemData>();
+        var item = items?.FirstOrDefault(i => i.tag == rewardTag);
+        return item?.icon_name ?? "";
+    }
+
+    /// 활성(InProgress/Completed/Claimed) 인스턴스 조회 — 정산 + 만료 lazy 정리 + DTO 변환.
+    /// Expired는 응답에서 제외.
     public async Task<List<PkQuestInstanceDto>> GetActiveAsync(long uid)
     {
         var nowStr = FormatUtc(_clock.UtcNow);
+        await SettleDailyResetAsync(uid, nowStr, force: false);
         await _gameDB.ExpireQuestInstancesAsync(uid, nowStr);
         var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
         return instances.Select(ToDto).ToList();
     }
 
     /// 일일 슬롯 발급 — 자정 통과 시 호출. 기존 InProgress 만료 + 신규 InProgress 발급을 단일 트랜잭션으로 atomic 보장.
-    /// Completed(미수령)는 만료 대상에서 제외 — 사용자 보상 보호.
+    /// 미수령 Completed 보상 + 종합 보상은 SettleDailyResetAsync가 우편함으로 회수.
     /// 신규 인스턴스의 subProgressJson은 GdbQuestData required count로 채움 — 서버 권위 progress 판정의 토대.
     /// idempotency 가드 — 만료 시각 전 fresh InProgress가 존재하면 skip 후 기존 슬롯 반환.
-    /// 자정 통과 후엔 ExpireQuestInstancesAsync(GetActiveAsync 진입점)가 expiresAtUtc 비교로 자동 Expired 처리하므로 정상 발급 흐름 진입.
     public async Task<List<PkQuestInstanceDto>> RefreshDailyAsync(long uid, int dailyContainerStableId, int slotCount, IReadOnlyList<int> dailyQuestDataIds, bool force = false)
     {
         var nowStr = FormatUtc(_clock.UtcNow);
+        await SettleDailyResetAsync(uid, nowStr, force);
 
         var existing = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
         var dailyInProgress = existing
@@ -66,16 +237,14 @@ public class QuestService
                 .ToList();
         }
 
-        // force=true(cheat resetdaily) — 자연 자정 회전과 동등 효과 보장.
-        // 자연 자정은 IResetSchedule.Current가 새 일자라 lastDailyBundleClaimedDateUtc 비교 미일치로 자동 풀림.
-        // cheat는 시각이 그대로라 컬럼을 명시 클리어 안 하면 종합 보상 잠금이 영원히 유지되는 사고.
+        // force=true(cheat resetdaily) — 새 cycle 시뮬. SettleDailyResetAsync가 set한 컬럼을 빈 문자열로 클리어.
+        // 자연 자정은 IResetSchedule.Current가 새 일자라 컬럼 값과 미일치로 자동 풀림 → 클리어 불필요.
         if (force)
         {
             await _gameDB.ClearDailyBundleClaimedDateAsync(uid);
         }
 
-        // 만료 진행 — InProgress + Claimed 모두 Expired로. Completed(미수령)는 유지하여 사용자 보상 보호.
-        // Claimed를 함께 만료해야 자정 회전마다 history row 누적되는 사고 차단 (어제 받은 보상은 다음 window에서는 의미 없음).
+        // 만료 진행 — 남은 InProgress + Claimed Expired로. Completed는 이미 SettleDailyResetAsync가 우편함 회수 + Expired 마킹.
         var dailyExisting = existing
             .Where(q => q.containerStableId == dailyContainerStableId
                 && (q.status == "InProgress" || q.status == "Claimed"))
@@ -224,6 +393,11 @@ public class QuestService
             GdbConst.Quest.RequiredCompletedCount,
             defaultValue: 4);
 
+        // 사용자 명시 수령 흐름 — Quest 인스턴스 stale만 정리. CompensateUnclaimedBundle은 호출 X (중복 지급 차단).
+        // 종합 보상 자동 우편함 발송은 GetActiveAsync/RefreshDailyAsync(SettleDailyResetAsync)가 책임.
+        var nowStr = FormatUtc(_clock.UtcNow);
+        await CompensateExpiringCompletedAsync(uid, nowStr, force: false);
+        await _gameDB.ExpireQuestInstancesAsync(uid, nowStr);
         var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
         int claimedDailyCount = instances.Count(i =>
             i.containerStableId == QuestServerConstants.QuestContainerDailyStableId
@@ -378,6 +552,54 @@ public class QuestService
             "gold" => CurrencyType.Gold,
             _ => -1,
         };
+    }
+
+    /// cheat 전용 — 활성 InProgress Daily 슬롯의 progress 가득 채워 Completed 전환.
+    /// slotIndex: 1~N = issuedAtUtc 정렬 기준 N번째 / -1 = 전체.
+    /// 발견 못한 인덱스(out-of-range)는 빈 응답 — 호출자가 무시 가능.
+    public async Task<List<PkQuestInstanceDto>> CheatCompleteDailyAsync(long uid, int slotIndex)
+    {
+        var instances = await _gameDB.GetActiveQuestInstancesByUidAsync(uid);
+        var dailyInProgress = instances
+            .Where(i => i.containerStableId == QuestServerConstants.QuestContainerDailyStableId
+                && i.status == "InProgress")
+            .OrderBy(i => i.issuedAtUtc)
+            .ToList();
+
+        List<GameUserQuestInstance> targets;
+        if (slotIndex == -1)
+        {
+            targets = dailyInProgress;
+        }
+        else
+        {
+            int zeroIdx = slotIndex - 1;
+            if (zeroIdx < 0 || zeroIdx >= dailyInProgress.Count)
+            {
+                return new List<PkQuestInstanceDto>();
+            }
+            targets = new List<GameUserQuestInstance> { dailyInProgress[zeroIdx] };
+        }
+        if (targets.Count == 0)
+        {
+            return new List<PkQuestInstanceDto>();
+        }
+
+        var quests = _gameDataManager.GetList<GdbQuestData>();
+        var nowStr = FormatUtc(_clock.UtcNow);
+        foreach (var inst in targets)
+        {
+            var quest = quests?.FirstOrDefault(q => q.id == inst.questDataId);
+            int required = quest != null && quest.required_count > 0 ? quest.required_count : 1;
+            inst.subProgressJson = JsonSerializer.Serialize(new List<PkSubProgressEntry>
+            {
+                new() { ChildIndex = 0, Progress = required, Required = required },
+            });
+            inst.status = "Completed";
+            inst.lastUpdatedUtc = nowStr;
+        }
+        await _gameDB.UpdateQuestInstancesRangeAsync(targets);
+        return targets.Select(ToDto).ToList();
     }
 
     private static string FormatUtc(DateTime utc) => utc.ToString("yyyy-MM-dd HH:mm:ss");

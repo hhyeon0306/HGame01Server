@@ -368,12 +368,70 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
     }
 
+    /// expiresAtUtc 도과 + status=="Completed"인 슬롯 조회.
+    /// 호출자(QuestService)가 보상을 우편함으로 발송한 뒤 ExpireCompletedWithMailsAsync로 atomic commit.
+    /// "어제 Completed 미수령 보상이 자정 통과로 그냥 사라지는 사고" 차단의 토대.
+    public async Task<List<GameUserQuestInstance>> GetCompletedExpiringInstancesAsync(long uid, string nowStr)
+    {
+        return await _context.UserQuestInstances
+            .Where(q => q.uid == uid
+                && q.status == "Completed"
+                && q.expiresAtUtc != ""
+                && string.Compare(q.expiresAtUtc, nowStr) < 0)
+            .ToListAsync();
+    }
+
+    /// 만료 대상 인스턴스 Expired 마킹 + 우편함 INSERT를 단일 SaveChangesAsync로 atomic commit.
+    /// 부분 실패 시 우편함만 발송되고 슬롯이 활성으로 남아 중복 발송되는 사고 차단.
+    public async Task ExpireCompletedWithMailsAsync(
+        List<GameUserQuestInstance> toExpire,
+        List<GameUserMail> mailsToAdd)
+    {
+        bool anyExpire = toExpire != null && toExpire.Count > 0;
+        bool anyMail = mailsToAdd != null && mailsToAdd.Count > 0;
+        if (!anyExpire && !anyMail)
+        {
+            return;
+        }
+        if (anyExpire)
+        {
+            _context.UserQuestInstances.UpdateRange(toExpire!);
+        }
+        if (anyMail)
+        {
+            _context.UserMails.AddRange(mailsToAdd!);
+        }
+        await _context.SaveChangesAsync();
+    }
+
+    /// 일일 종합 보상 자동 우편함 발송 — Mail INSERT(N건) + lastDailyBundleClaimedDateUtc 갱신 atomic.
+    /// 부분 실패 시 발송 성공 후 컬럼 미갱신으로 다음 사이클 중복 발송되는 사고 차단.
+    /// mails는 currency별 개별 발송 N통 (우편함 UI가 cell당 단일 reward 표시이므로 묶음 1통 안 함).
+    /// dateToSet: 자연 흐름 = 어제 일자 / cheat 흐름 = 임의 값 (직후 ClearDailyBundleClaimedDateAsync로 덮어쓰기).
+    public async Task SendBundleMailAtomicAsync(long uid, string dateToSet, List<GameUserMail> mails)
+    {
+        if (mails == null || mails.Count == 0)
+        {
+            return;
+        }
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"[GameDB] SendBundleMailAtomicAsync: uid={uid} 미발견.");
+        }
+        user.lastDailyBundleClaimedDateUtc = dateToSet ?? "";
+        _context.UserMails.AddRange(mails);
+        await _context.SaveChangesAsync();
+    }
+
+    /// expiresAtUtc 도과 = Expired. status 무관(InProgress/Completed/Claimed 모두 만료 대상).
+    /// "어제 받은 슬롯이 오늘까지 살아 hasActiveDaily=true로 자동 RefreshDaily 차단" 결함의 fix.
+    /// 미수령 Completed 보상 보호는 호출자가 ExpireCompletedWithMailsAsync 선행 호출로 처리.
     public async Task<int> ExpireQuestInstancesAsync(long uid, string nowStr)
     {
         var stale = await _context.UserQuestInstances
             .Where(q => q.uid == uid
                 && q.status != "Expired"
-                && q.status != "Claimed"
                 && q.expiresAtUtc != ""
                 && string.Compare(q.expiresAtUtc, nowStr) < 0)
             .ToListAsync();
@@ -388,6 +446,17 @@ public class GameDB : IGameDB
         }
         await _context.SaveChangesAsync();
         return stale.Count;
+    }
+
+    /// cheat 전용 — 인스턴스 N건의 status/progress/lastUpdatedUtc 변경을 단일 SaveChanges로 atomic commit.
+    public async Task UpdateQuestInstancesRangeAsync(List<GameUserQuestInstance> instances)
+    {
+        if (instances == null || instances.Count == 0)
+        {
+            return;
+        }
+        _context.UserQuestInstances.UpdateRange(instances);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<string> GetLastDailyBundleClaimedDateAsync(long uid)

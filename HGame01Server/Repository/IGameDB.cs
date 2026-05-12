@@ -86,7 +86,24 @@ public interface IGameDB
         long currencyDelta);
 
     /// 만료된 인스턴스 일괄 만료 처리 (status="Expired"). lazy eviction.
+    /// status 무관 (InProgress/Completed/Claimed 모두 도과 시 만료). Completed 보상 보호는 호출자가 ExpireCompletedWithMailsAsync 선행으로 처리.
     public Task<int> ExpireQuestInstancesAsync(long uid, string nowStr);
+
+    /// cheat 전용 — 인스턴스 N건 일괄 UPDATE (status/progress/lastUpdatedUtc) atomic.
+    public Task UpdateQuestInstancesRangeAsync(List<GameUserQuestInstance> instances);
+
+    /// expiresAtUtc 도과 + status=="Completed"인 슬롯 조회. 호출자가 우편함 발송 + atomic commit에 사용.
+    public Task<List<GameUserQuestInstance>> GetCompletedExpiringInstancesAsync(long uid, string nowStr);
+
+    /// 만료 대상 인스턴스 Expired 마킹 + 우편함 INSERT 단일 SaveChanges atomic.
+    /// 부분 실패 시 우편함만 발송되고 슬롯이 활성으로 남아 중복 발송되는 사고 차단.
+    public Task ExpireCompletedWithMailsAsync(
+        List<GameUserQuestInstance> toExpire,
+        List<GameUserMail> mailsToAdd);
+
+    /// 일일 종합 보상 자동 우편함 발송 — Mail INSERT(N건) + lastDailyBundleClaimedDateUtc 갱신 단일 SaveChanges atomic.
+    /// mails는 currency별 개별 발송 N통.
+    public Task SendBundleMailAtomicAsync(long uid, string dateToSet, List<GameUserMail> mails);
 
     /// users.lastDailyBundleClaimedDateUtc 조회 — 일일 종합 보상 1회 제한 가드용.
     /// 빈 문자열이면 미수령. user 미발견 시 빈 문자열로 fallback.
