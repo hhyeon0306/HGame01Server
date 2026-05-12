@@ -72,4 +72,8 @@ public enum ErrorCode : UInt16
     QuestClaimFailed = 3124,
     QuestDailyBundleNotReady = 3125,
     QuestDailyBundleAlreadyClaimed = 3126,
+
+    // 튜토리얼 에러 (3141~3160)
+    TutorialInvalidTag = 3141,
+    TutorialPersistFailed = 3142,
 }

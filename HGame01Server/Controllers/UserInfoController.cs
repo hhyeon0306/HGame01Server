@@ -15,14 +15,16 @@ public class UserInfoController : ControllerBase
     private readonly CurrencyService _currencyService;
     private readonly EquipmentService _equipmentService;
     private readonly EquipmentStorageService _storageService;
+    private readonly TutorialService _tutorialService;
 
-    public UserInfoController(ILogger<UserInfoController> logger, CharacterService characterService, CurrencyService currencyService, EquipmentService equipmentService, EquipmentStorageService storageService)
+    public UserInfoController(ILogger<UserInfoController> logger, CharacterService characterService, CurrencyService currencyService, EquipmentService equipmentService, EquipmentStorageService storageService, TutorialService tutorialService)
     {
         _logger = logger;
         _characterService = characterService;
         _currencyService = currencyService;
         _equipmentService = equipmentService;
         _storageService = storageService;
+        _tutorialService = tutorialService;
     }
 
     /// 로그인 후 유저 전체 상태 반환.
@@ -53,6 +55,12 @@ public class UserInfoController : ControllerBase
 
         // 장비 보관함 capacity — 클라 N/M 표시 + 확장 버튼 활성/비활성 판단에 사용
         response.EquipmentStorageCapacity = await _storageService.GetCapacityAsync(uid);
+
+        // 완료 튜토리얼 목록 — UserTutorialStore.Apply에서 HashSet 흡수 + pending UnionWith 보호.
+        response.CompletedTutorials = await _tutorialService.GetCompletedAsync(uid);
+
+        // Level — 미구현 (UserLevelCondition 등 튜토리얼 조건 평가용 placeholder). 0 fallback.
+        response.Level = 0;
 
         response.Result = ErrorCode.None;
         return response;

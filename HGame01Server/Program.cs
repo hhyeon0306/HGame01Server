@@ -35,6 +35,7 @@ builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<QuestService>();
 builder.Services.AddScoped<QuestProgressService>();
 builder.Services.AddScoped<QuestEventDeduplicator>();
+builder.Services.AddScoped<TutorialService>();
 builder.Services.AddSingleton<IMemoryDB, MemoryDB>();
 builder.Services.AddSingleton<GameDataManager>();
 builder.Services.AddSingleton<IClock, SystemClock>();

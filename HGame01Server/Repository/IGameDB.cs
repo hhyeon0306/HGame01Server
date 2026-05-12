@@ -119,4 +119,17 @@ public interface IGameDB
 
     /// 7일 이전 dedup entry 일괄 삭제 — 주기 GC.
     public Task<int> GcQuestEventAppliedAsync(string sinceStr);
+
+    // ===== 튜토리얼 =====
+
+    /// 완료된 튜토리얼 태그 이름 JSON 조회 — UserInfo 응답 + Complete idempotent 검증용.
+    /// user 미발견 시 "[]" fallback. JSON 파싱은 호출자(TutorialService) 책임.
+    public Task<string> GetCompletedTutorialsJsonAsync(long uid);
+
+    /// 완료 튜토리얼 추가 — 이미 존재하면 무시(idempotent). 단일 SaveChanges로 row read-modify-write.
+    /// 반환: 실제 추가됐는지 (false면 중복).
+    public Task<bool> AddCompletedTutorialAsync(long uid, string tutorialTagName);
+
+    /// 완료 튜토리얼 전체 클리어 — cheat ResetAll. users.completedTutorialsJson = "[]".
+    public Task ClearCompletedTutorialsAsync(long uid);
 }

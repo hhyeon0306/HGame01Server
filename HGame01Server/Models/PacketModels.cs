@@ -57,6 +57,12 @@ public class PkUserInfoResponse
     public List<PkUserEquipment> Equipments { get; set; } = new();
     /// 장비 보관함 최대 칸 수. 클라가 보관함 N/M 표시 + 확장 버튼에 사용.
     public int EquipmentStorageCapacity { get; set; }
+
+    /// 유저 레벨. 클라 UserLevelCondition 등 튜토리얼 조건 평가에 사용. 레벨 시스템 미구현 — 항상 0 fallback.
+    public int Level { get; set; }
+
+    /// 완료된 튜토리얼 GameplayTag 이름 목록. UserTutorialStore.Apply에서 HashSet으로 흡수 + pending UnionWith로 push 미확인 항목 보호.
+    public List<string> CompletedTutorials { get; set; } = new();
 }
 
 // ============================================================
@@ -358,6 +364,33 @@ public class PkMailCheatSendResponse
 {
     public ErrorCode Result { get; set; }
     public string MailId { get; set; } = "";
+}
+
+
+// ============================================================
+// 튜토리얼
+// ============================================================
+
+// POST api/Tutorial/Complete
+public class PkCompleteTutorialRequest
+{
+    /// 완료된 튜토리얼의 GameplayTag 이름 (예: "Tag.Tutorial.Lobby.First"). 빈 값은 거절.
+    public string TutorialTagName { get; set; } = "";
+}
+
+public class PkCompleteTutorialResponse
+{
+    public ErrorCode Result { get; set; }
+}
+
+// POST api/Tutorial/CheatResetAll — 치트 전용. 완료 튜토리얼 전체 클리어 → 다음 trigger 시 재발동.
+public class PkCheatResetTutorialRequest
+{
+}
+
+public class PkCheatResetTutorialResponse
+{
+    public ErrorCode Result { get; set; }
 }
 
 

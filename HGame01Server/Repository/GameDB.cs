@@ -509,4 +509,71 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
         return stale.Count;
     }
+
+
+    // ===== 튜토리얼 =====
+
+    public async Task<string> GetCompletedTutorialsJsonAsync(long uid)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
+        return user?.completedTutorialsJson ?? "[]";
+    }
+
+    public async Task<bool> AddCompletedTutorialAsync(long uid, string tutorialTagName)
+    {
+        if (string.IsNullOrEmpty(tutorialTagName))
+        {
+            return false;
+        }
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
+        if (user == null)
+        {
+            // 인증 미들웨어 통과 후라 도달 시 데이터 결함.
+            throw new InvalidOperationException($"[GameDB] AddCompletedTutorialAsync: uid={uid} 미발견.");
+        }
+
+        var current = DeserializeTutorialList(user.completedTutorialsJson);
+        if (current.Contains(tutorialTagName))
+        {
+            return false;
+        }
+
+        current.Add(tutorialTagName);
+        user.completedTutorialsJson = SerializeTutorialList(current);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task ClearCompletedTutorialsAsync(long uid)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
+        if (user == null || user.completedTutorialsJson == "[]" || string.IsNullOrEmpty(user.completedTutorialsJson))
+        {
+            return;
+        }
+        user.completedTutorialsJson = "[]";
+        await _context.SaveChangesAsync();
+    }
+
+    private static List<string> DeserializeTutorialList(string? json)
+    {
+        if (string.IsNullOrEmpty(json))
+        {
+            return new List<string>();
+        }
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
+    }
+
+    private static string SerializeTutorialList(List<string> list)
+    {
+        return System.Text.Json.JsonSerializer.Serialize(list);
+    }
 }

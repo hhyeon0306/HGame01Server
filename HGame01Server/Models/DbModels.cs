@@ -32,6 +32,11 @@ public class GameUser
     /// ClaimDailyBundleAsync atomic 가드 — 같은 reset window에서 두 번째 시도 시 QuestDailyBundleAlreadyClaimed.
     /// 빈 문자열이면 미수령.
     public string lastDailyBundleClaimedDateUtc { get; set; } = "";
+
+    /// 완료된 튜토리얼 GameplayTag 이름 JSON 배열 (예: ["Tag.Tutorial.Lobby.First"]).
+    /// 그룹 단위만 저장 — 단계 중단 시 다음 세션 처음부터 재시작. 완료 push는 `StartTutorialAsync`가 player.Play 성공 + cancellation 통과 후에만 호출하므로 partial 완료가 들어오지 않는다.
+    /// 추가 idempotent — 동일 태그 중복 호출 무시. Cheat ResetAll로 전체 클리어.
+    public string completedTutorialsJson { get; set; } = "[]";
 }
 
 // ============================================================
