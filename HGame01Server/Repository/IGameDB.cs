@@ -57,6 +57,21 @@ public interface IGameDB
     /// expireAt &lt; nowStr 인 사용자 메일 일괄 삭제 (lazy eviction). List 호출 첫 단계에서 한 번 호출.
     public Task<int> DeleteExpiredMailsAsync(long uid, string nowStr);
 
+    // ===== SeasonPass =====
+
+    /// 유저 × 시즌 단위 row 조회. 없으면 null — Service가 ResolveOrCreate로 신규 발급.
+    public Task<GameUserSeasonPass?> GetUserSeasonPassAsync(long uid, string seasonId);
+
+    /// 신규 row insert 또는 기존 row update. Service가 hydrate/premium 토글 시 사용.
+    public Task UpsertUserSeasonPassAsync(GameUserSeasonPass row);
+
+    /// 멱등 dedup 조회. ApplyStageResult 재시도 시 expGained 재산출 회피 (이미 적립된 amount 그대로 반환).
+    public Task<GameUserSeasonPassStageRun?> GetSeasonPassStageRunAsync(long uid, string stageRunId);
+
+    /// dedup row insert + 시즌 row 갱신을 단일 SaveChanges로 묶어 atomic 보장.
+    /// 부분 실패 시 exp만 누적되고 dedup row 없는 사고 → 같은 stageRunId 재요청에서 중복 누적 차단.
+    public Task SaveSeasonPassAndStageRunAsync(GameUserSeasonPass row, GameUserSeasonPassStageRun runRow);
+
     // ===== Quest 인스턴스 =====
 
     /// 사용자의 활성(InProgress/Completed/Claimed) quest 인스턴스 조회 — Active endpoint + Reconcile.

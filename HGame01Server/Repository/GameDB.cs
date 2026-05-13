@@ -287,6 +287,64 @@ public class GameDB : IGameDB
         return expired.Count;
     }
 
+    // ===== SeasonPass =====
+
+    public async Task<GameUserSeasonPass?> GetUserSeasonPassAsync(long uid, string seasonId)
+    {
+        return await _context.UserSeasonPass
+            .FirstOrDefaultAsync(s => s.uid == uid && s.seasonId == seasonId);
+    }
+
+    public async Task UpsertUserSeasonPassAsync(GameUserSeasonPass row)
+    {
+        var existing = await _context.UserSeasonPass
+            .FirstOrDefaultAsync(s => s.uid == row.uid && s.seasonId == row.seasonId);
+        if (existing == null)
+        {
+            _context.UserSeasonPass.Add(row);
+        }
+        else
+        {
+            existing.currentExp = row.currentExp;
+            existing.isPremium = row.isPremium;
+            existing.claimedBasicJson = row.claimedBasicJson;
+            existing.claimedPremiumJson = row.claimedPremiumJson;
+            existing.seasonEndUtc = row.seasonEndUtc;
+            existing.updatedAtUtc = row.updatedAtUtc;
+        }
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<GameUserSeasonPassStageRun?> GetSeasonPassStageRunAsync(long uid, string stageRunId)
+    {
+        return await _context.UserSeasonPassStageRuns
+            .FirstOrDefaultAsync(r => r.uid == uid && r.stageRunId == stageRunId);
+    }
+
+    public async Task SaveSeasonPassAndStageRunAsync(GameUserSeasonPass row, GameUserSeasonPassStageRun runRow)
+    {
+        // 단일 SaveChanges = EF Core implicit transaction. 부분 실패 시 dedup 결측 + exp 중복 누적 사고 차단.
+        var existing = await _context.UserSeasonPass
+            .FirstOrDefaultAsync(s => s.uid == row.uid && s.seasonId == row.seasonId);
+        if (existing == null)
+        {
+            _context.UserSeasonPass.Add(row);
+        }
+        else
+        {
+            existing.currentExp = row.currentExp;
+            existing.isPremium = row.isPremium;
+            existing.claimedBasicJson = row.claimedBasicJson;
+            existing.claimedPremiumJson = row.claimedPremiumJson;
+            existing.seasonEndUtc = row.seasonEndUtc;
+            existing.updatedAtUtc = row.updatedAtUtc;
+        }
+
+        _context.UserSeasonPassStageRuns.Add(runRow);
+        await _context.SaveChangesAsync();
+    }
+
+
     // ===== Quest 인스턴스 =====
 
     public async Task<List<GameUserQuestInstance>> GetActiveQuestInstancesByUidAsync(long uid)
