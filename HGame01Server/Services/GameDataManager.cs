@@ -254,6 +254,8 @@ public class GameDataManager
         string filePath = Path.Combine(_modelDir, $"{className}.cs");
 
         var sb = new StringBuilder();
+        sb.AppendLine("using System.Collections.Generic;");
+        sb.AppendLine();
         sb.AppendLine("namespace HGame01Server.Models.GameData;");
         sb.AppendLine();
         sb.AppendLine("// 이 파일은 Admin/UploadGameData API에 의해 자동 생성되었습니다.");
@@ -262,11 +264,18 @@ public class GameDataManager
         sb.AppendLine($"public class {className}");
         sb.AppendLine("{");
 
+        var nestedDefs = new StringBuilder();
         foreach (var property in firstElement.EnumerateObject())
         {
-            string csType = InferCSharpType(property.Value);
+            string csType = InferCSharpType(property.Value, property.Name, nestedDefs, indent: "    ");
             string defaultValue = GetDefaultValue(csType);
             sb.AppendLine($"    public {csType} {property.Name} {{ get; set; }}{defaultValue}");
+        }
+
+        // nested DTO 정의를 outer 클래스 body 안에 nested class로 포함 — Object/Array<Object> 필드 자동 생성.
+        if (nestedDefs.Length > 0)
+        {
+            sb.Append(nestedDefs);
         }
 
         sb.AppendLine("}");
@@ -274,6 +283,30 @@ public class GameDataManager
         File.WriteAllText(filePath, sb.ToString());
 
         _logger.ZLogInformation($"[GameDataManager] 클래스 생성: {filePath}");
+    }
+
+
+    /// JSON Object를 nested DTO 클래스로 부착. 재귀 — nested 안에 또 Object/Array가 있으면 더 깊은 nested 생성.
+    private void AppendNestedClass(StringBuilder nestedDefs, string className, JsonElement objElement, string indent)
+    {
+        nestedDefs.AppendLine();
+        nestedDefs.AppendLine($"{indent}public class {className}");
+        nestedDefs.AppendLine($"{indent}{{");
+
+        var deeperDefs = new StringBuilder();
+        foreach (var prop in objElement.EnumerateObject())
+        {
+            string csType = InferCSharpType(prop.Value, prop.Name, deeperDefs, indent + "    ");
+            string defaultValue = GetDefaultValue(csType);
+            nestedDefs.AppendLine($"{indent}    public {csType} {prop.Name} {{ get; set; }}{defaultValue}");
+        }
+
+        if (deeperDefs.Length > 0)
+        {
+            nestedDefs.Append(deeperDefs);
+        }
+
+        nestedDefs.AppendLine($"{indent}}}");
     }
 
     // ============================================================
@@ -372,8 +405,8 @@ public class GameDataManager
         return sb.ToString();
     }
 
-    // JSON 값 → C# 타입 추론
-    private static string InferCSharpType(JsonElement value)
+    // JSON 값 → C# 타입 추론. Array/Object는 nested DTO 클래스 자동 생성.
+    private string InferCSharpType(JsonElement value, string propertyName, StringBuilder nestedDefs, string indent)
     {
         switch (value.ValueKind)
         {
@@ -392,6 +425,23 @@ public class GameDataManager
             case JsonValueKind.True:
             case JsonValueKind.False:
                 return "bool";
+            case JsonValueKind.Array:
+                if (value.GetArrayLength() == 0)
+                {
+                    return "List<object>";
+                }
+                var first = value[0];
+                if (first.ValueKind == JsonValueKind.Object)
+                {
+                    string itemClassName = ToPascalCase(propertyName) + "Entry";
+                    AppendNestedClass(nestedDefs, itemClassName, first, indent);
+                    return $"List<{itemClassName}>";
+                }
+                return $"List<{InferCSharpType(first, propertyName + "Item", nestedDefs, indent)}>";
+            case JsonValueKind.Object:
+                string objClassName = ToPascalCase(propertyName);
+                AppendNestedClass(nestedDefs, objClassName, value, indent);
+                return objClassName;
             default:
                 return "object";
         }
@@ -400,11 +450,17 @@ public class GameDataManager
     // 타입별 기본값
     private static string GetDefaultValue(string csType)
     {
-        return csType switch
+        if (csType == "string")
         {
-            "string" => " = \"\";",
-            _ => ""
-        };
+            return " = \"\";";
+        }
+
+        if (csType.StartsWith("List<"))
+        {
+            return " = new();";
+        }
+
+        return "";
     }
 
     // 복수형 → 단수형 (간단한 규칙)
