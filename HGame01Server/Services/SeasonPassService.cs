@@ -119,10 +119,11 @@ public class SeasonPassService
 
         // 최대 레벨은 levelRewards 마지막 entry로 도출 — 단일 출처 원칙(SeasonPassConstantsData에 별도 maxPassLevel 필드 없음).
         int maxLevel = seasonData?.level_rewards?.LastOrDefault()?.level ?? 0;
-        int reachedLevel = expPerLevel > 0 ? row.currentExp / expPerLevel : 0;
-        if (maxLevel > 0 && reachedLevel > maxLevel)
+        // 1-base "현재 도달 레벨" — 시작 시 1, expPerLevel 단위 누적 시 +1. exp=0이어도 Lv.1 보상은 unlock.
+        int currentLevel = expPerLevel > 0 ? row.currentExp / expPerLevel + 1 : 1;
+        if (maxLevel > 0 && currentLevel > maxLevel)
         {
-            reachedLevel = maxLevel;
+            currentLevel = maxLevel;
         }
         var alreadyBasic = ParseLevelSet(row.claimedBasicJson);
         var alreadyPremium = ParseLevelSet(row.claimedPremiumJson);
@@ -131,7 +132,7 @@ public class SeasonPassService
         var grantedPremium = new List<int>();
         var currencyAccum = new Dictionary<int, long>();
 
-        for (int level = 1; level <= reachedLevel; level++)
+        for (int level = 1; level <= currentLevel; level++)
         {
             var entry = seasonData?.level_rewards?.FirstOrDefault(e => e.level == level);
             if (entry == null)
