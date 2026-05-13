@@ -17,6 +17,8 @@ public class GameDbContext : DbContext
     public DbSet<GameUserMail> UserMails { get; set; }
     public DbSet<GameUserQuestInstance> UserQuestInstances { get; set; }
     public DbSet<GameUserQuestEventApplied> UserQuestEventsApplied { get; set; }
+    public DbSet<GameUserSeasonPass> UserSeasonPass { get; set; }
+    public DbSet<GameUserSeasonPassStageRun> UserSeasonPassStageRuns { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,5 +70,20 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<GameUserQuestEventApplied>()
             .HasIndex(e => e.appliedAtUtc)
             .HasDatabaseName("IX_user_quest_events_applied_appliedAtUtc");
+
+        // user_season_pass: 복합 PK (uid, seasonId) — 유저 × 시즌 단위 행.
+        modelBuilder.Entity<GameUserSeasonPass>()
+            .HasKey(s => new { s.uid, s.seasonId });
+
+        // user_season_pass_stage_runs: (uid, stageRunId) unique — 멱등 dedup.
+        modelBuilder.Entity<GameUserSeasonPassStageRun>()
+            .HasIndex(r => new { r.uid, r.stageRunId })
+            .IsUnique()
+            .HasDatabaseName("IX_user_season_pass_stage_runs_uid_stageRunId");
+
+        // user_season_pass_stage_runs: appliedAtUtc 인덱스 — 7일 GC 쿼리용.
+        modelBuilder.Entity<GameUserSeasonPassStageRun>()
+            .HasIndex(r => r.appliedAtUtc)
+            .HasDatabaseName("IX_user_season_pass_stage_runs_appliedAtUtc");
     }
 }
