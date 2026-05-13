@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HGame01Server.Models.GameData;
 
 // 이 파일은 Admin/UploadGameData API에 의해 자동 생성되었습니다.
@@ -11,6 +13,20 @@ public class GdbChapterData
     public string field_tag { get; set; } = "";
     public int chapter_index { get; set; }
     public int stage_count { get; set; }
+    public List<PhasesEntry> phases { get; set; } = new();
     public string boss_tag { get; set; } = "";
+    public StatMultiplierCurve stat_multiplier_curve { get; set; }
+    public List<string> drop_table { get; set; } = new();
     public float drop_chance { get; set; }
+
+    public class PhasesEntry
+    {
+        public string enemy_tag { get; set; } = "";
+        public int total_count { get; set; }
+        public int sub_wave_count { get; set; }
+    }
+
+    public class StatMultiplierCurve
+    {
+    }
 }

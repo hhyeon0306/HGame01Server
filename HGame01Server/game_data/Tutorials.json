@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "tag": "Tag.Tutorial.Lobby.First",
+    "trigger": {
+      "scene_tag": "Tag.Scene.Lobby"
+    },
+    "conditions": [],
+    "steps": [
+      {
+        "dialog_tag": "Tag.Dialog.Tutorial.Lobby.First"
+      },
+      {
+        "target_u_i_tag": "Tag.UI.StageButton",
+        "shape": "Rect",
+        "padding": {
+          "x": 20.0,
+          "y": 20.0
+        },
+        "tween_duration": 1.0,
+        "wait_for_click": true
+      }
+    ]
+  }
+]

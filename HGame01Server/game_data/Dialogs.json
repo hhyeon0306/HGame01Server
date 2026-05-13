@@ -1,1 +1,33 @@
-[]
+[
+  {
+    "id": 1,
+    "tag": "Tag.Dialog.Tutorial.Lobby.First",
+    "entries": [
+      {
+        "npc_name_key": "Dialog.Tutorial.Lobby.First.NpcName",
+        "portrait_sprite_key": "Character_Icon03",
+        "text_key": "Dialog.Tutorial.Lobby.First.Line1"
+      },
+      {
+        "npc_name_key": "Dialog.Tutorial.Lobby.First.NpcName",
+        "portrait_sprite_key": "Character_Icon03",
+        "text_key": "Dialog.Tutorial.Lobby.First.Line2"
+      },
+      {
+        "npc_name_key": "Dialog.Tutorial.Lobby.First.NpcName",
+        "portrait_sprite_key": "Character_Icon03",
+        "text_key": "Dialog.Tutorial.Lobby.First.Line3"
+      },
+      {
+        "npc_name_key": "Dialog.Tutorial.Lobby.First.NpcName",
+        "portrait_sprite_key": "Character_Icon03",
+        "text_key": "Dialog.Tutorial.Lobby.First.Line4"
+      },
+      {
+        "npc_name_key": "Dialog.Tutorial.Lobby.First.NpcName",
+        "portrait_sprite_key": "Character_Icon03",
+        "text_key": "Dialog.Tutorial.Lobby.First.Line5"
+      }
+    ]
+  }
+]

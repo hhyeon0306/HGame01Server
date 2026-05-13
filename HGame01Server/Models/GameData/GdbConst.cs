@@ -22,9 +22,15 @@ public static class GdbConst
         public const string MaxBattleItemPerType = "maxBattleItemPerType";
     }
 
-    public static class Equipmentstorage
+    public static class Dialog
     {
-        public const string Category = "equipmentstorage";
+        public const string Category = "dialog";
+        public const string TypingSpeed = "typingSpeed";
+    }
+
+    public static class EquipmentStorage
+    {
+        public const string Category = "equipmentStorage";
         public const string ExpandCostDiamond = "expandCostDiamond";
         public const string ExpandSlotsPerPurchase = "expandSlotsPerPurchase";
         public const string MaxCapacity = "maxCapacity";
@@ -42,20 +48,11 @@ public static class GdbConst
         public const string WeightGrade4 = "weightGrade4";
     }
 
-    public static class Gamemode
+    public static class GameMode
     {
-        public const string Category = "gamemode";
+        public const string Category = "gameMode";
         public const string StageManagerAddress = "stageManagerAddress";
         public const string DevManagerAddress = "devManagerAddress";
-    }
-
-    public static class Pass
-    {
-        public const string Category = "pass";
-        public const string MaxPassLevel = "maxPassLevel";
-        public const string ExpPerLevel = "expPerLevel";
-        public const string PremiumPassPrice = "premiumPassPrice";
-        public const string SeasonDurationDays = "seasonDurationDays";
     }
 
     public static class Quest
@@ -64,6 +61,15 @@ public static class GdbConst
         public const string RequiredCompletedCount = "requiredCompletedCount";
         public const string DailyMissionRewards = "dailyMissionRewards";
         public const string DailyMissionRewardSequence = "dailyMissionRewardSequence";
+    }
+
+    public static class SeasonPass
+    {
+        public const string Category = "seasonPass";
+        public const string ExpPerLevel = "expPerLevel";
+        public const string PremiumPassPrice = "premiumPassPrice";
+        public const string StageVictoryExp = "stageVictoryExp";
+        public const string StageDefeatExp = "stageDefeatExp";
     }
 
     public static class Shop

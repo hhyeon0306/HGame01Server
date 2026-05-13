@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HGame01Server.Models.GameData;
 
 // 이 파일은 Admin/UploadGameData API에 의해 자동 생성되었습니다.
@@ -9,4 +11,13 @@ public class GdbAttributeMetadataData
     public string tag { get; set; } = "";
     public string name_key { get; set; } = "";
     public string icon_name { get; set; } = "";
+    public IconBackgroundColor icon_background_color { get; set; }
+
+    public class IconBackgroundColor
+    {
+        public float r { get; set; }
+        public float g { get; set; }
+        public float b { get; set; }
+        public float a { get; set; }
+    }
 }

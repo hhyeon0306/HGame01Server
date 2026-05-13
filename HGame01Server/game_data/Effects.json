@@ -2,57 +2,234 @@
   {
     "id": 7,
     "tag": "Tag.Effect.AtkSpeed_Multiply_Infinite",
+    "grants_tags": {
+      "tags": []
+    },
     "category": "Buff",
     "icon_name": "",
-    "duration_policy": "Infinite"
+    "duration_policy": "Infinite",
+    "modifiers": [
+      {
+        "attribute": "Tag.Attribute.AttackAnimationSpeed",
+        "apply_time": "OnStart",
+        "duration_type": "Temporary",
+        "operation": "Multiply",
+        "magnitude": 0.1,
+        "magnitude_calculation": null
+      }
+    ],
+    "modules": [
+      {},
+      {},
+      {},
+      {
+        "stacking_policy": "MaxCount",
+        "max_stack_count": 10
+      },
+      {
+        "stacking_policy": "MaxCount",
+        "max_stack_count": 10
+      }
+    ]
   },
   {
     "id": 6,
     "tag": "Tag.Effect.Barrier_Timed",
+    "grants_tags": {
+      "tags": [
+        "Tag.State.Invincible"
+      ]
+    },
     "category": "Buff",
     "icon_name": "",
-    "duration_policy": "Timed"
+    "duration_policy": "Timed",
+    "modifiers": [],
+    "modules": [
+      {},
+      {},
+      {},
+      {},
+      {
+        "stacking_policy": "RefreshDuration",
+        "max_stack_count": 1
+      }
+    ]
   },
   {
     "id": 4,
     "tag": "Tag.Effect.Burn_Add_Timed",
+    "grants_tags": {
+      "tags": [
+        "Tag.State.Burning"
+      ]
+    },
     "category": "Debuff",
     "icon_name": "EffectIcon_Burn",
-    "duration_policy": "Timed"
+    "duration_policy": "Timed",
+    "modifiers": [
+      {
+        "attribute": "Tag.Attribute.Health",
+        "apply_time": "PerTick",
+        "duration_type": "Permanent",
+        "operation": "Add",
+        "magnitude": -5.0,
+        "magnitude_calculation": {}
+      }
+    ],
+    "modules": [
+      {},
+      {},
+      {},
+      {},
+      {
+        "stacking_policy": "RefreshDuration",
+        "max_stack_count": 1
+      }
+    ]
   },
   {
     "id": 5,
     "tag": "Tag.Effect.Heal_Add_Instant",
+    "grants_tags": {
+      "tags": []
+    },
     "category": "Buff",
     "icon_name": "",
-    "duration_policy": "Instant"
+    "duration_policy": "Instant",
+    "modifiers": [
+      {
+        "attribute": "Tag.Attribute.Health",
+        "apply_time": "OnStart",
+        "duration_type": "Permanent",
+        "operation": "Add",
+        "magnitude": 300.0,
+        "magnitude_calculation": null
+      }
+    ],
+    "modules": [
+      {},
+      {},
+      {},
+      {
+        "stacking_policy": "None",
+        "max_stack_count": 1
+      }
+    ]
   },
   {
     "id": 1,
     "tag": "Tag.Effect.Speed_Multiply_Infinite",
+    "grants_tags": {
+      "tags": [
+        "Tag.State.Sprint"
+      ]
+    },
     "category": "Buff",
     "icon_name": "",
-    "duration_policy": "Infinite"
+    "duration_policy": "Infinite",
+    "modifiers": [
+      {
+        "attribute": "Tag.Attribute.MoveSpeed",
+        "apply_time": "OnStart",
+        "duration_type": "Temporary",
+        "operation": "Multiply",
+        "magnitude": 0.5,
+        "magnitude_calculation": null
+      }
+    ],
+    "modules": [
+      {},
+      {},
+      {},
+      {},
+      {
+        "stacking_policy": "MaxCount",
+        "max_stack_count": 10
+      }
+    ]
   },
   {
     "id": 3,
     "tag": "Tag.Effect.StatBuff_Infinite_AttackDamage",
+    "grants_tags": {
+      "tags": []
+    },
     "category": "Buff",
     "icon_name": "",
-    "duration_policy": "Infinite"
+    "duration_policy": "Infinite",
+    "modifiers": [
+      {
+        "attribute": "Tag.Attribute.AttackDamage",
+        "apply_time": "OnStart",
+        "duration_type": "Permanent",
+        "operation": "Add",
+        "magnitude": 0.0,
+        "magnitude_calculation": null
+      }
+    ],
+    "modules": [
+      {},
+      {},
+      {},
+      {
+        "stacking_policy": "Unlimited",
+        "max_stack_count": 1
+      }
+    ]
   },
   {
     "id": 8,
     "tag": "Tag.Effect.Stun",
+    "grants_tags": {
+      "tags": [
+        "Tag.State.CannotAct",
+        "Tag.State.CannotMove"
+      ]
+    },
     "category": "None",
     "icon_name": "",
-    "duration_policy": "Timed"
+    "duration_policy": "Timed",
+    "modifiers": [],
+    "modules": [
+      {},
+      {},
+      {},
+      {},
+      {
+        "stacking_policy": "RefreshDuration",
+        "max_stack_count": 1
+      }
+    ]
   },
   {
     "id": 2,
     "tag": "Tag.Effect.TakeDamage_Add_Instant",
+    "grants_tags": {
+      "tags": []
+    },
     "category": "Hostile",
     "icon_name": "",
-    "duration_policy": "Instant"
+    "duration_policy": "Instant",
+    "modifiers": [
+      {
+        "attribute": "Tag.Attribute.Health",
+        "apply_time": "OnStart",
+        "duration_type": "Permanent",
+        "operation": "Add",
+        "magnitude": 0.0,
+        "magnitude_calculation": {
+          "attack_attribute": "Tag.Attribute.AttackDamage"
+        }
+      }
+    ],
+    "modules": [
+      {},
+      {},
+      {},
+      {
+        "stacking_policy": "None",
+        "max_stack_count": 0
+      }
+    ]
   }
 ]

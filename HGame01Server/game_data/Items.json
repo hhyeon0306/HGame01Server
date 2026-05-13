@@ -14,13 +14,5 @@
     "icon_name": "Currency_Gold_Icon",
     "kind": "Currency",
     "currency_type": "Gold"
-  },
-  {
-    "id": 3,
-    "tag": "",
-    "name_key": "",
-    "icon_name": "",
-    "kind": "1",
-    "currency_type": "Diamond"
   }
 ]

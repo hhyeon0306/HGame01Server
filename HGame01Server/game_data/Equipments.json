@@ -7,6 +7,13 @@
     "icon_name": "Armor_Common_01",
     "grade": "Common",
     "slot": "Armor",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Multiply",
+        "value": 0.03
+      }
+    ],
     "sell_price": 10
   },
   {
@@ -17,6 +24,13 @@
     "icon_name": "Armor_Common_02",
     "grade": "Common",
     "slot": "Armor",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Multiply",
+        "value": 0.04
+      }
+    ],
     "sell_price": 15
   },
   {
@@ -27,6 +41,13 @@
     "icon_name": "Armor_Epic_01",
     "grade": "Epic",
     "slot": "Armor",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Multiply",
+        "value": 0.12
+      }
+    ],
     "sell_price": 200
   },
   {
@@ -37,6 +58,13 @@
     "icon_name": "Armor_Legendary_01",
     "grade": "Legendary",
     "slot": "Armor",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Multiply",
+        "value": 0.2
+      }
+    ],
     "sell_price": 1000
   },
   {
@@ -47,6 +75,13 @@
     "icon_name": "Armor_Rare_01",
     "grade": "Rare",
     "slot": "Armor",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Multiply",
+        "value": 0.07
+      }
+    ],
     "sell_price": 50
   },
   {
@@ -57,6 +92,13 @@
     "icon_name": "Bow_Common_01",
     "grade": "Common",
     "slot": "Bow",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Add",
+        "value": 10.0
+      }
+    ],
     "sell_price": 10
   },
   {
@@ -67,6 +109,13 @@
     "icon_name": "Bow_Common_02",
     "grade": "Common",
     "slot": "Bow",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Add",
+        "value": 12.0
+      }
+    ],
     "sell_price": 15
   },
   {
@@ -77,6 +126,13 @@
     "icon_name": "Bow_Epic_01",
     "grade": "Epic",
     "slot": "Bow",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Add",
+        "value": 50.0
+      }
+    ],
     "sell_price": 200
   },
   {
@@ -87,6 +143,13 @@
     "icon_name": "Bow_Legendary_01",
     "grade": "Legendary",
     "slot": "Bow",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Add",
+        "value": 100.0
+      }
+    ],
     "sell_price": 1000
   },
   {
@@ -97,6 +160,13 @@
     "icon_name": "Bow_Rare_01",
     "grade": "Rare",
     "slot": "Bow",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Add",
+        "value": 25.0
+      }
+    ],
     "sell_price": 50
   },
   {
@@ -107,6 +177,13 @@
     "icon_name": "Helmet_Common_01",
     "grade": "Common",
     "slot": "Helmet",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Add",
+        "value": 50.0
+      }
+    ],
     "sell_price": 10
   },
   {
@@ -117,6 +194,13 @@
     "icon_name": "Helmet_Common_02",
     "grade": "Common",
     "slot": "Helmet",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Add",
+        "value": 60.0
+      }
+    ],
     "sell_price": 15
   },
   {
@@ -127,6 +211,13 @@
     "icon_name": "Helmet_Epic_01",
     "grade": "Epic",
     "slot": "Helmet",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Add",
+        "value": 250.0
+      }
+    ],
     "sell_price": 200
   },
   {
@@ -137,6 +228,13 @@
     "icon_name": "Helmet_Legendary_01",
     "grade": "Legendary",
     "slot": "Helmet",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Add",
+        "value": 500.0
+      }
+    ],
     "sell_price": 1000
   },
   {
@@ -147,6 +245,13 @@
     "icon_name": "Helmet_Rare_01",
     "grade": "Rare",
     "slot": "Helmet",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "op": "Add",
+        "value": 120.0
+      }
+    ],
     "sell_price": 50
   },
   {
@@ -157,6 +262,13 @@
     "icon_name": "Shield_Common_01",
     "grade": "Common",
     "slot": "Shield",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "op": "Multiply",
+        "value": 0.02
+      }
+    ],
     "sell_price": 10
   },
   {
@@ -167,6 +279,13 @@
     "icon_name": "Shield_Common_02",
     "grade": "Common",
     "slot": "Shield",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "op": "Multiply",
+        "value": 0.025
+      }
+    ],
     "sell_price": 15
   },
   {
@@ -177,6 +296,13 @@
     "icon_name": "Shield_Epic_01",
     "grade": "Epic",
     "slot": "Shield",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "op": "Multiply",
+        "value": 0.08
+      }
+    ],
     "sell_price": 200
   },
   {
@@ -187,6 +313,13 @@
     "icon_name": "Shield_Legendary_01",
     "grade": "Legendary",
     "slot": "Shield",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "op": "Multiply",
+        "value": 0.15
+      }
+    ],
     "sell_price": 1000
   },
   {
@@ -197,6 +330,13 @@
     "icon_name": "Shield_Rare_01",
     "grade": "Rare",
     "slot": "Shield",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "op": "Multiply",
+        "value": 0.05
+      }
+    ],
     "sell_price": 50
   },
   {
@@ -207,6 +347,13 @@
     "icon_name": "Sword_Common_01",
     "grade": "Common",
     "slot": "Sword",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Multiply",
+        "value": 0.03
+      }
+    ],
     "sell_price": 10
   },
   {
@@ -217,6 +364,13 @@
     "icon_name": "Sword_Common_02",
     "grade": "Common",
     "slot": "Sword",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Multiply",
+        "value": 0.04
+      }
+    ],
     "sell_price": 15
   },
   {
@@ -227,6 +381,13 @@
     "icon_name": "Sword_Epic_01",
     "grade": "Epic",
     "slot": "Sword",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Multiply",
+        "value": 0.12
+      }
+    ],
     "sell_price": 200
   },
   {
@@ -237,6 +398,13 @@
     "icon_name": "Sword_Legendary_01",
     "grade": "Legendary",
     "slot": "Sword",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Multiply",
+        "value": 0.2
+      }
+    ],
     "sell_price": 1000
   },
   {
@@ -247,6 +415,13 @@
     "icon_name": "Sword_Rare_01",
     "grade": "Rare",
     "slot": "Sword",
+    "stat_modifiers": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "op": "Multiply",
+        "value": 0.07
+      }
+    ],
     "sell_price": 50
   }
 ]

@@ -3,36 +3,72 @@
     "id": 4,
     "tag": "Tag.Attribute.AttackAnimationSpeed",
     "name_key": "Attribute.AttackAnimationSpeed.Name",
-    "icon_name": ""
+    "icon_name": "",
+    "icon_background_color": {
+      "r": 1.0,
+      "g": 1.0,
+      "b": 1.0,
+      "a": 1.0
+    }
   },
   {
     "id": 1,
     "tag": "Tag.Attribute.AttackDamage",
     "name_key": "Attribute.AttackDamage.Name",
-    "icon_name": ""
+    "icon_name": "",
+    "icon_background_color": {
+      "r": 1.0,
+      "g": 1.0,
+      "b": 1.0,
+      "a": 1.0
+    }
   },
   {
     "id": 5,
     "tag": "Tag.Attribute.Health",
     "name_key": "Attribute.Health.Name",
-    "icon_name": ""
+    "icon_name": "",
+    "icon_background_color": {
+      "r": 1.0,
+      "g": 1.0,
+      "b": 1.0,
+      "a": 1.0
+    }
   },
   {
     "id": 2,
     "tag": "Tag.Attribute.HealthMax",
     "name_key": "Attribute.HealthMax.Name",
-    "icon_name": ""
+    "icon_name": "",
+    "icon_background_color": {
+      "r": 1.0,
+      "g": 1.0,
+      "b": 1.0,
+      "a": 1.0
+    }
   },
   {
     "id": 3,
     "tag": "Tag.Attribute.MoveSpeed",
     "name_key": "Attribute.MoveSpeed.Name",
-    "icon_name": ""
+    "icon_name": "",
+    "icon_background_color": {
+      "r": 1.0,
+      "g": 1.0,
+      "b": 1.0,
+      "a": 1.0
+    }
   },
   {
     "id": 6,
     "tag": "Tag.Attribute.SkillAnimationSpeed",
     "name_key": "Attribute.SkillAnimationSpeed.Name",
-    "icon_name": ""
+    "icon_name": "",
+    "icon_background_color": {
+      "r": 1.0,
+      "g": 1.0,
+      "b": 1.0,
+      "a": 1.0
+    }
   }
 ]

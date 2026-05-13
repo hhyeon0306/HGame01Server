@@ -7,13 +7,37 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": []
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 0.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.Barrier_Timed",
+        "delivery": "Instant",
+        "duration": 5.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 0.0,
+        "feedback": "None"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
     "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
     "extension": null
   },
   {
@@ -24,13 +48,37 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": true,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": []
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 0.0,
     "target_mode": "Closest",
+    "effects": [],
     "priority": 1,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": false,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "radius": 5.0,
+      "pull_speed": 12.0,
+      "speed_variance": 0.3,
+      "min_distance": 0.5,
+      "forward_offset": 5.0,
+      "scatter_distance": 1.0,
+      "release_duration": 0.4,
+      "black_hole_cue_tag": "Cue_BlackHole"
+    }
   },
   {
     "id": 10,
@@ -40,13 +88,84 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": [
+        "Tag.State.CannotAct",
+        "Tag.State.CannotMove"
+      ]
+    },
+    "blocked_tags": {
+      "tags": []
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 5.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 30.0,
+        "feedback": "CameraShake, HitFlash, DamageText"
+      },
+      {
+        "effect_data": "Tag.Effect.Stun",
+        "delivery": "Deferred",
+        "duration": 3.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 0.0,
+        "feedback": "None"
+      }
+    ],
     "priority": 1,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": false,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "charge_animation": {
+        "state_name": "Skill1",
+        "layer_index": 1,
+        "speed_parameter_name": "SkillAnimationSpeed",
+        "speed_attribute_tag": "Attribute_SkillAnimationSpeed"
+      },
+      "rush_animation": {
+        "state_name": "Skill1_Sub",
+        "layer_index": 0,
+        "speed_parameter_name": "SkillAnimationSpeed",
+        "speed_attribute_tag": "None"
+      },
+      "charge_duration": 3.0,
+      "indicator_duration": 2.5,
+      "lock_direction_ratio": 0.9,
+      "indicator_prefab": {
+        "m__asset_g_u_i_d": "d9a92d03d5438714288623bbd43370bd"
+      },
+      "completed_color": {
+        "r": 1.0,
+        "g": 0.2,
+        "b": 0.2,
+        "a": 0.8
+      },
+      "rush_distance": 8.0,
+      "rush_speed": 7.5,
+      "hit_radius": 1.5,
+      "hit_layer_mask": {},
+      "knockback_distance": 5.0,
+      "knockback_duration": 0.2,
+      "charge_cue_tag": "None",
+      "rush_cue_tag": "None",
+      "impact_cue_tag": "None"
+    }
   },
   {
     "id": 2,
@@ -56,13 +175,29 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": true,
+    "grants_tags": {
+      "tags": [
+        "Tag.State.Dead"
+      ]
+    },
+    "blocked_tags": {
+      "tags": []
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 0.0,
     "target_mode": "Closest",
+    "effects": [],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": false,
     "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
     "extension": null
   },
   {
@@ -73,13 +208,69 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": true,
+    "grants_tags": {
+      "tags": [
+        "Tag.State.CannotMove",
+        "Tag.State.CannotAct"
+      ]
+    },
+    "blocked_tags": {
+      "tags": []
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 4.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 35.0,
+        "feedback": "CameraShake, HitFlash, DamageText"
+      }
+    ],
     "priority": 1,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "charge_animation": {
+        "state_name": "Skill3",
+        "layer_index": 0,
+        "speed_parameter_name": "SkillAnimationSpeed",
+        "speed_attribute_tag": "Attribute_SkillAnimationSpeed"
+      },
+      "animation_speed_multiplier": 0.3,
+      "indicator_duration": 1.2,
+      "track_target": false,
+      "zone_radius": 1.5,
+      "hit_layer_mask": {},
+      "projectile_prefab": {
+        "m__asset_g_u_i_d": "8f951d41be1f3b04d9a8e0043e1185e8"
+      },
+      "projectile_scale": 0.6,
+      "projectile_lifetime": 1.25,
+      "indicator_prefab": {
+        "m__asset_g_u_i_d": "6444ea19ab63c38459a45a177847d267"
+      },
+      "completed_color": {
+        "r": 1.0,
+        "g": 0.4,
+        "b": 0.0,
+        "a": 0.8
+      },
+      "charge_cue_tag": "None",
+      "impact_cue_tag": "None"
+    }
   },
   {
     "id": 3,
@@ -89,13 +280,63 @@
     "auto_start": false,
     "input_mode": "HoldRepeat",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.Dead",
+        "Tag.State.CannotAct"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 4.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 20.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "projectile_data": "Tag.Projectile.Linear",
+      "projectile_prefab": {
+        "m__asset_g_u_i_d": "e712d6a4d0bf0464a9ec68bceee218e1"
+      },
+      "speed": 15.0,
+      "projectile_count": 1,
+      "spread_angle": 30.0,
+      "muzzle_flash_cue_tag": "Cue_MuzzleFlash_FireBall",
+      "hit_cue_tag": "Cue_Hit_FireBall",
+      "animation": {
+        "state_name": "Attack1",
+        "layer_index": 1,
+        "speed_parameter_name": "AttackAnimationSpeed",
+        "speed_attribute_tag": "Attribute_AttackAnimationSpeed"
+      },
+      "muzzle_transform_name": "Muzzle",
+      "use_aim_correction": true,
+      "correction_layer_mask": {},
+      "correction_radius": 1.0,
+      "correction_extra_range": 3.0,
+      "max_correction_angle": 15.0
+    }
   },
   {
     "id": 4,
@@ -105,13 +346,63 @@
     "auto_start": false,
     "input_mode": "HoldRepeat",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.CannotAct",
+        "Tag.State.Dead"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 4.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 22.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "projectile_data": "Tag.Projectile.Linear",
+      "projectile_prefab": {
+        "m__asset_g_u_i_d": "e712d6a4d0bf0464a9ec68bceee218e1"
+      },
+      "speed": 15.0,
+      "projectile_count": 2,
+      "spread_angle": 5.0,
+      "muzzle_flash_cue_tag": "Cue_MuzzleFlash_FireBall",
+      "hit_cue_tag": "Cue_Hit_FireBall",
+      "animation": {
+        "state_name": "Attack1",
+        "layer_index": 1,
+        "speed_parameter_name": "AttackAnimationSpeed",
+        "speed_attribute_tag": "Attribute_AttackAnimationSpeed"
+      },
+      "muzzle_transform_name": "Muzzle",
+      "use_aim_correction": false,
+      "correction_layer_mask": {},
+      "correction_radius": 1.0,
+      "correction_extra_range": 3.0,
+      "max_correction_angle": 15.0
+    }
   },
   {
     "id": 5,
@@ -121,13 +412,63 @@
     "auto_start": false,
     "input_mode": "HoldRepeat",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.Dead",
+        "Tag.State.CannotAct"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 4.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 24.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "projectile_data": "Tag.Projectile.Linear",
+      "projectile_prefab": {
+        "m__asset_g_u_i_d": "e712d6a4d0bf0464a9ec68bceee218e1"
+      },
+      "speed": 15.0,
+      "projectile_count": 3,
+      "spread_angle": 10.0,
+      "muzzle_flash_cue_tag": "Cue_MuzzleFlash_FireBall",
+      "hit_cue_tag": "Cue_Hit_FireBall",
+      "animation": {
+        "state_name": "Attack1",
+        "layer_index": 1,
+        "speed_parameter_name": "AttackAnimationSpeed",
+        "speed_attribute_tag": "Attribute_AttackAnimationSpeed"
+      },
+      "muzzle_transform_name": "Muzzle",
+      "use_aim_correction": false,
+      "correction_layer_mask": {},
+      "correction_radius": 1.0,
+      "correction_extra_range": 3.0,
+      "max_correction_angle": 15.0
+    }
   },
   {
     "id": 11,
@@ -137,13 +478,73 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": [
+        "Tag.State.CannotAct",
+        "Tag.State.CannotMove"
+      ]
+    },
+    "blocked_tags": {
+      "tags": []
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 3.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 100.0,
+        "feedback": "CameraShake, HitFlash, DamageText"
+      },
+      {
+        "effect_data": "Tag.Effect.Stun",
+        "delivery": "Deferred",
+        "duration": 3.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 0.0,
+        "feedback": "None"
+      }
+    ],
     "priority": 1,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": false,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "jump_animation": {
+        "state_name": "Skill2",
+        "layer_index": 0,
+        "speed_parameter_name": "SkillAnimationSpeed",
+        "speed_attribute_tag": "Attribute_SkillAnimationSpeed"
+      },
+      "slam_radius": 3.5,
+      "hit_layer_mask": {},
+      "knockup_height": 2.0,
+      "knockup_duration": 0.4,
+      "indicator_duration": 1.6,
+      "indicator_prefab": {
+        "m__asset_g_u_i_d": "6444ea19ab63c38459a45a177847d267"
+      },
+      "completed_color": {
+        "r": 1.0,
+        "g": 0.3,
+        "b": 0.0,
+        "a": 0.8
+      },
+      "jump_cue_tag": "None",
+      "slam_cue_tag": "None"
+    }
   },
   {
     "id": 14,
@@ -153,13 +554,37 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": []
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 0.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.Heal_Add_Instant",
+        "delivery": "Instant",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "Cue_Heal",
+        "base_magnitude": 0.0,
+        "feedback": "DamageText"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
     "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
     "extension": null
   },
   {
@@ -170,13 +595,51 @@
     "auto_start": false,
     "input_mode": "HoldRepeat",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.Dead",
+        "Tag.State.CannotAct"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 1.2,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 5.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "animation": {
+        "state_name": "Attack1",
+        "layer_index": 1,
+        "speed_parameter_name": "AttackAnimationSpeed",
+        "speed_attribute_tag": "Attribute_AttackAnimationSpeed"
+      },
+      "hit_range": 1.5,
+      "hit_angle": 120.0,
+      "hit_layer_mask": {}
+    }
   },
   {
     "id": 7,
@@ -186,13 +649,51 @@
     "auto_start": false,
     "input_mode": "HoldRepeat",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.Dead",
+        "Tag.State.CannotAct"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 1.25,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 10.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "animation": {
+        "state_name": "Attack1",
+        "layer_index": 1,
+        "speed_parameter_name": "AttackAnimationSpeed",
+        "speed_attribute_tag": "Attribute_AttackAnimationSpeed"
+      },
+      "hit_range": 1.5,
+      "hit_angle": 120.0,
+      "hit_layer_mask": {}
+    }
   },
   {
     "id": 8,
@@ -202,13 +703,51 @@
     "auto_start": false,
     "input_mode": "HoldRepeat",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.Dead",
+        "Tag.State.CannotAct"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 1.25,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 0.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "animation": {
+        "state_name": "Attack3",
+        "layer_index": 1,
+        "speed_parameter_name": "AttackAnimationSpeed",
+        "speed_attribute_tag": "Attribute_AttackAnimationSpeed"
+      },
+      "hit_range": 1.5,
+      "hit_angle": 120.0,
+      "hit_layer_mask": {}
+    }
   },
   {
     "id": 9,
@@ -218,13 +757,83 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": [
+        "Tag.State.CannotMove",
+        "Tag.State.CannotAct"
+      ]
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.CannotAct"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 7.0,
     "target_mode": "GroupCenter",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 5.0,
+        "feedback": "CameraShake, HitFlash, DamageText"
+      },
+      {
+        "effect_data": "Tag.Effect.Burn_Add_Timed",
+        "delivery": "Deferred",
+        "duration": 3.0,
+        "period": 1.0,
+        "cue_tag": "None",
+        "base_magnitude": 2.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 1,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 0.5
+    "interrupt_cooldown_rate": 0.5,
+    "action_template": {},
+    "extension": {
+      "animation": {
+        "state_name": "Skill1",
+        "layer_index": 1,
+        "speed_parameter_name": "SkillAnimationSpeed",
+        "speed_attribute_tag": "Attribute_SkillAnimationSpeed"
+      },
+      "casting_duration": 2.0,
+      "indicator_duration": 1.5,
+      "track_target": false,
+      "indicator_prefab": {
+        "m__asset_g_u_i_d": "6444ea19ab63c38459a45a177847d267"
+      },
+      "completed_color": {
+        "r": 1.0,
+        "g": 0.6,
+        "b": 0.0,
+        "a": 0.8
+      },
+      "meteor_zone_prefab": {
+        "m__asset_g_u_i_d": "64c225be927bf264a96f2b92af68b025"
+      },
+      "spawn_height": 10.0,
+      "spawn_horizontal_offset": 7.0,
+      "impact_delay": 1.0,
+      "zone_radius": 4.0,
+      "zone_duration": 5.0,
+      "tick_interval": 0.5,
+      "hit_layer_mask": {},
+      "casting_cue_tag": "None",
+      "impact_cue_tag": "None"
+    }
   },
   {
     "id": 16,
@@ -234,13 +843,47 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": true,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": []
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 0.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 5.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "projectile_data": "Tag.Projectile.Linear",
+      "projectile_prefab": {
+        "m__asset_g_u_i_d": "e712d6a4d0bf0464a9ec68bceee218e1"
+      },
+      "speed": 5.0,
+      "projectile_count": 8,
+      "fire_cue_tag": "None",
+      "hit_cue_tag": "Cue_Hit_FireBall"
+    }
   },
   {
     "id": 13,
@@ -250,13 +893,56 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.CannotAct"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 5.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.TakeDamage_Add_Instant",
+        "delivery": "Deferred",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 10.0,
+        "feedback": "HitFlash, DamageText"
+      }
+    ],
     "priority": 1,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": false,
-    "interrupt_cooldown_rate": 1.0
+    "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
+    "extension": {
+      "duration": 6.0,
+      "fire_interval": 0.1,
+      "projectile_speed": 10.0,
+      "projectile_data": "Tag.Projectile.HomingArc",
+      "projectile_prefab": {
+        "m__asset_g_u_i_d": "dc9cccf79dbce394fa2f8831748760ef"
+      },
+      "projectile_scale": 0.5,
+      "detect_range": 10.0,
+      "orb_prefab": {
+        "m__asset_g_u_i_d": "5d50eb99c7f72a04fb2f7375f4d44b55"
+      },
+      "orb_height_offset": 2.5,
+      "orb_scale": 0.3,
+      "fire_cue_tag": "Cue_Hit_Ice"
+    }
   },
   {
     "id": 1,
@@ -266,13 +952,41 @@
     "auto_start": false,
     "input_mode": "Triggered",
     "bypass_cannot_act": false,
+    "grants_tags": {
+      "tags": []
+    },
+    "blocked_tags": {
+      "tags": [
+        "Tag.State.Dead",
+        "Tag.State.CannotAct",
+        "Tag.State.CannotMove"
+      ]
+    },
+    "required_tags": {
+      "tags": []
+    },
     "cost_attribute": null,
     "cost_amount": 0.0,
     "range": 0.0,
     "target_mode": "Closest",
+    "effects": [
+      {
+        "effect_data": "Tag.Effect.Speed_Multiply_Infinite",
+        "delivery": "Instant",
+        "duration": 0.0,
+        "period": 0.0,
+        "cue_tag": "None",
+        "base_magnitude": 0.0,
+        "feedback": "None"
+      }
+    ],
     "priority": 0,
+    "cancel_tags": {
+      "tags": []
+    },
     "can_be_cancelled": true,
     "interrupt_cooldown_rate": 1.0,
+    "action_template": {},
     "extension": null
   }
 ]

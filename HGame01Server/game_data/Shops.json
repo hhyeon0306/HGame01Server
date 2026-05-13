@@ -3,6 +3,7 @@
     "id": 1,
     "tag": "Tag.Shop.Product.Diamond_1",
     "name_key": "Shop.Product.Diamond_1",
+    "name_params": [],
     "icon_name": "Shop_Product_Icon_Diamond_1",
     "tab_type": "CashShop",
     "payment_method": "Cash",
@@ -13,14 +14,24 @@
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 100,
     "daily_limit": 1,
-    "reward_sequence": null,
-    "popularity_label_icon": null,
-    "popularity_icon": null
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message_Inbox",
+          "wait_for_confirm": false,
+          "mode": "Sequential"
+        }
+      ]
+    },
+    "popularity_label_icon": "",
+    "popularity_icon": ""
   },
   {
     "id": 2,
     "tag": "Tag.Shop.Product.Diamond_2",
     "name_key": "Shop.Product.Diamond_2",
+    "name_params": [],
     "icon_name": "Shop_Product_Icon_Diamond_2",
     "tab_type": "CashShop",
     "payment_method": "Cash",
@@ -31,14 +42,24 @@
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 300,
     "daily_limit": 1,
-    "reward_sequence": null,
-    "popularity_label_icon": null,
-    "popularity_icon": null
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message_Inbox",
+          "wait_for_confirm": false,
+          "mode": "Sequential"
+        }
+      ]
+    },
+    "popularity_label_icon": "",
+    "popularity_icon": ""
   },
   {
     "id": 3,
     "tag": "Tag.Shop.Product.Diamond_3",
     "name_key": "Shop.Product.Diamond_3",
+    "name_params": [],
     "icon_name": "Shop_Product_Icon_Diamond_3",
     "tab_type": "CashShop",
     "payment_method": "Cash",
@@ -49,14 +70,24 @@
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 900,
     "daily_limit": 1,
-    "reward_sequence": null,
-    "popularity_label_icon": null,
-    "popularity_icon": null
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message_Inbox",
+          "wait_for_confirm": false,
+          "mode": "Sequential"
+        }
+      ]
+    },
+    "popularity_label_icon": "",
+    "popularity_icon": ""
   },
   {
     "id": 4,
     "tag": "Tag.Shop.Product.Diamond_4",
     "name_key": "Shop.Product.Diamond_4",
+    "name_params": [],
     "icon_name": "Shop_Product_Icon_Diamond_4",
     "tab_type": "CashShop",
     "payment_method": "Cash",
@@ -67,14 +98,24 @@
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 3000,
     "daily_limit": 1,
-    "reward_sequence": null,
-    "popularity_label_icon": null,
-    "popularity_icon": null
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message_Inbox",
+          "wait_for_confirm": false,
+          "mode": "Sequential"
+        }
+      ]
+    },
+    "popularity_label_icon": "",
+    "popularity_icon": ""
   },
   {
     "id": 5,
     "tag": "Tag.Shop.Product.Diamond_5",
     "name_key": "Shop.Product.Diamond_5",
+    "name_params": [],
     "icon_name": "Shop_Product_Icon_Diamond_5",
     "tab_type": "CashShop",
     "payment_method": "Cash",
@@ -85,7 +126,16 @@
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 8000,
     "daily_limit": 1,
-    "reward_sequence": null,
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message_Inbox",
+          "wait_for_confirm": false,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "popularity_label_icon": "Label_Tag04_Color_Purple",
     "popularity_icon": "Icon_WhiteIcon_Best01"
   },
@@ -93,6 +143,7 @@
     "id": 6,
     "tag": "Tag.Shop.Product.Diamond_6",
     "name_key": "Shop.Product.Diamond_6",
+    "name_params": [],
     "icon_name": "Shop_Product_Icon_Diamond_6",
     "tab_type": "CashShop",
     "payment_method": "Cash",
@@ -103,6 +154,16 @@
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 15000,
     "daily_limit": 1,
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message_Inbox",
+          "wait_for_confirm": false,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "popularity_label_icon": "",
     "popularity_icon": ""
   },
@@ -110,6 +171,7 @@
     "id": 101,
     "tag": "Tag.Shop.Product.Gold_1",
     "name_key": "Shop.Product.Gold_1",
+    "name_params": [],
     "icon_name": "Shop_Package_Icon_Gold_1",
     "tab_type": "Daily",
     "payment_method": "Currency",
@@ -120,6 +182,29 @@
     "reward_item": "Tag.Item.Currency_Gold",
     "reward_count": 1000,
     "daily_limit": 5,
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message",
+          "wait_for_confirm": true,
+          "mode": "Sequential"
+        },
+        {
+          "count": 12,
+          "start_jitter_radius": 75.0,
+          "spread": 280.0,
+          "arc_height": 120.0,
+          "per_coin_duration": 1.5,
+          "spawn_interval": 0.07,
+          "mode": "Sequential"
+        },
+        {
+          "delay_before_apply": 0.0,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "popularity_label_icon": "",
     "popularity_icon": ""
   },
@@ -127,6 +212,7 @@
     "id": 102,
     "tag": "Tag.Shop.Product.Gold_2",
     "name_key": "Shop.Product.Gold_2",
+    "name_params": [],
     "icon_name": "Shop_Package_Icon_Gold_2",
     "tab_type": "Daily",
     "payment_method": "Currency",
@@ -137,6 +223,29 @@
     "reward_item": "Tag.Item.Currency_Gold",
     "reward_count": 10000,
     "daily_limit": 4,
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message",
+          "wait_for_confirm": true,
+          "mode": "Sequential"
+        },
+        {
+          "count": 12,
+          "start_jitter_radius": 75.0,
+          "spread": 280.0,
+          "arc_height": 120.0,
+          "per_coin_duration": 1.5,
+          "spawn_interval": 0.07,
+          "mode": "Sequential"
+        },
+        {
+          "delay_before_apply": 0.0,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "popularity_label_icon": "",
     "popularity_icon": ""
   },
@@ -144,6 +253,7 @@
     "id": 103,
     "tag": "Tag.Shop.Product.Gold_3",
     "name_key": "Shop.Product.Gold_3",
+    "name_params": [],
     "icon_name": "Shop_Package_Icon_Gold_3",
     "tab_type": "Daily",
     "payment_method": "Currency",
@@ -154,6 +264,29 @@
     "reward_item": "Tag.Item.Currency_Gold",
     "reward_count": 100000,
     "daily_limit": 3,
+    "reward_sequence": {
+      "steps": [
+        {
+          "title_key": "Shop.Purchase.Success.Title",
+          "body_key": "Shop.Purchase.Success.Message",
+          "wait_for_confirm": true,
+          "mode": "Sequential"
+        },
+        {
+          "count": 12,
+          "start_jitter_radius": 75.0,
+          "spread": 280.0,
+          "arc_height": 120.0,
+          "per_coin_duration": 1.5,
+          "spawn_interval": 0.07,
+          "mode": "Sequential"
+        },
+        {
+          "delay_before_apply": 0.0,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "popularity_label_icon": "Label_Tag04_Color_Red",
     "popularity_icon": "Icon_WhiteIcon_Best02"
   }

@@ -1,18 +1,219 @@
 [
   {
     "id": 1,
-    "tag": "Tag.Character.Dummy"
+    "tag": "Tag.Character.Dummy",
+    "base_attributes": [
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "base_value": 3.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.GroundedGravity",
+        "base_value": 2.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.Gravity",
+        "base_value": 20.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "base_value": 10000.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.Health",
+        "base_value": 10000.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "base_value": 10.0
+      }
+    ],
+    "action_slots": [],
+    "combos": [],
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "64fd76c53759e8349b527530d2112de8"
+    }
   },
   {
     "id": 101,
-    "tag": "Tag.Character.Player"
+    "tag": "Tag.Character.Player",
+    "base_attributes": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "base_value": 5.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.AttackAnimationSpeed",
+        "base_value": 3.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "base_value": 2.25
+      },
+      {
+        "attribute_tag": "Tag.Attribute.GroundedGravity",
+        "base_value": 2.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.Gravity",
+        "base_value": 20.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "base_value": 1000.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.Health",
+        "base_value": 1000.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.SkillAnimationSpeed",
+        "base_value": 1.5
+      }
+    ],
+    "action_slots": [
+      {
+        "slot": "Attack",
+        "action_tag": "Action_FireBall1"
+      },
+      {
+        "slot": "Skill1",
+        "action_tag": "Action_Meteor"
+      },
+      {
+        "slot": "Skill2",
+        "action_tag": "Action_SentinelOrb"
+      }
+    ],
+    "combos": [
+      {
+        "combo_name": "FireBall Combo",
+        "steps": [
+          {
+            "action_tag": "Tag.Action.FireBall1",
+            "time_window": 0.0
+          },
+          {
+            "action_tag": "Tag.Action.FireBall2",
+            "time_window": 0.8
+          },
+          {
+            "action_tag": "Tag.Action.FireBall3",
+            "time_window": 0.8
+          }
+        ]
+      }
+    ],
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "eb2eb697c056518408c82512addc28e5"
+    }
   },
   {
     "id": 1001,
-    "tag": "Tag.Character.Enemy"
+    "tag": "Tag.Character.Enemy",
+    "base_attributes": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "base_value": 5.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.AttackAnimationSpeed",
+        "base_value": 2.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "base_value": 2.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.GroundedGravity",
+        "base_value": 2.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.Gravity",
+        "base_value": 20.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "base_value": 100.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.Health",
+        "base_value": 100.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.SkillAnimationSpeed",
+        "base_value": 1.5
+      }
+    ],
+    "action_slots": [
+      {
+        "slot": "Attack",
+        "action_tag": "Action_Melee1"
+      }
+    ],
+    "combos": [],
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "67f18765d484cb44eb44455f0ed74662"
+    }
   },
   {
     "id": 10001,
-    "tag": "Tag.Character.Boss"
+    "tag": "Tag.Character.Boss",
+    "base_attributes": [
+      {
+        "attribute_tag": "Tag.Attribute.AttackDamage",
+        "base_value": 10.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.AttackAnimationSpeed",
+        "base_value": 2.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.MoveSpeed",
+        "base_value": 1.75
+      },
+      {
+        "attribute_tag": "Tag.Attribute.GroundedGravity",
+        "base_value": 2.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.Gravity",
+        "base_value": 20.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.HealthMax",
+        "base_value": 3000.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.Health",
+        "base_value": 3000.0
+      },
+      {
+        "attribute_tag": "Tag.Attribute.SkillAnimationSpeed",
+        "base_value": 1.5
+      }
+    ],
+    "action_slots": [
+      {
+        "slot": "Attack",
+        "action_tag": "Action_Melee2"
+      },
+      {
+        "slot": "Skill1",
+        "action_tag": "Action_ChargeRush"
+      },
+      {
+        "slot": "Skill2",
+        "action_tag": "Action_GroundSlam"
+      },
+      {
+        "slot": "Skill3",
+        "action_tag": "Action_FallingBarrage"
+      }
+    ],
+    "combos": [],
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "511079cb6b459984dbc2c8e5d34f8ade"
+    }
   }
 ]

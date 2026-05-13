@@ -1,6 +1,79 @@
 [
   {
     "id": 1,
-    "tag": ""
+    "tag": "",
+    "entries": [
+      {
+        "kind": "Generic",
+        "sequence": {
+          "steps": [
+            {
+              "delay_before_apply": 0.0,
+              "mode": "Sequential"
+            }
+          ]
+        }
+      },
+      {
+        "kind": "CashPurchase",
+        "sequence": {
+          "steps": [
+            {
+              "count": 12,
+              "start_jitter_radius": 75.0,
+              "spread": 280.0,
+              "arc_height": 120.0,
+              "per_coin_duration": 1.5,
+              "spawn_interval": 0.07,
+              "mode": "Sequential"
+            },
+            {
+              "delay_before_apply": 0.0,
+              "mode": "Sequential"
+            }
+          ]
+        }
+      },
+      {
+        "kind": "QuestExpired",
+        "sequence": {
+          "steps": [
+            {
+              "count": 12,
+              "start_jitter_radius": 75.0,
+              "spread": 280.0,
+              "arc_height": 120.0,
+              "per_coin_duration": 1.5,
+              "spawn_interval": 0.07,
+              "mode": "Sequential"
+            },
+            {
+              "delay_before_apply": 0.0,
+              "mode": "Sequential"
+            }
+          ]
+        }
+      },
+      {
+        "kind": "QuestBundleExpired",
+        "sequence": {
+          "steps": [
+            {
+              "count": 12,
+              "start_jitter_radius": 75.0,
+              "spread": 280.0,
+              "arc_height": 120.0,
+              "per_coin_duration": 1.5,
+              "spawn_interval": 0.07,
+              "mode": "Sequential"
+            },
+            {
+              "delay_before_apply": 0.0,
+              "mode": "Sequential"
+            }
+          ]
+        }
+      }
+    ]
   }
 ]

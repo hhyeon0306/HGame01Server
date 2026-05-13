@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HGame01Server.Models.GameData;
 
 // 이 파일은 Admin/UploadGameData API에 의해 자동 생성되었습니다.
@@ -8,6 +10,7 @@ public class GdbShopData
     public int id { get; set; }
     public string tag { get; set; } = "";
     public string name_key { get; set; } = "";
+    public List<object> name_params { get; set; } = new();
     public string icon_name { get; set; } = "";
     public string tab_type { get; set; } = "";
     public string payment_method { get; set; } = "";
@@ -18,7 +21,20 @@ public class GdbShopData
     public string reward_item { get; set; } = "";
     public int reward_count { get; set; }
     public int daily_limit { get; set; }
-    public object reward_sequence { get; set; }
-    public object popularity_label_icon { get; set; }
-    public object popularity_icon { get; set; }
+    public RewardSequence reward_sequence { get; set; }
+    public string popularity_label_icon { get; set; } = "";
+    public string popularity_icon { get; set; } = "";
+
+    public class RewardSequence
+    {
+        public List<StepsEntry> steps { get; set; } = new();
+
+        public class StepsEntry
+        {
+            public string title_key { get; set; } = "";
+            public string body_key { get; set; } = "";
+            public bool wait_for_confirm { get; set; }
+            public string mode { get; set; } = "";
+        }
+    }
 }

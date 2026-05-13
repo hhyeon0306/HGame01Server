@@ -1,15 +1,48 @@
 [
   {
     "id": 1,
-    "tag": "Tag.GameMode.Dev"
+    "tag": "Tag.GameMode.Dev",
+    "mode_config": {
+      "dummy_data": "Tag.Character.Dummy",
+      "respawn_delay": 3.0
+    },
+    "features": [
+      {
+        "config": {
+          "base_max_a_p": 10,
+          "ap_scale_per_level": 5,
+          "ap_per_kill": 5
+        }
+      },
+      {},
+      {}
+    ]
   },
   {
     "id": 1001,
     "tag": "Tag.GameMode.Dungeon",
-    "mode_config": null
+    "mode_config": null,
+    "features": [
+      {}
+    ]
   },
   {
     "id": 101,
-    "tag": "Tag.GameMode.Stage"
+    "tag": "Tag.GameMode.Stage",
+    "mode_config": {
+      "skip_to_boss": false,
+      "phase_transition_delay": 2.0
+    },
+    "features": [
+      {},
+      {
+        "config": {
+          "base_max_a_p": 10,
+          "ap_scale_per_level": 5,
+          "ap_per_kill": 5
+        }
+      },
+      {}
+    ]
   }
 ]

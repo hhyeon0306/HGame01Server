@@ -3,36 +3,54 @@
     "id": 4,
     "tag": "Tag.Cue.Barrier",
     "duration": 1.0,
-    "attach_to_parent": true
+    "attach_to_parent": true,
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "7009ad056b5603440bbff7bfbd55aac2"
+    }
   },
   {
     "id": 6,
     "tag": "Tag.Cue.BlackHole",
     "duration": 10.0,
-    "attach_to_parent": false
+    "attach_to_parent": false,
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "b33f019198510504c9c8fc35faec9980"
+    }
   },
   {
     "id": 5,
     "tag": "Tag.Cue.Heal",
     "duration": 2.0,
-    "attach_to_parent": true
+    "attach_to_parent": true,
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "bdac1a2ea1537df478dbe8f5dc94dc6a"
+    }
   },
   {
     "id": 2,
     "tag": "Tag.Cue.Hit.FireBall",
     "duration": 1.0,
-    "attach_to_parent": false
+    "attach_to_parent": false,
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "43cd64562d6aeef41a39ed84b457b7ce"
+    }
   },
   {
     "id": 3,
     "tag": "Tag.Cue.Hit.Ice",
     "duration": 2.0,
-    "attach_to_parent": false
+    "attach_to_parent": false,
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "f5b405fe8cbfa4f47836ecc1dfad4ac2"
+    }
   },
   {
     "id": 1,
     "tag": "Tag.Cue.MuzzleFlash.FireBall",
     "duration": 1.0,
-    "attach_to_parent": false
+    "attach_to_parent": false,
+    "prefab_ref": {
+      "m__asset_g_u_i_d": "6f67da69edcd92e4890c655bfcd7e747"
+    }
   }
 ]

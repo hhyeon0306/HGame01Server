@@ -1,10 +1,30 @@
 [
   {
     "id": 1,
-    "tag": "Tag.GameField.Dev"
+    "tag": "Tag.GameField.Dev",
+    "map_prefab_ref": {
+      "m__asset_g_u_i_d": "0fff3de047e53bf4eba68403097febe7"
+    },
+    "bgm_ref": {
+      "m__asset_g_u_i_d": "",
+      "m__sub_object_name": "",
+      "m__sub_object_type": "",
+      "m__sub_object_g_u_i_d": "",
+      "m__editor_asset_changed": false
+    }
   },
   {
     "id": 101,
-    "tag": "Tag.GameField.Prototype"
+    "tag": "Tag.GameField.Prototype",
+    "map_prefab_ref": {
+      "m__asset_g_u_i_d": "f32fa361074aff145b1dec13ec6839d9"
+    },
+    "bgm_ref": {
+      "m__asset_g_u_i_d": "",
+      "m__sub_object_name": "",
+      "m__sub_object_type": "",
+      "m__sub_object_g_u_i_d": "",
+      "m__editor_asset_changed": false
+    }
   }
 ]

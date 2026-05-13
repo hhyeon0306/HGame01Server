@@ -6,7 +6,29 @@
     "field_tag": "Tag.GameField.Prototype",
     "chapter_index": 1,
     "stage_count": 30,
+    "phases": [
+      {
+        "enemy_tag": "Tag.Character.Enemy",
+        "total_count": 10,
+        "sub_wave_count": 1
+      },
+      {
+        "enemy_tag": "Tag.Character.Enemy",
+        "total_count": 15,
+        "sub_wave_count": 1
+      },
+      {
+        "enemy_tag": "Tag.Character.Enemy",
+        "total_count": 20,
+        "sub_wave_count": 1
+      }
+    ],
     "boss_tag": "Tag.Character.Boss",
+    "stat_multiplier_curve": {},
+    "drop_table": [
+      "Tag.BattleItem.Barrier",
+      "Tag.BattleItem.HealPotion"
+    ],
     "drop_chance": 0.692
   }
 ]

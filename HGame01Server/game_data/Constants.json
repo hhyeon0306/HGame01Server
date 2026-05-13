@@ -35,19 +35,24 @@
     "category": "combat"
   },
   {
+    "key": "typingSpeed",
+    "value": "30",
+    "category": "dialog"
+  },
+  {
     "key": "expandCostDiamond",
     "value": "100",
-    "category": "equipmentstorage"
+    "category": "equipmentStorage"
   },
   {
     "key": "expandSlotsPerPurchase",
     "value": "5",
-    "category": "equipmentstorage"
+    "category": "equipmentStorage"
   },
   {
     "key": "maxCapacity",
     "value": "120",
-    "category": "equipmentstorage"
+    "category": "equipmentStorage"
   },
   {
     "key": "singleCostDiamond",
@@ -87,32 +92,12 @@
   {
     "key": "stageManagerAddress",
     "value": "StageManager",
-    "category": "gamemode"
+    "category": "gameMode"
   },
   {
     "key": "devManagerAddress",
     "value": "DevManager",
-    "category": "gamemode"
-  },
-  {
-    "key": "maxPassLevel",
-    "value": "30",
-    "category": "pass"
-  },
-  {
-    "key": "expPerLevel",
-    "value": "1000",
-    "category": "pass"
-  },
-  {
-    "key": "premiumPassPrice",
-    "value": "9900",
-    "category": "pass"
-  },
-  {
-    "key": "seasonDurationDays",
-    "value": "30",
-    "category": "pass"
+    "category": "gameMode"
   },
   {
     "key": "requiredCompletedCount",
@@ -128,6 +113,26 @@
     "key": "dailyMissionRewardSequence",
     "value": "{\u0022steps\u0022:[{\u0022count\u0022:12,\u0022start_jitter_radius\u0022:75.0,\u0022spread\u0022:280.0,\u0022arc_height\u0022:120.0,\u0022per_coin_duration\u0022:1.5,\u0022spawn_interval\u0022:0.07,\u0022mode\u0022:\u0022Sequential\u0022},{\u0022delay_before_apply\u0022:0.0,\u0022mode\u0022:\u0022Sequential\u0022}]}",
     "category": "quest"
+  },
+  {
+    "key": "expPerLevel",
+    "value": "100",
+    "category": "seasonPass"
+  },
+  {
+    "key": "premiumPassPrice",
+    "value": "9900",
+    "category": "seasonPass"
+  },
+  {
+    "key": "stageVictoryExp",
+    "value": "50",
+    "category": "seasonPass"
+  },
+  {
+    "key": "stageDefeatExp",
+    "value": "30",
+    "category": "seasonPass"
   },
   {
     "key": "dailyResetHourUtc",

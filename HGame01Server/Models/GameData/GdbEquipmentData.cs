@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HGame01Server.Models.GameData;
 
 // 이 파일은 Admin/UploadGameData API에 의해 자동 생성되었습니다.
@@ -12,5 +14,13 @@ public class GdbEquipmentData
     public string icon_name { get; set; } = "";
     public string grade { get; set; } = "";
     public string slot { get; set; } = "";
+    public List<StatModifiersEntry> stat_modifiers { get; set; } = new();
     public int sell_price { get; set; }
+
+    public class StatModifiersEntry
+    {
+        public string attribute_tag { get; set; } = "";
+        public string op { get; set; } = "";
+        public float value { get; set; }
+    }
 }

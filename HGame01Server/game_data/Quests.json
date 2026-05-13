@@ -6,6 +6,28 @@
     "title_key": "quest.daily.clearstage3.title",
     "description_key": "quest.daily.clearstage3.desc",
     "icon_name": "",
+    "condition": {
+      "stage_tag": null,
+      "min_difficulty": 0,
+      "required_count": 1
+    },
+    "reward_sequence": {
+      "steps": [
+        {
+          "count": 12,
+          "start_jitter_radius": 75.0,
+          "spread": 280.0,
+          "arc_height": 120.0,
+          "per_coin_duration": 1.5,
+          "spawn_interval": 0.07,
+          "mode": "Sequential"
+        },
+        {
+          "delay_before_apply": 0.0,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 3000,
     "required_count": 1
@@ -17,6 +39,27 @@
     "title_key": "quest.daily.gachapull1.title",
     "description_key": "quest.daily.gachapull1.desc",
     "icon_name": "",
+    "condition": {
+      "gacha_type": null,
+      "required_count": 1
+    },
+    "reward_sequence": {
+      "steps": [
+        {
+          "count": 12,
+          "start_jitter_radius": 75.0,
+          "spread": 280.0,
+          "arc_height": 120.0,
+          "per_coin_duration": 1.5,
+          "spawn_interval": 0.07,
+          "mode": "Sequential"
+        },
+        {
+          "delay_before_apply": 0.0,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 1000,
     "required_count": 1
@@ -28,6 +71,28 @@
     "title_key": "quest.daily.killboss1.title",
     "description_key": "quest.daily.killboss1.desc",
     "icon_name": "",
+    "condition": {
+      "enemy_tag": null,
+      "boss_only": true,
+      "required_count": 1
+    },
+    "reward_sequence": {
+      "steps": [
+        {
+          "count": 12,
+          "start_jitter_radius": 75.0,
+          "spread": 280.0,
+          "arc_height": 120.0,
+          "per_coin_duration": 1.5,
+          "spawn_interval": 0.07,
+          "mode": "Sequential"
+        },
+        {
+          "delay_before_apply": 0.0,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "reward_item": "Tag.Item.Currency_Diamond",
     "reward_count": 5000,
     "required_count": 1
@@ -39,6 +104,28 @@
     "title_key": "quest.daily.killenemy30.title",
     "description_key": "quest.daily.killenemy30.desc",
     "icon_name": "",
+    "condition": {
+      "enemy_tag": null,
+      "boss_only": false,
+      "required_count": 30
+    },
+    "reward_sequence": {
+      "steps": [
+        {
+          "count": 12,
+          "start_jitter_radius": 75.0,
+          "spread": 280.0,
+          "arc_height": 120.0,
+          "per_coin_duration": 1.5,
+          "spawn_interval": 0.07,
+          "mode": "Sequential"
+        },
+        {
+          "delay_before_apply": 0.0,
+          "mode": "Sequential"
+        }
+      ]
+    },
     "reward_item": "Tag.Item.Currency_Gold",
     "reward_count": 5000,
     "required_count": 30

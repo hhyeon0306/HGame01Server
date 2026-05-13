@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HGame01Server.Models.GameData;
 
 // 이 파일은 Admin/UploadGameData API에 의해 자동 생성되었습니다.
@@ -12,4 +14,13 @@ public class GdbAbilityData
     public string icon_sprite { get; set; } = "";
     public string grade { get; set; } = "";
     public int max_pick_count { get; set; }
+    public List<BehaviorsEntry> behaviors { get; set; } = new();
+
+    public class BehaviorsEntry
+    {
+        public string effect_ref { get; set; } = "";
+        public float duration { get; set; }
+        public float period { get; set; }
+        public float base_magnitude { get; set; }
+    }
 }
