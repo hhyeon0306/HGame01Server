@@ -24,6 +24,14 @@ public class CurrencyService
         }).ToList();
     }
 
+    /// 재화 변동 응답의 currencies를 "유저 전체 절대 스냅샷"으로 채우는 단일 경로 (currency-contract).
+    /// ICurrencyBearingResponse 구현 응답은 직접 currencies 대입 대신 반드시 이 메서드를 거친다.
+    /// 부분 목록(변경분만) 응답 시 클라 absolute 교체로 미포함 통화가 0으로 소실되는 사고를 구조적으로 차단.
+    public async Task PopulateCurrenciesAsync(ICurrencyBearingResponse response, long uid)
+    {
+        response.Currencies = await GetAllAsync(uid);
+    }
+
     /// 특정 재화의 보유량 조회. 없으면 0 반환.
     public async Task<long> GetAmountAsync(long uid, int currencyType)
     {
