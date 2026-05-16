@@ -62,11 +62,14 @@ public class PkSeasonPassPurchasePremiumResponse
 // POST api/SeasonPass/Claim
 public class PkSeasonPassClaimRequest { }
 
-public class PkSeasonPassClaimResponse
+public class PkSeasonPassClaimResponse : ICurrencyBearingResponse
 {
     public ErrorCode result { get; set; }
     public List<int> grantedBasicLevels { get; set; } = new();
     public List<int> grantedPremiumLevels { get; set; } = new();
-    public List<PkCurrency> currencies { get; set; } = new();
+    // 인터페이스 규약상 PascalCase. 클라 Newtonsoft ignore-case 매핑으로 클라 currencies 필드에 정상 수신.
+    public List<PkCurrency> Currencies { get; set; } = new();
+    /// CoinFly 연출용 대표보상 — 서버가 RewardResolver로 정확한 rewardTag 확정 (클라 tag 추측 제거).
+    public PkRewardResult? reward { get; set; }
     public PkSeasonPassState? state { get; set; }
 }

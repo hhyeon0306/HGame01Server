@@ -131,6 +131,8 @@ public class SeasonPassService
         var grantedBasic = new List<int>();
         var grantedPremium = new List<int>();
         var currencyAccum = new Dictionary<int, long>();
+        // currencyType → 대표 rewardTag. CoinFly 연출용 대표보상을 서버가 데이터 lookup으로 확정 (클라 tag 추측 제거).
+        var currencyTagByType = new Dictionary<int, string>();
 
         for (int level = 1; level <= currentLevel; level++)
         {
@@ -143,13 +145,13 @@ public class SeasonPassService
             if (!alreadyBasic.Contains(level))
             {
                 grantedBasic.Add(level);
-                AccumulateReward(currencyAccum, entry.basic_reward, entry.basic_count);
+                AccumulateReward(currencyAccum, currencyTagByType, entry.basic_reward, entry.basic_count);
             }
 
             if (row.isPremium && !alreadyPremium.Contains(level))
             {
                 grantedPremium.Add(level);
-                AccumulateReward(currencyAccum, entry.premium_reward, entry.premium_count);
+                AccumulateReward(currencyAccum, currencyTagByType, entry.premium_reward, entry.premium_count);
             }
         }
 
@@ -174,22 +176,37 @@ public class SeasonPassService
         row.updatedAtUtc = NowStr();
         await _gameDB.UpsertUserSeasonPassAsync(row);
 
-        // currency absolute 응답 — 클라 UI absolute 적용 (Quest 응답 패턴 정합).
-        var currencies = new List<PkCurrency>();
-        foreach (var kv in currencyAccum)
-        {
-            var cur = await _gameDB.GetCurrencyAsync(uid, kv.Key);
-            currencies.Add(new PkCurrency { CurrencyType = kv.Key, Amount = cur?.amount ?? 0 });
-        }
-
-        return new PkSeasonPassClaimResponse
+        var response = new PkSeasonPassClaimResponse
         {
             result = ErrorCode.None,
             grantedBasicLevels = grantedBasic,
             grantedPremiumLevels = grantedPremium,
-            currencies = currencies,
+            // CoinFly 연출용 대표보상 — 서버가 데이터 lookup으로 정확한 rewardTag 확정 (Quest 패턴 정합).
+            reward = BuildRepresentativeReward(currencyAccum, currencyTagByType),
             state = BuildStateDto(row),
         };
+        // 재화는 유저 전체 절대 스냅샷으로만 채운다 (currency-contract — 부분 목록 시 클라에서 미포함 통화 0 소실).
+        await _currencyService.PopulateCurrenciesAsync(response, uid);
+
+        return response;
+    }
+
+    /// 누적 currency 중 대표(amount 최대) 1종을 RewardResolver로 PkRewardResult 합성 — CoinFly 연출용.
+    /// Quest dailyBundle topCurrency 패턴 정합. 클라가 tag를 추측하지 않도록 서버가 데이터 lookup으로 확정.
+    private PkRewardResult? BuildRepresentativeReward(Dictionary<int, long> accum, Dictionary<int, string> tagByType)
+    {
+        if (accum.Count == 0)
+        {
+            return null;
+        }
+
+        var top = accum.OrderByDescending(kv => kv.Value).First();
+        if (!tagByType.TryGetValue(top.Key, out var tag) || string.IsNullOrEmpty(tag))
+        {
+            return null;
+        }
+
+        return RewardResolver.Resolve(_gameDataManager, tag, (int)top.Value);
     }
 
 
@@ -238,7 +255,8 @@ public class SeasonPassService
     }
 
     /// reward tag → ItemData lookup → currencyType 매핑 → accum에 누적. MailService 패턴 차용.
-    private void AccumulateReward(Dictionary<int, long> accum, string rewardTag, int count)
+    /// tagByType에는 currencyType별 첫 rewardTag를 기록 — 대표보상(CoinFly) 합성용. SeasonPass는 통화당 동일 tag라 첫 값으로 충분.
+    private void AccumulateReward(Dictionary<int, long> accum, Dictionary<int, string> tagByType, string rewardTag, int count)
     {
         if (string.IsNullOrEmpty(rewardTag) || count <= 0)
         {
@@ -247,12 +265,18 @@ public class SeasonPassService
 
         string currencyName = RewardResolver.ResolveCurrencyType(_gameDataManager, rewardTag);
         int currencyType = ParseCurrencyType(currencyName);
+
         if (!accum.ContainsKey(currencyType))
         {
             accum[currencyType] = 0;
         }
 
         accum[currencyType] += count;
+
+        if (!tagByType.ContainsKey(currencyType))
+        {
+            tagByType[currencyType] = rewardTag;
+        }
     }
 
     private static int ParseCurrencyType(string s)
