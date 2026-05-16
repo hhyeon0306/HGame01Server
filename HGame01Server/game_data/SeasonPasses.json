@@ -8,72 +8,72 @@
     "level_rewards": [
       {
         "level": 1,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 100,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 500
       },
       {
         "level": 2,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 200,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 1000
       },
       {
         "level": 3,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 300,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 1500
       },
       {
         "level": 4,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 400,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 2000
       },
       {
         "level": 5,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 500,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 2500
       },
       {
         "level": 6,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 600,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 3000
       },
       {
         "level": 7,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 700,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 3500
       },
       {
         "level": 8,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 800,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 4000
       },
       {
         "level": 9,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 900,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 4500
       },
       {
         "level": 10,
-        "basic_reward": "Tag.Item.Currency_Diamond",
+        "basic_reward": "Tag.Item.Currency.Diamond",
         "basic_count": 1000,
-        "premium_reward": "Tag.Item.Currency_Diamond",
+        "premium_reward": "Tag.Item.Currency.Diamond",
         "premium_count": 5000
       }
     ]

@@ -170,7 +170,7 @@
   {
     "id": 2,
     "tag": "Tag.Action.Death",
-    "icon_name": null,
+    "icon_name": "",
     "cooldown_time": 0.0,
     "auto_start": false,
     "input_mode": "Triggered",

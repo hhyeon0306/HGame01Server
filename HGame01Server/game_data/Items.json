@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "tag": "Tag.Item.Currency_Diamond",
+    "tag": "Tag.Item.Currency.Diamond",
     "name_key": "Item.Diamond",
     "icon_name": "Currency_Diamond_Icon",
     "kind": "Currency",
@@ -9,7 +9,7 @@
   },
   {
     "id": 2,
-    "tag": "Tag.Item.Currency_Gold",
+    "tag": "Tag.Item.Currency.Gold",
     "name_key": "Item.Gold",
     "icon_name": "Currency_Gold_Icon",
     "kind": "Currency",

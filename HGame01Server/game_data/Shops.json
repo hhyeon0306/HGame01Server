@@ -11,7 +11,7 @@
     "price_amount": 0,
     "product_id": "0",
     "display_price_k_r_w": 1000,
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 100,
     "daily_limit": 1,
     "reward_sequence": {
@@ -39,7 +39,7 @@
     "price_amount": 0,
     "product_id": "0",
     "display_price_k_r_w": 3000,
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 300,
     "daily_limit": 1,
     "reward_sequence": {
@@ -67,7 +67,7 @@
     "price_amount": 0,
     "product_id": "0",
     "display_price_k_r_w": 9000,
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 900,
     "daily_limit": 1,
     "reward_sequence": {
@@ -95,7 +95,7 @@
     "price_amount": 0,
     "product_id": "0",
     "display_price_k_r_w": 30000,
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 3000,
     "daily_limit": 1,
     "reward_sequence": {
@@ -123,7 +123,7 @@
     "price_amount": 0,
     "product_id": "0",
     "display_price_k_r_w": 80000,
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 8000,
     "daily_limit": 1,
     "reward_sequence": {
@@ -151,7 +151,7 @@
     "price_amount": 0,
     "product_id": "0",
     "display_price_k_r_w": 150000,
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 15000,
     "daily_limit": 1,
     "reward_sequence": {
@@ -179,7 +179,7 @@
     "price_amount": 100,
     "product_id": "0",
     "display_price_k_r_w": 0,
-    "reward_item": "Tag.Item.Currency_Gold",
+    "reward_item": "Tag.Item.Currency.Gold",
     "reward_count": 1000,
     "daily_limit": 5,
     "reward_sequence": {
@@ -220,7 +220,7 @@
     "price_amount": 1000,
     "product_id": "0",
     "display_price_k_r_w": 0,
-    "reward_item": "Tag.Item.Currency_Gold",
+    "reward_item": "Tag.Item.Currency.Gold",
     "reward_count": 10000,
     "daily_limit": 4,
     "reward_sequence": {
@@ -261,7 +261,7 @@
     "price_amount": 10000,
     "product_id": "0",
     "display_price_k_r_w": 0,
-    "reward_item": "Tag.Item.Currency_Gold",
+    "reward_item": "Tag.Item.Currency.Gold",
     "reward_count": 100000,
     "daily_limit": 3,
     "reward_sequence": {

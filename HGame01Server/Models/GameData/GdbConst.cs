@@ -70,6 +70,7 @@ public static class GdbConst
         public const string PremiumPassPrice = "premiumPassPrice";
         public const string StageVictoryExp = "stageVictoryExp";
         public const string StageDefeatExp = "stageDefeatExp";
+        public const string ClaimRewardSequence = "claimRewardSequence";
     }
 
     public static class Shop

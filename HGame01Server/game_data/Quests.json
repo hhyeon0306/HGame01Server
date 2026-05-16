@@ -28,7 +28,7 @@
         }
       ]
     },
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 3000,
     "required_count": 1
   },
@@ -60,7 +60,7 @@
         }
       ]
     },
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 1000,
     "required_count": 1
   },
@@ -93,7 +93,7 @@
         }
       ]
     },
-    "reward_item": "Tag.Item.Currency_Diamond",
+    "reward_item": "Tag.Item.Currency.Diamond",
     "reward_count": 5000,
     "required_count": 1
   },
@@ -126,7 +126,7 @@
         }
       ]
     },
-    "reward_item": "Tag.Item.Currency_Gold",
+    "reward_item": "Tag.Item.Currency.Gold",
     "reward_count": 5000,
     "required_count": 30
   }
