@@ -509,8 +509,8 @@ public class QuestService
     {
         return currencyTypeId switch
         {
-            CurrencyType.Diamond => "Tag.Item.Currency_Diamond",
-            CurrencyType.Gold => "Tag.Item.Currency_Gold",
+            CurrencyType.Diamond => "Tag.Item.Currency.Diamond",
+            CurrencyType.Gold => "Tag.Item.Currency.Gold",
             _ => "",
         };
     }
