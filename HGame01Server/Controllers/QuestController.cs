@@ -33,7 +33,9 @@ public class QuestController : ControllerBase
     {
         var response = new PkQuestActiveResponse();
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
+
         long uid = userInfo.UId;
+        
         _logger.ZLogInformation($"[Quest/Active] Uid:{uid}");
 
         var instances = await _questService.GetActiveAsync(uid);
@@ -43,17 +45,20 @@ public class QuestController : ControllerBase
         bool hasActiveDaily = instances.Any(i =>
             i.ContainerStableId == QuestServerConstants.QuestContainerDailyStableId
             && (i.Status == "InProgress" || i.Status == "Completed" || i.Status == "Claimed"));
+
         if (!hasActiveDaily)
         {
             var dailyIds = CollectDailyQuestDataIds();
             if (dailyIds.Count > 0)
             {
                 _logger.ZLogInformation($"[Quest/Active] Uid:{uid} 활성 Daily 슬롯 0건 — 자동 RefreshDaily 트리거 (slotCount:{QuestServerConstants.DailySlotCount}).");
+                
                 await _questService.RefreshDailyAsync(
                     uid,
                     QuestServerConstants.QuestContainerDailyStableId,
                     QuestServerConstants.DailySlotCount,
                     dailyIds);
+
                 // 재호출로 권위 응답 재구성 — RefreshDaily가 만든 신규 InProgress + 기존 Completed(미수령) 모두 포함.
                 instances = await _questService.GetActiveAsync(uid);
             }
@@ -66,6 +71,7 @@ public class QuestController : ControllerBase
         response.Instances = instances;
         response.DailyBundleClaimedToday = await _questService.IsDailyBundleClaimedTodayAsync(uid);
         response.Result = ErrorCode.None;
+
         return response;
     }
 
@@ -75,14 +81,18 @@ public class QuestController : ControllerBase
     {
         var response = new PkQuestEventBatchResponse();
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
+
         long uid = userInfo.UId;
+        
         _logger.ZLogInformation($"[Quest/EventsBatch] Uid:{uid} Events:{request.Events?.Count ?? 0}");
 
         var (applied, duplicate, updated) = await _questProgress.ApplyBatchAsync(uid, request.Events ?? new());
+        
         response.Applied = applied;
         response.Duplicate = duplicate;
         response.UpdatedInstances = updated.Select(QuestService.ToDto).ToList();
         response.Result = ErrorCode.None;
+        
         return response;
     }
 
@@ -90,16 +100,12 @@ public class QuestController : ControllerBase
     [HttpPost("Claim")]
     public async Task<PkQuestClaimResponse> Claim([FromHeader] HeaderDTO header, [FromBody] PkQuestClaimRequest request)
     {
-        var response = new PkQuestClaimResponse { InstanceId = request.InstanceId };
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
+
         _logger.ZLogInformation($"[Quest/Claim] Uid:{uid} InstanceId:{request.InstanceId}");
 
-        var (error, reward, currencies) = await _questService.ClaimAsync(uid, request.InstanceId);
-        response.Result = error;
-        response.Reward = reward;
-        response.Currencies = currencies;
-        return response;
+        return await _questService.ClaimAsync(uid, request.InstanceId);
     }
 
     /// 일일 종합 보상 수령 — 4 일일 퀘스트 모두 수령 후 일괄 보너스(Diamond 450).
@@ -107,16 +113,11 @@ public class QuestController : ControllerBase
     [HttpPost("ClaimDailyBundle")]
     public async Task<PkQuestClaimDailyBundleResponse> ClaimDailyBundle([FromHeader] HeaderDTO header, [FromBody] PkQuestClaimDailyBundleRequest request)
     {
-        var response = new PkQuestClaimDailyBundleResponse();
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
         _logger.ZLogInformation($"[Quest/ClaimDailyBundle] Uid:{uid}");
 
-        var (error, reward, currencies) = await _questService.ClaimDailyBundleAsync(uid);
-        response.Result = error;
-        response.Reward = reward;
-        response.Currencies = currencies;
-        return response;
+        return await _questService.ClaimDailyBundleAsync(uid);
     }
 
     /// 일일 슬롯 강제 재발급 — 자정 통과 시 클라가 호출.

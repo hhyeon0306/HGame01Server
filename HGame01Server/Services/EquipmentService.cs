@@ -92,11 +92,19 @@ public class EquipmentService
     /// - 장착 중인 장비가 하나라도 포함되면 전체 거절 (EquipmentSellEquipped).
     /// - 본 user 미소유 dbId가 섞이면 EquipmentNotOwned로 거절 — 소유 검증 실패 시 부분 진행 금지.
     /// - 골드 합산은 GdbEquipmentData.sell_price (서버 SSoT) 기반. 클라 변조 차단.
-    public async Task<(ErrorCode error, List<PkUserEquipment> equipments, List<PkCurrency> currencies, long soldGold, int soldCount)> SellAsync(long uid, List<long> equipmentDbIds)
+    public async Task<PkSellResponse> SellAsync(long uid, List<long> equipmentDbIds)
     {
         if (equipmentDbIds == null || equipmentDbIds.Count == 0)
         {
-            return (ErrorCode.None, await GetEquipmentListAsync(uid), await _currencyService.GetAllAsync(uid), 0, 0);
+            var emptyResponse = new PkSellResponse
+            {
+                Result = ErrorCode.None,
+                Equipments = await GetEquipmentListAsync(uid),
+                SoldGold = 0,
+                SoldCount = 0,
+            };
+            await _currencyService.PopulateCurrenciesAsync(emptyResponse, uid);
+            return emptyResponse;
         }
 
         var allUserEquipments = await _gameDB.GetEquipmentsByUidAsync(uid);
@@ -108,11 +116,11 @@ public class EquipmentService
         {
             if (!byId.TryGetValue(dbId, out var equipment))
             {
-                return (ErrorCode.EquipmentNotOwned, new(), new(), 0, 0);
+                return new PkSellResponse { Result = ErrorCode.EquipmentNotOwned };
             }
             if (equipment.isEquipped)
             {
-                return (ErrorCode.EquipmentSellEquipped, new(), new(), 0, 0);
+                return new PkSellResponse { Result = ErrorCode.EquipmentSellEquipped };
             }
             targets.Add(equipment);
         }
@@ -137,7 +145,7 @@ public class EquipmentService
             if (deleted != targets.Count)
             {
                 await transaction.RollbackAsync();
-                return (ErrorCode.EquipmentSellFailed, new(), new(), 0, 0);
+                return new PkSellResponse { Result = ErrorCode.EquipmentSellFailed };
             }
 
             if (totalGold > 0)
@@ -146,7 +154,7 @@ public class EquipmentService
                 if (addError != ErrorCode.None)
                 {
                     await transaction.RollbackAsync();
-                    return (addError, new(), new(), 0, 0);
+                    return new PkSellResponse { Result = addError };
                 }
             }
 
@@ -156,13 +164,19 @@ public class EquipmentService
         {
             _ = ex;
             await transaction.RollbackAsync();
-            return (ErrorCode.EquipmentSellFailed, new(), new(), 0, 0);
+            return new PkSellResponse { Result = ErrorCode.EquipmentSellFailed };
         }
 
         // 4. 갱신된 전체 장비 + 재화 반환 — 클라가 두 store 일괄 갱신.
-        var equipments = await GetEquipmentListAsync(uid);
-        var currencies = await _currencyService.GetAllAsync(uid);
-        return (ErrorCode.None, equipments, currencies, totalGold, targets.Count);
+        var response = new PkSellResponse
+        {
+            Result = ErrorCode.None,
+            Equipments = await GetEquipmentListAsync(uid),
+            SoldGold = totalGold,
+            SoldCount = targets.Count,
+        };
+        await _currencyService.PopulateCurrenciesAsync(response, uid);
+        return response;
     }
 
     /// 자동 장착(다건 일괄). 슬롯 중복 거절 + 본 user 소유 검증 + 트랜잭션 원자성.

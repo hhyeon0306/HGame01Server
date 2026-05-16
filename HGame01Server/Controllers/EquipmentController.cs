@@ -77,20 +77,12 @@ public class EquipmentController : ControllerBase
     [HttpPost("Sell")]
     public async Task<PkSellResponse> Sell([FromHeader] HeaderDTO header, [FromBody] PkSellRequest request)
     {
-        var response = new PkSellResponse();
-
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
 
         int requestCount = request.EquipmentDbIds?.Count ?? 0;
         _logger.ZLogInformation($"[Equipment/Sell] Uid:{uid}, Count:{requestCount}");
 
-        var (error, equipments, currencies, soldGold, soldCount) = await _equipmentService.SellAsync(uid, request.EquipmentDbIds ?? new());
-        response.Result = error;
-        response.Equipments = equipments;
-        response.Currencies = currencies;
-        response.SoldGold = soldGold;
-        response.SoldCount = soldCount;
-        return response;
+        return await _equipmentService.SellAsync(uid, request.EquipmentDbIds ?? new());
     }
 }

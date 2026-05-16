@@ -59,24 +59,24 @@ public class ShopService
     }
 
     /// 상점 아이템 구매 처리. Currency 결제만 — Cash 결제는 BuyDiamondAsync 사용.
-    public async Task<(ErrorCode error, PkRewardResult reward)> BuyItemAsync(long uid, string shopItemTag)
+    public async Task<PkShopBuyResponse> BuyItemAsync(long uid, string shopItemTag)
     {
         if (string.IsNullOrEmpty(shopItemTag))
         {
-            return (ErrorCode.ShopItemNotFound, new());
+            return new PkShopBuyResponse { Result = ErrorCode.ShopItemNotFound };
         }
 
         var shopItems = _gameDataManager.GetList<GdbShopData>();
         var shopItem = shopItems?.FirstOrDefault(s => s.tag == shopItemTag);
         if (shopItem == null)
         {
-            return (ErrorCode.ShopItemNotFound, new());
+            return new PkShopBuyResponse { Result = ErrorCode.ShopItemNotFound };
         }
 
         if (shopItem.payment_method != "Currency")
         {
             // Cash 결제는 별도 엔드포인트
-            return (ErrorCode.ShopInvalidAmount, new());
+            return new PkShopBuyResponse { Result = ErrorCode.ShopInvalidAmount };
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -91,7 +91,7 @@ public class ShopService
                 int limit = shopItem.daily_limit > 0 ? shopItem.daily_limit : 1;
                 if (todayCount >= limit)
                 {
-                    return (ErrorCode.ShopItemAlreadyPurchased, new());
+                    return new PkShopBuyResponse { Result = ErrorCode.ShopItemAlreadyPurchased };
                 }
             }
 
@@ -100,7 +100,7 @@ public class ShopService
             var deductError = await _currencyService.DeductAsync(uid, costType, shopItem.price_amount);
             if (deductError != ErrorCode.None)
             {
-                return (ErrorCode.ShopInsufficientCurrency, new());
+                return new PkShopBuyResponse { Result = ErrorCode.ShopInsufficientCurrency };
             }
 
             // 보상 지급
@@ -116,13 +116,16 @@ public class ShopService
             await _gameDB.AddPurchaseAsync(purchase);
 
             await transaction.CommitAsync();
-            return (ErrorCode.None, reward);
+
+            var response = new PkShopBuyResponse { Result = ErrorCode.None, Reward = reward };
+            await _currencyService.PopulateCurrenciesAsync(response, uid);
+            return response;
         }
         catch (Exception ex)
         {
             _ = ex;
             await transaction.RollbackAsync();
-            return (ErrorCode.ShopBuyFailed, new());
+            return new PkShopBuyResponse { Result = ErrorCode.ShopBuyFailed };
         }
     }
 

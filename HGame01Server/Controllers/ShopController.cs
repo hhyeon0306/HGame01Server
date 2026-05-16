@@ -12,13 +12,11 @@ public class ShopController : ControllerBase
 {
     private readonly ILogger<ShopController> _logger;
     private readonly ShopService _shopService;
-    private readonly CurrencyService _currencyService;
 
-    public ShopController(ILogger<ShopController> logger, ShopService shopService, CurrencyService currencyService)
+    public ShopController(ILogger<ShopController> logger, ShopService shopService)
     {
         _logger = logger;
         _shopService = shopService;
-        _currencyService = currencyService;
     }
 
     /// 일일 상점 아이템 목록 조회.
@@ -57,24 +55,12 @@ public class ShopController : ControllerBase
     [HttpPost("Buy")]
     public async Task<PkShopBuyResponse> Buy([FromHeader] HeaderDTO header, [FromBody] PkShopBuyRequest request)
     {
-        var response = new PkShopBuyResponse();
-
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
 
         _logger.ZLogInformation($"[Shop/Buy] Uid:{uid}, ShopItemId:{request.ShopItemId}");
 
-        var (error, reward) = await _shopService.BuyItemAsync(uid, request.ShopItemId);
-        if (error != ErrorCode.None)
-        {
-            response.Result = error;
-            return response;
-        }
-
-        response.Reward = reward;
-        response.Currencies = await _currencyService.GetAllAsync(uid);
-        response.Result = ErrorCode.None;
-        return response;
+        return await _shopService.BuyItemAsync(uid, request.ShopItemId);
     }
 
 #if DEBUG

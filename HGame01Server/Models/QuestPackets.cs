@@ -61,7 +61,7 @@ public class PkQuestClaimRequest
     public string InstanceId { get; set; } = "";
 }
 
-public class PkQuestClaimResponse
+public class PkQuestClaimResponse : ICurrencyBearingResponse
 {
     public ErrorCode Result { get; set; }
     public string InstanceId { get; set; } = "";
@@ -78,7 +78,7 @@ public class PkQuestClaimResponse
 // 라운드 D 1차: 서버 일일 1회 제한 미구현 (클라 session memory만). 라운드 D 2차에 schema 추가.
 public class PkQuestClaimDailyBundleRequest { }
 
-public class PkQuestClaimDailyBundleResponse
+public class PkQuestClaimDailyBundleResponse : ICurrencyBearingResponse
 {
     public ErrorCode Result { get; set; }
 

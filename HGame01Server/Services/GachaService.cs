@@ -24,19 +24,19 @@ public class GachaService
         _logger = logger;
     }
 
-    /// 뽑기 실행. pullCount만큼 장비를 뽑아서 반환.
-    public async Task<(ErrorCode error, List<PkGachaResultItem> items, List<PkUserEquipment> equipments)> PullAsync(long uid, int pullCount)
+    /// 뽑기 실행. pullCount만큼 장비를 뽑아 완성된 응답 DTO를 반환.
+    public async Task<PkGachaPullResponse> PullAsync(long uid, int pullCount)
     {
         if (pullCount != 1 && pullCount != 10)
         {
-            return (ErrorCode.GachaInvalidPullCount, new(), new());
+            return new PkGachaPullResponse { Result = ErrorCode.GachaInvalidPullCount };
         }
 
         // 장비 보관함 풀 상태 체크 — 트랜잭션/재화 차감 전에 차단 (확장 유도 팝업 흐름).
         // "받을 땐 통과, 다음 시도부터 차단" 정책: 현재 count >= capacity 면 진입 거부.
         if (await _storageService.IsFullAsync(uid))
         {
-            return (ErrorCode.EquipmentStorageFull, new(), new());
+            return new PkGachaPullResponse { Result = ErrorCode.EquipmentStorageFull };
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -51,7 +51,7 @@ public class GachaService
             var diamondError = await _currencyService.DeductAsync(uid, CurrencyType.Diamond, totalCost);
             if (diamondError != ErrorCode.None)
             {
-                return (ErrorCode.GachaInsufficientCurrency, new(), new());
+                return new PkGachaPullResponse { Result = ErrorCode.GachaInsufficientCurrency };
             }
 
             // 3. 등급별 가중치 로드 + 합계 방어
@@ -61,7 +61,7 @@ public class GachaService
             {
                 _logger.LogError("[GachaService] 등급 가중치 합이 0 이하입니다. GameData 업로드 상태를 확인하세요.");
                 await transaction.RollbackAsync();
-                return (ErrorCode.GachaPullFailed, new(), new());
+                return new PkGachaPullResponse { Result = ErrorCode.GachaPullFailed };
             }
 
             // 4. 장비 풀 로드 — GameData 미업로드 시 더미 풀로 fallback (로컬 테스트 전용)
@@ -130,15 +130,23 @@ public class GachaService
             _logger.LogInformation("[GachaService] Uid:{Uid} PullCount:{PullCount} Cost:{Cost} Grades:[{Grades}]",
                 uid, pullCount, totalCost, string.Join(",", results.Select(r => r.Grade)));
 
-            // 신규 장비를 클라이언트가 바로 Store에 반영할 수 있도록 패킷 매핑
-            var newEquipmentPackets = EquipmentService.MapToPacket(newEquipments);
-            return (ErrorCode.None, results, newEquipmentPackets);
+            // 응답 DTO 조립 — 신규 장비를 클라이언트가 바로 Store에 반영할 수 있도록 패킷 매핑
+            var response = new PkGachaPullResponse
+            {
+                Result = ErrorCode.None,
+                Items = results,
+                Equipments = EquipmentService.MapToPacket(newEquipments),
+            };
+
+            // 재화는 PopulateCurrenciesAsync 단일 경로로 채움 (currency-contract)
+            await _currencyService.PopulateCurrenciesAsync(response, uid);
+            return response;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[GachaService] 가챠 처리 중 예외 발생. Uid:{Uid}", uid);
             await transaction.RollbackAsync();
-            return (ErrorCode.GachaPullFailed, new(), new());
+            return new PkGachaPullResponse { Result = ErrorCode.GachaPullFailed };
         }
     }
 

@@ -12,13 +12,11 @@ public class MailController : ControllerBase
 {
     private readonly ILogger<MailController> _logger;
     private readonly MailService _mailService;
-    private readonly CurrencyService _currencyService;
 
-    public MailController(ILogger<MailController> logger, MailService mailService, CurrencyService currencyService)
+    public MailController(ILogger<MailController> logger, MailService mailService)
     {
         _logger = logger;
         _mailService = mailService;
-        _currencyService = currencyService;
     }
 
     /// 우편함 목록 조회. 만료 메일은 응답에서 제외 + DB lazy 삭제.
@@ -41,44 +39,18 @@ public class MailController : ControllerBase
     [HttpPost("Claim")]
     public async Task<PkMailClaimResponse> Claim([FromHeader] HeaderDTO header, [FromBody] PkMailClaimRequest request)
     {
-        var response = new PkMailClaimResponse();
-
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
-        long uid = userInfo.UId;
-
-        _logger.ZLogInformation($"[Mail/Claim] Uid:{uid}, MailId:{request.MailId}");
-
-        var (error, mailId, rewards) = await _mailService.ClaimAsync(uid, request.MailId);
-        response.Result = error;
-        response.MailId = mailId;
-        response.Rewards = rewards;
-        if (error == ErrorCode.None)
-        {
-            response.Currencies = await _currencyService.GetAllAsync(uid);
-        }
-        return response;
+        _logger.ZLogInformation($"[Mail/Claim] Uid:{userInfo.UId}, MailId:{request.MailId}");
+        return await _mailService.ClaimAsync(userInfo.UId, request.MailId);
     }
 
     /// 모두 받기. 1건이라도 실패하면 전체 롤백 (단일 트랜잭션).
     [HttpPost("ClaimAll")]
     public async Task<PkMailClaimAllResponse> ClaimAll([FromHeader] HeaderDTO header)
     {
-        var response = new PkMailClaimAllResponse();
-
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
-        long uid = userInfo.UId;
-
-        _logger.ZLogInformation($"[Mail/ClaimAll] Uid:{uid}");
-
-        var (error, ids, rewards) = await _mailService.ClaimAllAsync(uid);
-        response.Result = error;
-        response.ClaimedMailIds = ids;
-        response.Rewards = rewards;
-        if (error == ErrorCode.None)
-        {
-            response.Currencies = await _currencyService.GetAllAsync(uid);
-        }
-        return response;
+        _logger.ZLogInformation($"[Mail/ClaimAll] Uid:{userInfo.UId}");
+        return await _mailService.ClaimAllAsync(userInfo.UId);
     }
 
 #if DEBUG

@@ -314,17 +314,16 @@ public class QuestService
 
     /// 보상 수령 — Completed에서만 허용. RewardResolver로 보상 결정 + Currency 즉시 누적.
     /// Equipment/Item 등 비-Currency 보상은 응답에 정보만 담고 실제 지급은 Phase 9 RewardGrantService 통합에서 처리.
-    public async Task<(ErrorCode error, PkRewardResult? reward, List<PkCurrency> currencies)>
-        ClaimAsync(long uid, string instanceId)
+    public async Task<PkQuestClaimResponse> ClaimAsync(long uid, string instanceId)
     {
         var inst = await _gameDB.GetQuestInstanceAsync(uid, instanceId);
         if (inst == null)
         {
-            return (ErrorCode.QuestInstanceNotFound, null, new());
+            return new PkQuestClaimResponse { Result = ErrorCode.QuestInstanceNotFound, InstanceId = instanceId };
         }
         if (inst.status != "Completed")
         {
-            return (ErrorCode.QuestNotClaimable, null, new());
+            return new PkQuestClaimResponse { Result = ErrorCode.QuestNotClaimable, InstanceId = instanceId };
         }
 
         // GdbQuestData 조회 — id 기반. reward_item / reward_count 자동 동기화 필드 사용.
@@ -332,7 +331,7 @@ public class QuestService
         var quest = quests?.FirstOrDefault(q => q.id == inst.questDataId);
         if (quest == null)
         {
-            return (ErrorCode.QuestDataNotFound, null, new());
+            return new PkQuestClaimResponse { Result = ErrorCode.QuestDataNotFound, InstanceId = instanceId };
         }
 
         // 보상 결정 — Shop과 동일 패턴. reward_item 미설정이면 reward null (status 전환만).
@@ -357,8 +356,14 @@ public class QuestService
         inst.lastUpdatedUtc = FormatUtc(_clock.UtcNow);
         await _gameDB.ClaimQuestTransactionAsync(inst, uid, currencyTypeId, currencyDelta);
 
-        var currencies = await _currencyService.GetAllAsync(uid);
-        return (ErrorCode.None, reward, currencies);
+        var response = new PkQuestClaimResponse
+        {
+            Result = ErrorCode.None,
+            InstanceId = instanceId,
+            Reward = reward,
+        };
+        await _currencyService.PopulateCurrenciesAsync(response, uid);
+        return response;
     }
 
     /// 현 reset window 안에서 일일 종합 보상을 이미 수령했는가.
@@ -374,8 +379,7 @@ public class QuestService
     /// 일일 1회 제한: users.lastDailyBundleClaimedDateUtc 컬럼이 현 reset window 일자와 일치하면 AlreadyClaimed.
     /// users 컬럼 갱신 + Currency 누적은 ClaimDailyBundleTransactionAsync로 atomic 보장.
     /// 임계 + 보상은 GdbConstants(Quest 카테고리)에서 조회 — 디자이너가 SO만 수정/재업로드하면 코드 변경 없이 반영.
-    public async Task<(ErrorCode error, PkRewardResult? reward, List<PkCurrency> currencies)>
-        ClaimDailyBundleAsync(long uid)
+    public async Task<PkQuestClaimDailyBundleResponse> ClaimDailyBundleAsync(long uid)
     {
         // ① 일일 1회 제한 — IResetSchedule.Current 기준 일자(yyyy-MM-dd) 비교.
         // 자정(또는 dailyResetHourUtc) 통과 시 reset window가 새 일자로 회전 → 컬럼 값과 달라지므로 자동으로 다시 수령 가능.
@@ -383,7 +387,7 @@ public class QuestService
         var lastClaimedDate = await _gameDB.GetLastDailyBundleClaimedDateAsync(uid);
         if (lastClaimedDate == currentDateUtc)
         {
-            return (ErrorCode.QuestDailyBundleAlreadyClaimed, null, new());
+            return new PkQuestClaimDailyBundleResponse { Result = ErrorCode.QuestDailyBundleAlreadyClaimed };
         }
 
         // ② Claimed 카운트 검증 — 활성 Daily 인스턴스 중 Claimed가 임계 이상이어야 함.
@@ -405,7 +409,7 @@ public class QuestService
 
         if (claimedDailyCount < requiredCompletedCount)
         {
-            return (ErrorCode.QuestDailyBundleNotReady, null, new());
+            return new PkQuestClaimDailyBundleResponse { Result = ErrorCode.QuestDailyBundleNotReady };
         }
 
         // ③ 보상 sum — GdbConst.Quest.DailyMissionRewards JSON 배열 파싱 → currency별 누적.
@@ -422,10 +426,8 @@ public class QuestService
         var currencyDeltas = sumByCurrency.Select(kv => (kv.Key, kv.Value)).ToList();
         await _gameDB.ClaimDailyBundleTransactionAsync(uid, currentDateUtc, currencyDeltas);
 
-        var currencies = await _currencyService.GetAllAsync(uid);
-
         // primary reward — 합산 amount가 가장 큰 currency를 UI 연출용으로 응답.
-        // 나머지 currency는 currencies(GetAllAsync) 절대값 갱신으로 클라 UI 자연 반영.
+        // 나머지 currency는 응답 Currencies(전체 절대 스냅샷) 갱신으로 클라 UI 자연 반영.
         // PkRewardResult 단일 반환은 RewardSequence(CoinFlyStep)가 1종 sprite/flyTarget으로 분기하는 기존 제약 정합 — 다중 currency 동시 연출은 응답 List 확장이 필요한 별도 작업.
         var topCurrency = sumByCurrency.OrderByDescending(kv => kv.Value).First();
         var reward = new PkRewardResult
@@ -435,7 +437,14 @@ public class QuestService
             RewardType = "Item",
             ItemKind = "Currency",
         };
-        return (ErrorCode.None, reward, currencies);
+
+        var response = new PkQuestClaimDailyBundleResponse
+        {
+            Result = ErrorCode.None,
+            Reward = reward,
+        };
+        await _currencyService.PopulateCurrenciesAsync(response, uid);
+        return response;
     }
 
     /// GdbConst.Quest.DailyMissionRewards JSON 배열 파싱 → currency_type별 sum.

@@ -12,37 +12,22 @@ public class GachaController : ControllerBase
 {
     private readonly ILogger<GachaController> _logger;
     private readonly GachaService _gachaService;
-    private readonly CurrencyService _currencyService;
 
-    public GachaController(ILogger<GachaController> logger, GachaService gachaService, CurrencyService currencyService)
+    public GachaController(ILogger<GachaController> logger, GachaService gachaService)
     {
         _logger = logger;
         _gachaService = gachaService;
-        _currencyService = currencyService;
     }
 
     /// 뽑기 실행.
     [HttpPost("Pull")]
     public async Task<PkGachaPullResponse> Pull([FromHeader] HeaderDTO header, [FromBody] PkGachaPullRequest request)
     {
-        var response = new PkGachaPullResponse();
-
         MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
         long uid = userInfo.UId;
 
         _logger.ZLogInformation($"[Gacha/Pull] Uid:{uid}, PullCount:{request.PullCount}");
 
-        var (error, items, equipments) = await _gachaService.PullAsync(uid, request.PullCount);
-        if (error != ErrorCode.None)
-        {
-            response.Result = error;
-            return response;
-        }
-
-        response.Items = items;
-        response.Equipments = equipments;
-        response.Currencies = await _currencyService.GetAllAsync(uid);
-        response.Result = ErrorCode.None;
-        return response;
+        return await _gachaService.PullAsync(uid, request.PullCount);
     }
 }

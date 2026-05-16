@@ -74,7 +74,7 @@ public class PkExpandCapacityRequest
 {
 }
 
-public class PkExpandCapacityResponse
+public class PkExpandCapacityResponse : ICurrencyBearingResponse
 {
     public ErrorCode Result { get; set; }
     /// 확장 후 새 capacity. 실패 시 0.
@@ -117,7 +117,7 @@ public class PkShopBuyRequest
     public string ShopItemId { get; set; } = "";
 }
 
-public class PkShopBuyResponse
+public class PkShopBuyResponse : ICurrencyBearingResponse
 {
     public ErrorCode Result { get; set; }
     public List<PkCurrency> Currencies { get; set; } = new();
@@ -156,7 +156,7 @@ public class PkGachaPullRequest
     public int PullCount { get; set; }
 }
 
-public class PkGachaPullResponse
+public class PkGachaPullResponse : ICurrencyBearingResponse
 {
     public ErrorCode Result { get; set; }
     public List<PkGachaResultItem> Items { get; set; } = new();
@@ -252,7 +252,7 @@ public class PkSellRequest
     public List<long> EquipmentDbIds { get; set; } = new();
 }
 
-public class PkSellResponse
+public class PkSellResponse : ICurrencyBearingResponse
 {
     public ErrorCode Result { get; set; }
     /// 판매 후 갱신된 전체 장비 목록.
@@ -327,7 +327,7 @@ public class PkMailClaimRequest
     public string MailId { get; set; } = "";
 }
 
-public class PkMailClaimResponse
+public class PkMailClaimResponse : ICurrencyBearingResponse
 {
     public ErrorCode Result { get; set; }
     public string MailId { get; set; } = "";
@@ -338,7 +338,7 @@ public class PkMailClaimResponse
 // POST api/Mail/ClaimAll
 public class PkMailClaimAllRequest { }
 
-public class PkMailClaimAllResponse
+public class PkMailClaimAllResponse : ICurrencyBearingResponse
 {
     public ErrorCode Result { get; set; }
     public List<string> ClaimedMailIds { get; set; } = new();

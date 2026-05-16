@@ -56,7 +56,8 @@ public class EquipmentStorageService
     // ===== 확장 =====
 
     /// 다이아 차감 + capacity 증가 (트랜잭션 묶음).
-    public async Task<(ErrorCode error, int newCapacity)> ExpandCapacityAsync(long uid)
+    /// 성공 시 갱신된 재화 스냅샷을 응답에 동봉한다 (currency-contract).
+    public async Task<PkExpandCapacityResponse> ExpandCapacityAsync(long uid)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
@@ -64,14 +65,14 @@ public class EquipmentStorageService
             var diamondError = await _currencyService.DeductAsync(uid, CurrencyType.Diamond, ExpandCostDiamond);
             if (diamondError != ErrorCode.None)
             {
-                return (ErrorCode.CurrencyInsufficientAmount, 0);
+                return new PkExpandCapacityResponse { Result = ErrorCode.CurrencyInsufficientAmount };
             }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.uid == uid);
             if (user == null)
             {
                 await transaction.RollbackAsync();
-                return (ErrorCode.LoginFailUserNotExist, 0);
+                return new PkExpandCapacityResponse { Result = ErrorCode.LoginFailUserNotExist };
             }
 
             user.equipmentStorageCapacity += ExpandSlotsPerPurchase;
@@ -79,13 +80,21 @@ public class EquipmentStorageService
             await transaction.CommitAsync();
 
             _logger.LogInformation("[EquipmentStorageService] Expand uid={Uid} newCapacity={Capacity}", uid, user.equipmentStorageCapacity);
-            return (ErrorCode.None, user.equipmentStorageCapacity);
+
+            // 성공 시에만 재화 스냅샷 동봉 (클라 store 다이아 차감 즉시 반영용).
+            var response = new PkExpandCapacityResponse
+            {
+                Result = ErrorCode.None,
+                NewCapacity = user.equipmentStorageCapacity,
+            };
+            await _currencyService.PopulateCurrenciesAsync(response, uid);
+            return response;
         }
         catch (Exception e)
         {
             await transaction.RollbackAsync();
             _logger.LogError(e, "[EquipmentStorageService] ExpandCapacity 예외");
-            return (ErrorCode.EquipmentStorageExpandFailed, 0);
+            return new PkExpandCapacityResponse { Result = ErrorCode.EquipmentStorageExpandFailed };
         }
     }
 }

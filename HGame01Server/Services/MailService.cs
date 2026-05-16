@@ -33,7 +33,7 @@ public class MailService
     }
 
     /// 단건 수령 — 트랜잭션 안에서 claim + 보상 지급. 중간 실패 시 전체 롤백.
-    public async Task<(ErrorCode error, string mailId, List<PkRewardResult> rewards)> ClaimAsync(long uid, string mailId)
+    public async Task<PkMailClaimResponse> ClaimAsync(long uid, string mailId)
     {
         await using var tx = await _context.Database.BeginTransactionAsync();
         try
@@ -41,37 +41,45 @@ public class MailService
             var mail = await _gameDB.GetMailAsync(uid, mailId);
             if (mail == null)
             {
-                return (ErrorCode.MailNotFound, mailId, new());
+                return new PkMailClaimResponse { Result = ErrorCode.MailNotFound, MailId = mailId };
             }
             if (!string.IsNullOrEmpty(mail.claimedAt))
             {
-                return (ErrorCode.MailAlreadyClaimed, mailId, new());
+                return new PkMailClaimResponse { Result = ErrorCode.MailAlreadyClaimed, MailId = mailId };
             }
             if (IsExpired(mail))
             {
-                return (ErrorCode.MailExpired, mailId, new());
+                return new PkMailClaimResponse { Result = ErrorCode.MailExpired, MailId = mailId };
             }
 
             var rewardEntries = ParseRewards(mail.rewardsJson);
-            var results = await GrantRewardsAsync(uid, rewardEntries);
+            var rewards = await GrantRewardsAsync(uid, rewardEntries);
 
             // B안: row 보관 + claimedAt 채움. 클라 List 응답은 GetClaimableMailsAsync 로 미수령만 반환하므로 사용자 화면에서 자동 사라짐.
             mail.claimedAt = NowStr();
             await _gameDB.UpdateMailClaimedAsync(mail);
 
             await tx.CommitAsync();
-            return (ErrorCode.None, mailId, results);
+
+            var response = new PkMailClaimResponse
+            {
+                Result = ErrorCode.None,
+                MailId = mailId,
+                Rewards = rewards,
+            };
+            await _currencyService.PopulateCurrenciesAsync(response, uid);
+            return response;
         }
         catch (Exception ex)
         {
             _ = ex;
             await tx.RollbackAsync();
-            return (ErrorCode.MailClaimFailed, mailId, new());
+            return new PkMailClaimResponse { Result = ErrorCode.MailClaimFailed, MailId = mailId };
         }
     }
 
     /// 모두 받기 — 단일 트랜잭션, 1건이라도 실패하면 전체 롤백 (Q3 A안).
-    public async Task<(ErrorCode error, List<string> claimedIds, List<PkRewardResult> rewards)> ClaimAllAsync(long uid)
+    public async Task<PkMailClaimAllResponse> ClaimAllAsync(long uid)
     {
         await using var tx = await _context.Database.BeginTransactionAsync();
         try
@@ -79,7 +87,7 @@ public class MailService
             var mails = await _gameDB.GetClaimableMailsAsync(uid, NowStr());
             if (mails.Count == 0)
             {
-                return (ErrorCode.MailNoClaimable, new(), new());
+                return new PkMailClaimAllResponse { Result = ErrorCode.MailNoClaimable };
             }
 
             var ids = new List<string>(mails.Count);
@@ -99,13 +107,21 @@ public class MailService
             // B안: batch claimedAt 갱신 (row 보관).
             await _gameDB.UpdateMailsClaimedBatchAsync(mails);
             await tx.CommitAsync();
-            return (ErrorCode.None, ids, allRewards);
+
+            var response = new PkMailClaimAllResponse
+            {
+                Result = ErrorCode.None,
+                ClaimedMailIds = ids,
+                Rewards = allRewards,
+            };
+            await _currencyService.PopulateCurrenciesAsync(response, uid);
+            return response;
         }
         catch (Exception ex)
         {
             _ = ex;
             await tx.RollbackAsync();
-            return (ErrorCode.MailClaimFailed, new(), new());
+            return new PkMailClaimAllResponse { Result = ErrorCode.MailClaimFailed };
         }
     }
 
