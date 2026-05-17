@@ -29,8 +29,12 @@ public class GameUserSeasonPass
     /// JSON int[] — 수령한 Premium 보상 레벨.
     public string claimedPremiumJson { get; set; } = "[]";
 
-    /// 시즌 종료 UTC. 만료 정산(Lazy) 비교 기준.
-    public string seasonEndUtc { get; set; } = "";
+    /// 만료 정산 완료 여부 — 미수령 보상 우편 발송을 1회만(멱등). passreset 시 false로 리셋.
+    public bool isSettled { get; set; }
+
+    /// 디버그 전용 — cheat(passend)로 이 유저만 강제 만료. 시즌 종료시각은 게임데이터(GdbSeasonPassData.end_utc) 단일 출처라
+    /// 유저별 시각 컬럼을 두지 않고, 강제 만료 의도만 bool로 표현. passreset 시 false.
+    public bool cheatForceEnded { get; set; }
 
     public string updatedAtUtc { get; set; } = "";
 }

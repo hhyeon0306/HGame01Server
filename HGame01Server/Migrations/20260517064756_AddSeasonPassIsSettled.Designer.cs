@@ -3,6 +3,7 @@ using HGame01Server.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HGame01Server.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    partial class GameDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260517064756_AddSeasonPassIsSettled")]
+    partial class AddSeasonPassIsSettled
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -298,9 +301,6 @@ namespace HGame01Server.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
-                    b.Property<bool>("cheatForceEnded")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("claimedBasicJson")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -317,6 +317,10 @@ namespace HGame01Server.Migrations
 
                     b.Property<bool>("isSettled")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("seasonEndUtc")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("updatedAtUtc")
                         .IsRequired()
