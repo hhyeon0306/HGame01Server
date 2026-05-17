@@ -62,4 +62,15 @@ public class SeasonPassController : ControllerBase
 
         return await _seasonPassService.ClaimAvailableAsync(uid);
     }
+
+    /// 디버그 전용 — 패스 상태 강제 변이. op="levelup"|"max"|"reset".
+    [HttpPost("Cheat")]
+    public async Task<PkSeasonPassCheatResponse> Cheat([FromHeader] HeaderDTO header, [FromBody] PkSeasonPassCheatRequest request)
+    {
+        MdbUserData userInfo = (MdbUserData)HttpContext.Items[nameof(MdbUserData)]!;
+        long uid = userInfo.UId;
+        _logger.ZLogInformation($"[SeasonPass/Cheat] Uid:{uid} op:{request.op}");
+
+        return await _seasonPassService.CheatAsync(uid, request.op ?? "");
+    }
 }

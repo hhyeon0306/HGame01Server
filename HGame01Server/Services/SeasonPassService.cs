@@ -210,6 +210,57 @@ public class SeasonPassService
     }
 
 
+    /// 디버그 전용 — 패스 상태 강제 변이. op="levelup"(+1레벨) / "max"(만렙) / "reset"(전체 와이프).
+    /// maxLevel·expPerLevel 도출은 ClaimAvailableAsync와 동일 출처(level_rewards / GdbConst) — 단일 진실원.
+    public async Task<PkSeasonPassCheatResponse> CheatAsync(long uid, string op)
+    {
+        var row = await ResolveOrCreateUserSeasonPassAsync(uid);
+
+        int expPerLevel = _gameDataManager.GetConstInt(GdbConst.SeasonPass.Category, GdbConst.SeasonPass.ExpPerLevel, defaultValue: 100);
+        var seasonData = _gameDataManager.Get<GdbSeasonPassData>(s => s.tag == row.seasonId);
+        int maxLevel = seasonData?.level_rewards?.LastOrDefault()?.level ?? 0;
+        // 1-base 정의상 만렙 exp = (maxLevel-1)*expPerLevel. 클라 RefreshSlider의 totalExp와 동일 기준.
+        int maxExp = maxLevel > 0 ? (maxLevel - 1) * expPerLevel : 0;
+
+        switch (op)
+        {
+            case "levelup":
+                row.currentExp += expPerLevel;
+                if (maxLevel > 0 && row.currentExp > maxExp)
+                {
+                    row.currentExp = maxExp;
+                }
+                break;
+
+            case "max":
+                if (maxLevel > 0)
+                {
+                    row.currentExp = maxExp;
+                }
+                break;
+
+            case "reset":
+                row.currentExp = 0;
+                row.isPremium = false;
+                row.claimedBasicJson = "[]";
+                row.claimedPremiumJson = "[]";
+                break;
+
+            default:
+                return new PkSeasonPassCheatResponse { result = ErrorCode.InValidRequestHttpBody };
+        }
+
+        row.updatedAtUtc = NowStr();
+        await _gameDB.UpsertUserSeasonPassAsync(row);
+
+        return new PkSeasonPassCheatResponse
+        {
+            result = ErrorCode.None,
+            state = BuildStateDto(row),
+        };
+    }
+
+
     // ===== private =====
 
     private async Task<GameUserSeasonPass> ResolveOrCreateUserSeasonPassAsync(long uid)

@@ -73,3 +73,16 @@ public class PkSeasonPassClaimResponse : ICurrencyBearingResponse
     public PkRewardResult? reward { get; set; }
     public PkSeasonPassState? state { get; set; }
 }
+
+
+// POST api/SeasonPass/Cheat — 디버그 전용. op="levelup"|"max"|"reset" 단일 endpoint로 3 op 처리.
+public class PkSeasonPassCheatRequest
+{
+    public string op { get; set; } = "";
+}
+
+public class PkSeasonPassCheatResponse
+{
+    public ErrorCode result { get; set; }
+    public PkSeasonPassState? state { get; set; }
+}
