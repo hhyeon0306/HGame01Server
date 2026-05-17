@@ -17,6 +17,12 @@ public class PkSeasonPassState
     public List<int> claimedBasic { get; set; } = new();
     public List<int> claimedPremium { get; set; } = new();
     public string seasonEndUtc { get; set; } = "";
+
+    // 표시 파생값 — 서버 권위 계산(레벨 공식 단일 출처). 클라는 재계산 없이 표시만.
+    public int currentLevel { get; set; }
+    public int nextLevel { get; set; }
+    public int expInCurrentLevel { get; set; }
+    public int expPerLevel { get; set; }
 }
 
 

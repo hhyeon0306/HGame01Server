@@ -119,12 +119,7 @@ public class SeasonPassService
 
         // 최대 레벨은 levelRewards 마지막 entry로 도출 — 단일 출처 원칙(SeasonPassConstantsData에 별도 maxPassLevel 필드 없음).
         int maxLevel = seasonData?.level_rewards?.LastOrDefault()?.level ?? 0;
-        // 1-base "현재 도달 레벨" — 시작 시 1, expPerLevel 단위 누적 시 +1. exp=0이어도 Lv.1 보상은 unlock.
-        int currentLevel = expPerLevel > 0 ? row.currentExp / expPerLevel + 1 : 1;
-        if (maxLevel > 0 && currentLevel > maxLevel)
-        {
-            currentLevel = maxLevel;
-        }
+        int currentLevel = ComputeCurrentLevel(row.currentExp, expPerLevel, maxLevel);
         var alreadyBasic = ParseLevelSet(row.claimedBasicJson);
         var alreadyPremium = ParseLevelSet(row.claimedPremiumJson);
 
@@ -263,6 +258,24 @@ public class SeasonPassService
 
     // ===== private =====
 
+    /// 경험치 → 현재 레벨 (1-base). 시작(exp 0) 1, expPerLevel 단위 누적 시 +1, maxLevel 캡.
+    /// ⚠ 클라 SeasonPassRuntimeState.ComputeCurrentLevel과 반드시 동일 공식 — 표시 레벨 = 보상 지급 레벨 일치 보장.
+    private static int ComputeCurrentLevel(int currentExp, int expPerLevel, int maxLevel)
+    {
+        if (expPerLevel <= 0)
+        {
+            return 1;
+        }
+
+        int level = currentExp / expPerLevel + 1;
+        if (maxLevel > 0 && level > maxLevel)
+        {
+            level = maxLevel;
+        }
+
+        return level;
+    }
+
     private async Task<GameUserSeasonPass> ResolveOrCreateUserSeasonPassAsync(long uid)
     {
         var row = await _gameDB.GetUserSeasonPassAsync(uid, CurrentSeasonId);
@@ -341,6 +354,16 @@ public class SeasonPassService
 
     private PkSeasonPassState BuildStateDto(GameUserSeasonPass row)
     {
+        int expPerLevel = _gameDataManager.GetConstInt(GdbConst.SeasonPass.Category, GdbConst.SeasonPass.ExpPerLevel, defaultValue: 100);
+        var seasonData = _gameDataManager.Get<GdbSeasonPassData>(s => s.tag == row.seasonId);
+        int maxLevel = seasonData?.level_rewards?.LastOrDefault()?.level ?? 0;
+
+        int currentLevel = ComputeCurrentLevel(row.currentExp, expPerLevel, maxLevel);
+        int nextLevel = maxLevel > 0 ? Math.Min(currentLevel + 1, maxLevel) : currentLevel + 1;
+        // 만렙이면 현재 레벨 칸이 가득(=100%). 그 외엔 레벨 내 누적 경험치.
+        bool isMax = maxLevel > 0 && currentLevel >= maxLevel;
+        int expInCurrentLevel = expPerLevel <= 0 ? 0 : (isMax ? expPerLevel : row.currentExp % expPerLevel);
+
         return new PkSeasonPassState
         {
             seasonId = row.seasonId,
@@ -349,6 +372,10 @@ public class SeasonPassService
             claimedBasic = ParseLevelList(row.claimedBasicJson),
             claimedPremium = ParseLevelList(row.claimedPremiumJson),
             seasonEndUtc = row.seasonEndUtc ?? "",
+            currentLevel = currentLevel,
+            nextLevel = nextLevel,
+            expInCurrentLevel = expInCurrentLevel,
+            expPerLevel = expPerLevel,
         };
     }
 
