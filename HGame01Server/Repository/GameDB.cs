@@ -330,7 +330,8 @@ public class GameDB : IGameDB
             existing.isPremium = row.isPremium;
             existing.claimedBasicJson = row.claimedBasicJson;
             existing.claimedPremiumJson = row.claimedPremiumJson;
-            existing.seasonEndUtc = row.seasonEndUtc;
+            existing.isSettled = row.isSettled;
+            existing.cheatForceEnded = row.cheatForceEnded;
             existing.updatedAtUtc = row.updatedAtUtc;
         }
         await _context.SaveChangesAsync();
@@ -357,7 +358,8 @@ public class GameDB : IGameDB
             existing.isPremium = row.isPremium;
             existing.claimedBasicJson = row.claimedBasicJson;
             existing.claimedPremiumJson = row.claimedPremiumJson;
-            existing.seasonEndUtc = row.seasonEndUtc;
+            existing.isSettled = row.isSettled;
+            existing.cheatForceEnded = row.cheatForceEnded;
             existing.updatedAtUtc = row.updatedAtUtc;
         }
 

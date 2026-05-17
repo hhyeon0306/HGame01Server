@@ -17,22 +17,28 @@ public class SeasonPassService
     private readonly IClock _clock;
     private readonly GameDataManager _gameDataManager;
     private readonly CurrencyService _currencyService;
+    private readonly MailService _mailService;
 
     /// 현재 단일 활성 시즌 식별자. 추후 GdbSeasonPassData에서 startUtc/endUtc 범위로 lookup 예정.
     private const string CurrentSeasonId = "Tag.Pass.Season1";
 
-    public SeasonPassService(IGameDB gameDB, IClock clock, GameDataManager gameDataManager, CurrencyService currencyService)
+    /// 시즌 만료 정산 우편 제목 Localization 키.
+    private const string SeasonEndedMailTitleKey = "seasonpass.mail.season_ended.title";
+
+    public SeasonPassService(IGameDB gameDB, IClock clock, GameDataManager gameDataManager, CurrencyService currencyService, MailService mailService)
     {
         _gameDB = gameDB;
         _clock = clock;
         _gameDataManager = gameDataManager;
         _currencyService = currencyService;
+        _mailService = mailService;
     }
 
     /// 현재 시즌 상태 조회. Row 없으면 신규 발급 후 반환.
     public async Task<PkSeasonPassStateResponse> GetStateAsync(long uid)
     {
         var row = await ResolveOrCreateUserSeasonPassAsync(uid);
+        await SettleIfExpiredAsync(row);
         return new PkSeasonPassStateResponse
         {
             result = ErrorCode.None,
@@ -239,6 +245,13 @@ public class SeasonPassService
                 row.isPremium = false;
                 row.claimedBasicJson = "[]";
                 row.claimedPremiumJson = "[]";
+                row.isSettled = false;        // 새 시즌 시작 — 만료 정산 재무장
+                row.cheatForceEnded = false;  // 강제 만료 해제 → 다시 active
+                break;
+
+            case "end":
+                // 유저 row만 강제 만료 (게임데이터 종료시각은 전역이라 안 건드림).
+                row.cheatForceEnded = true;
                 break;
 
             default:
@@ -247,6 +260,9 @@ public class SeasonPassService
 
         row.updatedAtUtc = NowStr();
         await _gameDB.UpsertUserSeasonPassAsync(row);
+
+        // end op는 즉시 정산 트리거 — 응답이 바로 ended 상태/우편 발송 반영(클라 GetState 재호출 불필요).
+        await SettleIfExpiredAsync(row);
 
         return new PkSeasonPassCheatResponse
         {
@@ -276,22 +292,128 @@ public class SeasonPassService
         return level;
     }
 
+    /// 시즌 상태 — endUtc 경과면 "ended"(만료), 아니면 "active". 클라 표시·진입 분기용.
+    private string ComputeSeasonStatus(GameUserSeasonPass row)
+    {
+        return IsSeasonExpired(row) ? "ended" : "active";
+    }
+
+    /// 만료 판정 — cheat 강제 만료(유저별) 또는 게임데이터 종료시각(GdbSeasonPassData.end_utc, 전역) 경과.
+    private bool IsSeasonExpired(GameUserSeasonPass row)
+    {
+        if (row.cheatForceEnded)
+        {
+            return true;
+        }
+
+        string endStr = ResolveSeasonEndUtc(row.seasonId);
+        if (string.IsNullOrEmpty(endStr))
+        {
+            return false;
+        }
+
+        if (!DateTime.TryParse(endStr, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var endUtc))
+        {
+            return false;
+        }
+
+        return _clock.UtcNow >= endUtc;
+    }
+
+    /// Lazy 만료 정산 — endUtc 경과 && 미정산이면 미수령 보상을 우편 발송 후 isSettled 마킹(멱등).
+    /// GetState 진입 시 호출. 보상 없어도 정산 완료 마킹(중복 발송/체크 방지).
+    /// 정산 우편 만료 기간 (분) — 7일. SendAsync는 expireMinutes를 그대로 적용하므로 0이면 즉시 만료됨에 주의.
+    private const int SettleMailExpireMinutes = 60 * 24 * 7;
+
+    private async Task SettleIfExpiredAsync(GameUserSeasonPass row)
+    {
+        if (row.isSettled || !IsSeasonExpired(row))
+        {
+            return;
+        }
+
+        var unclaimed = CollectUnclaimedRewards(row);
+        if (unclaimed.Count > 0)
+        {
+            // 우편 cell은 단일 reward만 표시·아이콘 매핑하므로, 같은 통화(rewardTag)는 합산해 tag당 1통 발송.
+            var grouped = unclaimed
+                .GroupBy(r => r.rewardTag)
+                .Select(g => new MailRewardEntry { rewardTag = g.Key, count = g.Sum(x => x.count) })
+                .ToList();
+
+            foreach (var entry in grouped)
+            {
+                var single = new List<MailRewardEntry> { entry };
+                string iconKey = ResolveItemIconName(entry.rewardTag);
+                await _mailService.SendAsync(
+                    row.uid,
+                    SeasonEndedMailTitleKey,
+                    single,
+                    iconAtlas: string.IsNullOrEmpty(iconKey) ? "" : "ItemAtlas",
+                    iconKey: iconKey,
+                    expireMinutes: SettleMailExpireMinutes);
+            }
+        }
+
+        row.isSettled = true;
+        row.updatedAtUtc = NowStr();
+        await _gameDB.UpsertUserSeasonPassAsync(row);
+    }
+
+    /// rewardTag(GameplayTag) → GdbItemData.icon_name 룩업. 우편함 cell 아이콘용 (QuestService.ResolveItemIconName과 동일 패턴).
+    private string ResolveItemIconName(string rewardTag)
+    {
+        if (string.IsNullOrEmpty(rewardTag))
+        {
+            return "";
+        }
+
+        var items = _gameDataManager.GetList<GdbItemData>();
+        var item = items?.FirstOrDefault(i => i.tag == rewardTag);
+        return item?.icon_name ?? "";
+    }
+
+    /// 도달 레벨까지의 미수령 basic/premium 보상 → 우편 reward 목록. ClaimAvailableAsync의 레벨 순회와 동일 기준.
+    private List<MailRewardEntry> CollectUnclaimedRewards(GameUserSeasonPass row)
+    {
+        var result = new List<MailRewardEntry>();
+
+        int expPerLevel = _gameDataManager.GetConstInt(GdbConst.SeasonPass.Category, GdbConst.SeasonPass.ExpPerLevel, defaultValue: 100);
+        var seasonData = _gameDataManager.Get<GdbSeasonPassData>(s => s.tag == row.seasonId);
+        int maxLevel = seasonData?.level_rewards?.LastOrDefault()?.level ?? 0;
+        int currentLevel = ComputeCurrentLevel(row.currentExp, expPerLevel, maxLevel);
+
+        var claimedBasic = ParseLevelSet(row.claimedBasicJson);
+        var claimedPremium = ParseLevelSet(row.claimedPremiumJson);
+
+        for (int level = 1; level <= currentLevel; level++)
+        {
+            var entry = seasonData?.level_rewards?.FirstOrDefault(e => e.level == level);
+            if (entry == null)
+            {
+                continue;
+            }
+
+            if (!claimedBasic.Contains(level) && !string.IsNullOrEmpty(entry.basic_reward) && entry.basic_count > 0)
+            {
+                result.Add(new MailRewardEntry { rewardTag = entry.basic_reward, count = entry.basic_count });
+            }
+
+            if (row.isPremium && !claimedPremium.Contains(level) && !string.IsNullOrEmpty(entry.premium_reward) && entry.premium_count > 0)
+            {
+                result.Add(new MailRewardEntry { rewardTag = entry.premium_reward, count = entry.premium_count });
+            }
+        }
+
+        return result;
+    }
+
     private async Task<GameUserSeasonPass> ResolveOrCreateUserSeasonPassAsync(long uid)
     {
         var row = await _gameDB.GetUserSeasonPassAsync(uid, CurrentSeasonId);
         if (row != null)
         {
-            // 기존 row의 seasonEndUtc 비어있으면 자동 보강 — GdbSeasonPassData 업로드 이전에 생성된 row 보정.
-            if (string.IsNullOrEmpty(row.seasonEndUtc))
-            {
-                string resolved = ResolveSeasonEndUtc(CurrentSeasonId);
-                if (!string.IsNullOrEmpty(resolved))
-                {
-                    row.seasonEndUtc = resolved;
-                    row.updatedAtUtc = NowStr();
-                    await _gameDB.UpsertUserSeasonPassAsync(row);
-                }
-            }
+            // 종료시각은 게임데이터 단일 출처라 row 보강 불필요 (seasonEndUtc 컬럼 제거됨).
             return row;
         }
 
@@ -304,7 +426,6 @@ public class SeasonPassService
             isPremium = false,
             claimedBasicJson = "[]",
             claimedPremiumJson = "[]",
-            seasonEndUtc = ResolveSeasonEndUtc(CurrentSeasonId),
             updatedAtUtc = nowStr,
         };
         await _gameDB.UpsertUserSeasonPassAsync(row);
@@ -371,11 +492,13 @@ public class SeasonPassService
             isPremium = row.isPremium,
             claimedBasic = ParseLevelList(row.claimedBasicJson),
             claimedPremium = ParseLevelList(row.claimedPremiumJson),
-            seasonEndUtc = row.seasonEndUtc ?? "",
+            // 클라 헤더 남은시간 표시용 — 게임데이터 종료시각(전역 단일 출처)을 응답에 채워 전송.
+            seasonEndUtc = ResolveSeasonEndUtc(row.seasonId),
             currentLevel = currentLevel,
             nextLevel = nextLevel,
             expInCurrentLevel = expInCurrentLevel,
             expPerLevel = expPerLevel,
+            seasonStatus = ComputeSeasonStatus(row),
         };
     }
 

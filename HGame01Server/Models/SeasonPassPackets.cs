@@ -23,6 +23,9 @@ public class PkSeasonPassState
     public int nextLevel { get; set; }
     public int expInCurrentLevel { get; set; }
     public int expPerLevel { get; set; }
+
+    /// 시즌 상태 — "active" | "ended"(만료·정산 완료). 클라 만료 UX 분기용.
+    public string seasonStatus { get; set; } = "active";
 }
 
 
