@@ -17,6 +17,7 @@ public interface IGameDB
     public Task<GameUserCurrency?> GetCurrencyAsync(long uid, int currencyType);
     public Task UpsertCurrencyAsync(long uid, int currencyType, long delta);
     public Task<bool> DeductCurrencyAsync(long uid, int currencyType, long amount);
+    public Task SetCurrencyAsync(long uid, int currencyType, long amount);
 
     // ===== 장비 =====
     public Task<List<GameUserEquipment>> GetEquipmentsByUidAsync(long uid);

@@ -61,4 +61,19 @@ public class CurrencyService
         var success = await _gameDB.DeductCurrencyAsync(uid, currencyType, amount);
         return success ? ErrorCode.None : ErrorCode.CurrencyInsufficientAmount;
     }
+
+    /// 디버그 전용 — 재화를 절대값으로 설정. 음수는 0으로 클램프.
+    public async Task<ErrorCode> SetAsync(long uid, int currencyType, long amount)
+    {
+        try
+        {
+            await _gameDB.SetCurrencyAsync(uid, currencyType, amount < 0 ? 0 : amount);
+            return ErrorCode.None;
+        }
+        catch (Exception ex)
+        {
+            _ = ex;
+            return ErrorCode.CurrencyUpdateFailed;
+        }
+    }
 }

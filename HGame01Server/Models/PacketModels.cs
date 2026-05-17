@@ -367,6 +367,20 @@ public class PkMailCheatSendResponse
 }
 
 
+// POST api/Cheat/SetCurrency — 디버그 전용. 단일 통화를 절대값으로 설정.
+public class PkCheatSetCurrencyRequest
+{
+    public int CurrencyType { get; set; }
+    public long Amount { get; set; }
+}
+
+public class PkCheatSetCurrencyResponse : ICurrencyBearingResponse
+{
+    public ErrorCode Result { get; set; }
+    public List<PkCurrency> Currencies { get; set; } = new();
+}
+
+
 // ============================================================
 // 튜토리얼
 // ============================================================

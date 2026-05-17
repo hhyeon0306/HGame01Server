@@ -105,6 +105,27 @@ public class GameDB : IGameDB
         await _context.SaveChangesAsync();
     }
 
+    /// 디버그 전용 — 재화를 절대값으로 설정 (delta 누적 아님). 치트 SetCurrency용.
+    public async Task SetCurrencyAsync(long uid, int currencyType, long amount)
+    {
+        var currency = await GetCurrencyAsync(uid, currencyType);
+        if (currency == null)
+        {
+            currency = new GameUserCurrency
+            {
+                uid = uid,
+                currencyType = currencyType,
+                amount = amount
+            };
+            _context.UserCurrencies.Add(currency);
+        }
+        else
+        {
+            currency.amount = amount;
+        }
+        await _context.SaveChangesAsync();
+    }
+
     /// 조건부 원자 차감 — 단일 UPDATE 쿼리로 race condition 방지.
     /// "amount >= cost" 조건을 SQL WHERE에 두어 동시 요청 중 하나만 성공하도록 한다.
     /// 영향 행 수가 0이면 잔액 부족 또는 row 미존재로 간주.
