@@ -19,8 +19,6 @@ public class SeasonPassService
     private readonly CurrencyService _currencyService;
     private readonly MailService _mailService;
 
-    /// 현재 단일 활성 시즌 식별자. 추후 GdbSeasonPassData에서 startUtc/endUtc 범위로 lookup 예정.
-    private const string CurrentSeasonId = "Tag.Pass.Season1";
 
     /// 시즌 만료 정산 우편 제목 Localization 키.
     private const string SeasonEndedMailTitleKey = "seasonpass.mail.season_ended.title";
@@ -351,7 +349,8 @@ public class SeasonPassService
                     single,
                     iconAtlas: string.IsNullOrEmpty(iconKey) ? "" : "ItemAtlas",
                     iconKey: iconKey,
-                    expireMinutes: SettleMailExpireMinutes);
+                    expireMinutes: SettleMailExpireMinutes,
+                    mailKind: "SeasonPassSettle");
             }
         }
 
@@ -410,7 +409,9 @@ public class SeasonPassService
 
     private async Task<GameUserSeasonPass> ResolveOrCreateUserSeasonPassAsync(long uid)
     {
-        var row = await _gameDB.GetUserSeasonPassAsync(uid, CurrentSeasonId);
+        string seasonId = ResolveActiveSeasonId();
+
+        var row = await _gameDB.GetUserSeasonPassAsync(uid, seasonId);
         if (row != null)
         {
             // 종료시각은 게임데이터 단일 출처라 row 보강 불필요 (seasonEndUtc 컬럼 제거됨).
@@ -421,7 +422,7 @@ public class SeasonPassService
         row = new GameUserSeasonPass
         {
             uid = uid,
-            seasonId = CurrentSeasonId,
+            seasonId = seasonId,
             currentExp = 0,
             isPremium = false,
             claimedBasicJson = "[]",
@@ -430,6 +431,41 @@ public class SeasonPassService
         };
         await _gameDB.UpsertUserSeasonPassAsync(row);
         return row;
+    }
+
+    /// 현재 활성 시즌 tag — now ∈ [start_utc, end_utc) 인 GdbSeasonPassData.
+    /// 매칭 없으면(시즌 공백/만료 후) end_utc가 가장 늦은 시즌 = 직전/마지막 시즌(만료 정산·"준비중" 표시 대상 보존).
+    /// 데이터 0건이면 빈 문자열(비정상 — 게임데이터 미업로드).
+    private string ResolveActiveSeasonId()
+    {
+        var list = _gameDataManager.GetList<GdbSeasonPassData>();
+        if (list == null || list.Count == 0)
+        {
+            return "";
+        }
+
+        var now = _clock.UtcNow;
+        GdbSeasonPassData fallback = null;
+        DateTime fallbackEnd = DateTime.MinValue;
+
+        foreach (var s in list)
+        {
+            bool hasStart = DateTime.TryParse(s.start_utc, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var start);
+            bool hasEnd = DateTime.TryParse(s.end_utc, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var end);
+
+            if (hasStart && hasEnd && now >= start && now < end)
+            {
+                return s.tag;
+            }
+
+            if (hasEnd && end >= fallbackEnd)
+            {
+                fallbackEnd = end;
+                fallback = s;
+            }
+        }
+
+        return fallback?.tag ?? list[0].tag;
     }
 
     /// GdbSeasonPassData.end_utc lookup — Lazy 만료 정산 비교용. 미업로드/미설정이면 빈 문자열.
