@@ -39,9 +39,9 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-## Secrets / Config (필요시 주석 해제)
-# appsettings.Development.json
-# appsettings.Production.json
+## Secrets / Config — 로컬 자격증명 (커밋 금지)
+appsettings.Development.json
+appsettings.Production.json
 
 ## Claude Code
 .claude/
