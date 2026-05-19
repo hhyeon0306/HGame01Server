@@ -65,8 +65,6 @@ await _next(context);
 
 > 전체 코드: [HGame01Server/Middleware/CheckUserAuthAndLoadUserData.cs](https://github.com/hhyeon0306/HGame01Server/blob/main/HGame01Server/Middleware/CheckUserAuthAndLoadUserData.cs)
 
-&nbsp;
-
 ---
 
 ## 🤝 클라이언트와의 계약
